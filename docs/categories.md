@@ -22,6 +22,7 @@ Status: **have** = collected for Cincinnati and Oxford, **partial** = some, **no
 | P1 | [Adaptive sports and recreation](#adaptive_sports_recreation) | service | 90 days | no | partial |
 | P1 | [Campuses and schools](#education_campus) | place | 180 days | no | partial |
 | P1 | [Hospitals, clinics and care](#health_care) | place | 180 days | no | partial |
+| P1 | [What people report (cross-cutting, low confidence)](#lived_experience) | information | 90 days | no | none |
 | P1 | [Hotels and places to stay](#lodging) | place | 180 days | no | none |
 | P1 | [Equipment, repair and rental](#mobility_equipment_services) | service | 180 days | no | partial |
 | P1 | [Hearing, vision and cognitive access (cross-cutting)](#sensory_communication) | information | 180 days | no | partial |
@@ -34,7 +35,6 @@ Status: **have** = collected for Cincinnati and Oxford, **partial** = some, **no
 | P2 | [Rest, shade, lighting and noise](#comfort_environment) | condition | 365 days | no | none |
 | P2 | [Emergencies, shelters and safety](#emergency_safety) | information | 30 days | yes | none |
 | P2 | [Accessible housing](#housing) | information | 365 days | no | none |
-| P2 | [What people report (cross-cutting, low confidence)](#lived_experience) | information | 90 days | no | none |
 | P2 | [Places of worship and community centers](#worship_community) | place | 365 days | no | none |
 
 Kinds: place | route | event | service | infrastructure | condition | information.
@@ -261,6 +261,21 @@ Typical questions:
 - **Page words:** accessibility, patient accessibility, accessible exam, wheelchair, interpreter, parking, entrances, visitor information
 - **Source kinds:** C, A
 
+## lived_experience
+
+**What people report (cross-cutting, low confidence)** (priority P1, status none)
+
+Typical questions:
+- What is it really like, what do other wheelchair users say?
+
+- **Attributes to extract:** listed_accessible
+- **New attributes needed:**
+  - `reported_experience`: First-hand report with author type, date and sentiment
+- **OSM selectors:** none (not map-based)
+- **Overture hints (unchecked):** none
+- **Page words:** my experience, wheelchair, accessible, not accessible, review, tip
+- **Source kinds:** E, B
+
 ## lodging
 
 **Hotels and places to stay** (priority P1, status none)
@@ -460,21 +475,6 @@ Typical questions:
 - **Overture hints (unchecked):** apartment, housing_authority
 - **Page words:** accessible apartment, accessible unit, housing authority, reasonable accommodation, home modification
 - **Source kinds:** C, K
-
-## lived_experience
-
-**What people report (cross-cutting, low confidence)** (priority P2, status none)
-
-Typical questions:
-- What is it really like, what do other wheelchair users say?
-
-- **Attributes to extract:** listed_accessible
-- **New attributes needed:**
-  - `reported_experience`: First-hand report with author type, date and sentiment
-- **OSM selectors:** none (not map-based)
-- **Overture hints (unchecked):** none
-- **Page words:** my experience, wheelchair, accessible, not accessible, review, tip
-- **Source kinds:** E, B
 
 ## worship_community
 

@@ -355,13 +355,14 @@ gantt
 | Prompt injection in crawled text | text as data, quote check, no tools while reading |
 | Scope creep | phases with numeric exit criteria; C1 to C3 already give a better crawler than today's |
 
-## 13. Open questions for you
-1. Is the **Scrapy-first, custom-fallback** approach acceptable, or do you prefer building the whole crawler ourselves for full control?
-2. May the crawler start with **robots.txt only** (no separate permission requests) for public venue pages, and what is the lab's rule for sites whose terms forbid automated access?
-3. Where can we store large raw archives for free (lab server, university storage)? Do you want **WARC** files for sharing and replay?
-4. Is there a lab **GPU** for OCR and vision models, or must everything run on the laptop?
-5. Who is the **contact** to put on the crawler's identity page, and can the lab host that page?
-6. Should we include **images and documents from every in-scope page** (more storage, more future value) or only from relevant pages?
+## 13. Open questions (answered 2026-11-15)
+
+Answered by you on 2026-11-15 (see `questions_for_you.md`); the effects are in decision D-21.
+
+**Still open:** who is the crawler's contact person (B4); whether the lab's wheelchair recordings can be joined to the map by place and time (E1, ask your professor); whether to ask Miami's library or counsel about redistributing page-derived data (E3); the Maryland counties and deadline beyond "whole city" coverage (A1); WARC files (B2, not needed now); the rule for sites whose terms forbid bots (C2, using my default until you decide: skip and ask permission).
+
+
+From your answers: Scrapy first with a custom fallback; everything runs on your laptop for now; relevant pages only at first; Zenodo may host archives.
 
 ## 14. Sources (searched 2026-11-15)
 - Frameworks: [Scrapy vs Crawlee (Crawlee)](https://crawlee.dev/blog/scrapy-vs-crawlee), [Scrapy vs Playwright vs Crawlee 2026](https://dev.to/0012303/scrapy-vs-playwright-vs-crawlee-which-web-scraping-tool-should-you-use-in-2026-1eik), [Scrapy alternatives (Apify)](https://blog.apify.com/alternatives-scrapy-web-scraping)

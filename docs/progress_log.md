@@ -82,6 +82,10 @@ The maps are live: [Cincinnati](https://zenaism.github.io/accessibility-map/data
 ### To do: needs you
 
 - [ ] Review and approve `docs/national_data_plan.md` and `docs/system_overview.md`; answer their open questions (Maryland scope and other cities, rating cut-offs, GPU or storage at the lab or university, format for the other lab team)
+- [ ] Reddit: request research API access (reddit.com/prefs/apps and the research form) and add the credentials to `.env` yourself (I cannot enter credentials); then I run the existing Reddit connector
+- [ ] Mapillary: create a free developer token (mapillary.com/developer) and add it to `.env`; I will then check the object classes and the licence terms
+- [ ] Ask your professor: can the lab wheelchair recordings (mmRAMP, SurfaceEncoder) be joined to the map by place and time? Who is the crawler contact person?
+- [ ] Ask Miami library or counsel about redistributing data derived from web pages (before the first release)
 - [ ] Send data-request emails: Maryland GIS (pedestrian facilities licence), TDEI/OpenSidewalks, AXS Map, Wheel the World
 - [ ] ~~Spot-check 20 venue facts and the 3 poster records~~ (replaced: no manual checking; automatic rating, decision D-16)
 - [ ] Verify zenaism@miamioh.edu on your GitHub account so commits link to you (done: commits already link to zenaism)

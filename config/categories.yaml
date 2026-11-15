@@ -566,5 +566,5 @@ lived_experience:
   sources: [E, B]
   refresh_days: 90
   temporal: false
-  priority: P2
+  priority: P1
   status: none
