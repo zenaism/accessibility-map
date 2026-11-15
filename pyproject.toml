@@ -1,5 +1,5 @@
 [project]
-name = "ohio-access-atlas"
+name = "accessibility-map"
 version = "0.1.0"
 description = "Multi-source, provenance-tracked wheelchair accessibility data for Cincinnati and Oxford, Ohio"
 requires-python = ">=3.11"
