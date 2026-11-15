@@ -138,6 +138,8 @@ Every route writes to one table, `source_candidates`: URL, discovery route, regi
 - Store `raw/{region}/{source_id}/{YYYY-MM-DD}/...` with a sidecar `manifest.json`: URL, fetched_at, HTTP status and headers, SHA-256, size, license, robots decision.
 - Refresh schedule per source type: live alerts (minutes to hours), 311 and events (daily to weekly), inventories (monthly), plans and PDFs (quarterly), boundaries and elevation (yearly).
 
+The crawler itself (frontier, politeness, rendering, relevance steering, tests, phases) is planned in [`crawler_plan.md`](crawler_plan.md).
+
 #### Completeness: making sure we fetch everything we might need
 
 A crawl is only useful if we know what it missed. Rules, with diagrams 9 and 10 in [`architecture.md`](architecture.md):
@@ -217,6 +219,8 @@ Aim: files they can read without our code, with a documented contract.
 ## 7. Phases
 
 **Phase 0: foundations (about 1 week).** Observation schema v2; raw-store manifest; `source_candidates` and `datasets` tables; dataset-card generator run on the existing Cincinnati and Oxford sources as proof; scenario list and question set drafted.
+
+*Status, 2026-11-15: built (version 0).* Schema v2 as `schema.upgrade()` (the connectors still write v1) with a generated data dictionary; every network fetch recorded in `data/raw/manifest.jsonl` (hash, no secrets); dataset cards and a trust rating for all 51 source-region pairs (`make cards`); a candidate-source table with automatic rating, seeded with 8 sources found for DC, Maryland and Dayton (`make candidates`); 57 category questions as an unlabelled evaluation seed. Limits found: with agreement and track-record not yet measurable, scores barely separate sources (36 of the 46 collected sources are tier A, 10 tier B, none lower), and every website source gets the same authority; both improve with the fusion step and reference data (Phase 4).
 
 **Phase 1: region-in-a-box and structured sources (about 2 weeks).** Region resolver (Census + OSM). Catalog discovery (CKAN, Socrata, ArcGIS Hub, Mobility Database) and the triage and review UI. National layers for any region (OSM, Overture, 3DEP, ACS, GTFS). *Exit:* Washington DC and Maryland have a coverage report with reviewed sources; Cincinnati and Oxford reproduce through the new pipeline with no loss.
 

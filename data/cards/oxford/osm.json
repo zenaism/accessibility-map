@@ -1,0 +1,72 @@
+{
+  "schema": "atlas.dataset_card/1",
+  "id": "oxford.osm",
+  "source": "osm",
+  "region": "oxford",
+  "title": "osm",
+  "connector": "overpass",
+  "publisher": null,
+  "url": null,
+  "licence": "ODbL-1.0 (c) OpenStreetMap contributors",
+  "collected": true,
+  "entities": 6315,
+  "observations": 3894,
+  "documents": 0,
+  "events": 0,
+  "attributes": {
+    "crossing": 1528,
+    "surface": 769,
+    "incline": 537,
+    "wheelchair": 275,
+    "barrier": 227,
+    "tactile_paving": 130,
+    "highway": 125,
+    "kerb": 74,
+    "lit": 65,
+    "handrail": 54,
+    "step_count": 30,
+    "smoothness": 21
+  },
+  "null_rates": {
+    "value": 0.0,
+    "attribute": 0.0,
+    "lat": 0.0,
+    "lon": 0.0,
+    "observed_at": 1.0
+  },
+  "duplicates_share": 0.0,
+  "bbox": [
+    -84.77756,
+    39.48914,
+    -84.71208,
+    39.52904
+  ],
+  "observed_range": null,
+  "last_retrieved": "2026-11-07",
+  "failed_fetches": 0,
+  "robots_skipped": 0,
+  "pages_fetched": 0,
+  "age_days": 8,
+  "refresh_days": 180,
+  "trust": {
+    "score": 85.3,
+    "tier": "A",
+    "components": {
+      "authority": 0.65,
+      "provenance": 0.7,
+      "freshness": 1.0,
+      "completeness": 1.0,
+      "quality": 1.0,
+      "agreement": null,
+      "track_record": null
+    },
+    "used": [
+      "authority",
+      "provenance",
+      "freshness",
+      "completeness",
+      "quality"
+    ]
+  },
+  "known_issues": []
+}

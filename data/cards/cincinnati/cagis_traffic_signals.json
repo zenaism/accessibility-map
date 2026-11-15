@@ -1,0 +1,64 @@
+{
+  "schema": "atlas.dataset_card/1",
+  "id": "cincinnati.cagis_traffic_signals",
+  "source": "cagis_traffic_signals",
+  "region": "cincinnati",
+  "title": "cagis traffic signals",
+  "connector": "arcgis",
+  "publisher": "cagisonline.hamilton-co.org",
+  "url": "https://cagisonline.hamilton-co.org/arcgis/rest/services/DTE/DOTE_Traffic_Engineering/FeatureServer/8",
+  "licence": "CAGIS public data; confirm redistribution terms",
+  "collected": true,
+  "entities": 5324,
+  "observations": 5324,
+  "documents": 0,
+  "events": 0,
+  "attributes": {
+    "traffic_signal": 5324
+  },
+  "null_rates": {
+    "value": 0.0,
+    "attribute": 0.0,
+    "lat": 0.0,
+    "lon": 0.0,
+    "observed_at": 0.0
+  },
+  "duplicates_share": 0.0,
+  "bbox": [
+    -84.70783,
+    39.05605,
+    -84.37447,
+    39.2161
+  ],
+  "observed_range": [
+    "2025-02-24",
+    "2025-02-24"
+  ],
+  "last_retrieved": "2026-11-07",
+  "failed_fetches": 0,
+  "robots_skipped": 0,
+  "pages_fetched": 0,
+  "age_days": 8,
+  "refresh_days": 365,
+  "trust": {
+    "score": 96.9,
+    "tier": "A",
+    "components": {
+      "authority": 0.9,
+      "provenance": 1.0,
+      "freshness": 1.0,
+      "completeness": 1.0,
+      "quality": 1.0,
+      "agreement": null,
+      "track_record": null
+    },
+    "used": [
+      "authority",
+      "provenance",
+      "freshness",
+      "completeness",
+      "quality"
+    ]
+  },
+  "known_issues": []
+}

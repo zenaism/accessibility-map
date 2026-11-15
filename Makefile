@@ -32,6 +32,15 @@ map:              ## GeoJSON per region, the two maps, text page per place, revi
 inventory:        ## per-source summary -> docs/source_inventory.md + data/source_inventory.csv
 	$(PY) -m atlas.cli inventory
 
+cards:            ## dataset cards + trust rating per source -> data/cards/
+	$(PY) -m atlas.cli cards
+
+candidates:       ## rate discovered candidate sources -> data/candidates/source_candidates.csv
+	$(PY) -m atlas.cli candidates
+
+dictionary:       ## data dictionary and category list from their definitions
+	$(PY) scripts/make_data_dictionary.py && $(PY) scripts/make_categories_doc.py
+
 equity:           ## RQ1 analysis -> data/processed/cincinnati/equity_report.md
 	$(PY) -m atlas.cli equity
 
@@ -44,4 +53,4 @@ test:
 lint:
 	.venv/bin/ruff check src tests
 
-.PHONY: setup data report dem equity extract map inventory figure test lint refresh kb eval
+.PHONY: setup data report cards candidates dictionary dem equity extract map inventory figure test lint refresh kb eval

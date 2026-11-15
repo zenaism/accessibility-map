@@ -1,0 +1,51 @@
+{
+  "schema": "atlas.dataset_card/1",
+  "id": "oxford.web_oxford_more",
+  "source": "web_oxford_more",
+  "region": "oxford",
+  "title": "web oxford more",
+  "connector": "web",
+  "publisher": null,
+  "url": null,
+  "licence": "official and visitor-bureau websites; facts with short quotes and links only",
+  "collected": true,
+  "entities": 0,
+  "observations": 0,
+  "documents": 16,
+  "events": 0,
+  "attributes": {},
+  "null_rates": {},
+  "duplicates_share": 0.0,
+  "bbox": null,
+  "observed_range": null,
+  "last_retrieved": "2026-11-12",
+  "failed_fetches": 8,
+  "robots_skipped": 1,
+  "pages_fetched": 16,
+  "age_days": 3,
+  "refresh_days": 180,
+  "trust": {
+    "score": 75.9,
+    "tier": "B",
+    "components": {
+      "authority": 0.55,
+      "provenance": 0.7,
+      "freshness": 1.0,
+      "completeness": 0.667,
+      "quality": 1.0,
+      "agreement": null,
+      "track_record": null
+    },
+    "used": [
+      "authority",
+      "provenance",
+      "freshness",
+      "completeness",
+      "quality"
+    ]
+  },
+  "known_issues": [
+    "8 pages failed to fetch",
+    "1 pages skipped because robots.txt asks bots not to fetch them"
+  ]
+}

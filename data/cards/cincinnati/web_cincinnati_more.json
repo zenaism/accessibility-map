@@ -1,0 +1,50 @@
+{
+  "schema": "atlas.dataset_card/1",
+  "id": "cincinnati.web_cincinnati_more",
+  "source": "web_cincinnati_more",
+  "region": "cincinnati",
+  "title": "web cincinnati more",
+  "connector": "web",
+  "publisher": null,
+  "url": null,
+  "licence": "official and business websites; facts with short quotes and links only",
+  "collected": true,
+  "entities": 0,
+  "observations": 0,
+  "documents": 17,
+  "events": 0,
+  "attributes": {},
+  "null_rates": {},
+  "duplicates_share": 0.0,
+  "bbox": null,
+  "observed_range": null,
+  "last_retrieved": "2026-11-12",
+  "failed_fetches": 19,
+  "robots_skipped": 0,
+  "pages_fetched": 17,
+  "age_days": 3,
+  "refresh_days": 180,
+  "trust": {
+    "score": 72.3,
+    "tier": "B",
+    "components": {
+      "authority": 0.55,
+      "provenance": 0.7,
+      "freshness": 1.0,
+      "completeness": 0.472,
+      "quality": 1.0,
+      "agreement": null,
+      "track_record": null
+    },
+    "used": [
+      "authority",
+      "provenance",
+      "freshness",
+      "completeness",
+      "quality"
+    ]
+  },
+  "known_issues": [
+    "19 pages failed to fetch"
+  ]
+}

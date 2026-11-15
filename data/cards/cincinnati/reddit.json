@@ -1,0 +1,44 @@
+{
+  "schema": "atlas.dataset_card/1",
+  "id": "cincinnati.reddit",
+  "source": "reddit",
+  "region": "cincinnati",
+  "title": "reddit",
+  "connector": "reddit",
+  "publisher": null,
+  "url": null,
+  "licence": "Reddit Data API terms; store ids + hashed authors only, do not redistribute text",
+  "collected": false,
+  "entities": 0,
+  "observations": 0,
+  "documents": 0,
+  "events": 0,
+  "attributes": {},
+  "null_rates": {},
+  "duplicates_share": 0.0,
+  "bbox": null,
+  "observed_range": null,
+  "last_retrieved": null,
+  "failed_fetches": 0,
+  "robots_skipped": 0,
+  "pages_fetched": 0,
+  "age_days": null,
+  "refresh_days": 30,
+  "trust": {
+    "score": 0.0,
+    "tier": "D",
+    "components": {
+      "authority": 0.3,
+      "provenance": 0.5,
+      "freshness": null,
+      "completeness": null,
+      "quality": null,
+      "agreement": null,
+      "track_record": null
+    },
+    "used": []
+  },
+  "known_issues": [
+    "not collected yet"
+  ]
+}

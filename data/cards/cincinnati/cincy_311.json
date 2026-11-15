@@ -1,0 +1,64 @@
+{
+  "schema": "atlas.dataset_card/1",
+  "id": "cincinnati.cincy_311",
+  "source": "cincy_311",
+  "region": "cincinnati",
+  "title": "cincy 311",
+  "connector": "socrata",
+  "publisher": null,
+  "url": null,
+  "licence": "Open Data Cincy (public domain per portal terms; confirm)",
+  "collected": true,
+  "entities": 24639,
+  "observations": 24639,
+  "documents": 0,
+  "events": 0,
+  "attributes": {
+    "reported_issue": 24639
+  },
+  "null_rates": {
+    "value": 0.0,
+    "attribute": 0.0,
+    "lat": 0.0,
+    "lon": 0.0,
+    "observed_at": 0.0
+  },
+  "duplicates_share": 0.0,
+  "bbox": [
+    -84.70666,
+    39.06181,
+    -84.37021,
+    39.21788
+  ],
+  "observed_range": [
+    "2004-09-30",
+    "2026-11-05"
+  ],
+  "last_retrieved": "2026-11-07",
+  "failed_fetches": 0,
+  "robots_skipped": 0,
+  "pages_fetched": 0,
+  "age_days": 8,
+  "refresh_days": 30,
+  "trust": {
+    "score": 91.6,
+    "tier": "A",
+    "components": {
+      "authority": 0.85,
+      "provenance": 0.7,
+      "freshness": 1.0,
+      "completeness": 1.0,
+      "quality": 1.0,
+      "agreement": null,
+      "track_record": null
+    },
+    "used": [
+      "authority",
+      "provenance",
+      "freshness",
+      "completeness",
+      "quality"
+    ]
+  },
+  "known_issues": []
+}

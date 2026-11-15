@@ -16,8 +16,10 @@ A multimodal data-fusion layer and assistant for wheelchair users, started for C
 - `docs/source_types.md`: which kinds of sources beyond government, with licences.
 - `docs/decisions.md`: decision log (what, why, alternatives, costs).
 - `docs/data_landscape.md` section 1: the single attribute list (what users need).
+- `docs/crawler_plan.md`: the web crawler plan (Scrapy plus our modules, crawl wide and extract deep, polite and legal, completeness gates, recall test against the 22 hand-picked sources). Follow it when building or changing fetching code.
 - `config/categories.yaml`: every question category and how to fetch it (docs/categories.md is generated: `python scripts/make_categories_doc.py`). Add or change categories there.
 - Source tracker: `docs/source_inventory.md` and `data/source_inventory.csv` refresh automatically after every `atlas fetch`; `data/ledger/fetch_log.jsonl` is the append-only fetch history. Do not edit them by hand.
+- Phase 0 tools: `make cards` (dataset cards + trust rating in `data/cards/`), `make candidates` (rate discovered sources in `data/candidates/`), `make dictionary` (data dictionary + category list); code in `src/atlas/{schema,trust,cards,candidates}.py`, settings in `config/trust.yaml`. Schema v2 is produced by `schema.upgrade()`; connectors still write v1.
 - `SOURCES.md`: status of each source (collected, next, idea). `config/sources.yaml` and `config/regions.yaml`: the registry the pipeline reads.
 - `src/atlas/`: connectors, export, map, assistant (DuckDB knowledge base in `assistant/kb.py`). Commands: `make map`, `make kb`, `make inventory`, `make test`.
 

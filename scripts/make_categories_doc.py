@@ -67,7 +67,13 @@ def main() -> int:
         )
     out += ["", f"Kinds: {KINDS}.", ""]
     for cid, c in rows:
-        out += [f"## {cid}", "", f"**{c['label']}** (priority {c['priority']}, status {c['status']})", "", "Typical questions:"]
+        out += [
+            f"## {cid}",
+            "",
+            f"**{c['label']}** (priority {c['priority']}, status {c['status']})",
+            "",
+            "Typical questions:",
+        ]
         out += [f"- {q}" for q in c["asks"]]
         out += ["", f"- **Attributes to extract:** {', '.join(c['attributes']) or 'none yet'}"]
         new = c.get("new_attributes") or {}
@@ -75,7 +81,9 @@ def main() -> int:
             out.append("- **New attributes needed:**")
             out += [f"  - `{k}`: {v}" for k, v in new.items()]
         osm = c.get("osm") or []
-        out.append("- **OSM selectors:** " + ("; ".join(f"`{s}`" for s in osm) if osm else "none (not map-based)"))
+        out.append(
+            "- **OSM selectors:** " + ("; ".join(f"`{s}`" for s in osm) if osm else "none (not map-based)")
+        )
         out.append("- **Overture hints (unchecked):** " + (", ".join(c.get("overture") or []) or "none"))
         out.append("- **Page words:** " + ", ".join(c["page_words"]))
         out.append("- **Source kinds:** " + ", ".join(c["sources"]))

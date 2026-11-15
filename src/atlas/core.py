@@ -72,6 +72,23 @@ def _expired(path: Path) -> bool:
     return bool(max_age) and time.time() - path.stat().st_mtime > float(max_age) * 86400
 
 
+def _manifest(key: str, method: str, url: str, params, status: int, body: bytes) -> None:
+    """One line per network fetch in data/raw/manifest.jsonl: what, when, a hash of the bytes. Parameter NAMES
+    only, never values (they may carry API keys)."""
+    entry = {
+        "key": key,
+        "method": method,
+        "url": url,
+        "params": sorted(params) if isinstance(params, dict) else None,
+        "status": status,
+        "sha256": hashlib.sha256(body).hexdigest(),
+        "bytes": len(body),
+        "retrieved_at": now(),
+    }
+    with (RAW / "manifest.jsonl").open("a") as f:
+        f.write(json.dumps(entry) + "\n")
+
+
 def fetch(
     url: str,
     *,
@@ -100,6 +117,7 @@ def fetch(
             if r.status_code >= 400:  # other client errors will not fix themselves
                 raise RuntimeError(f"HTTP {r.status_code} for {r.url[:200]}")
             path.write_bytes(r.content)
+            _manifest(key, method, url, params, r.status_code, r.content)
             time.sleep(min_interval)  # be polite to public servers
             return r.content
         except requests.RequestException as e:

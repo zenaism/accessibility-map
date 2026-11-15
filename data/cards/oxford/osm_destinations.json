@@ -1,0 +1,72 @@
+{
+  "schema": "atlas.dataset_card/1",
+  "id": "oxford.osm_destinations",
+  "source": "osm_destinations",
+  "region": "oxford",
+  "title": "osm destinations",
+  "connector": "osm_destinations",
+  "publisher": null,
+  "url": null,
+  "licence": "ODbL-1.0 (c) OpenStreetMap contributors",
+  "collected": true,
+  "entities": 285,
+  "observations": 71,
+  "documents": 0,
+  "events": 0,
+  "attributes": {
+    "surface": 27,
+    "wheelchair": 9,
+    "incline": 8,
+    "crossing": 5,
+    "access": 5,
+    "opening_hours": 5,
+    "width": 3,
+    "crossing:signals": 2,
+    "changing_table": 2,
+    "lit": 2,
+    "unisex": 1,
+    "toilets:wheelchair": 1
+  },
+  "null_rates": {
+    "value": 0.0,
+    "attribute": 0.0,
+    "lat": 0.0,
+    "lon": 0.0,
+    "observed_at": 1.0
+  },
+  "duplicates_share": 0.0,
+  "bbox": [
+    -84.9423,
+    39.37042,
+    -84.56389,
+    39.63144
+  ],
+  "observed_range": null,
+  "last_retrieved": "2026-11-12",
+  "failed_fetches": 0,
+  "robots_skipped": 0,
+  "pages_fetched": 0,
+  "age_days": 3,
+  "refresh_days": 180,
+  "trust": {
+    "score": 85.3,
+    "tier": "A",
+    "components": {
+      "authority": 0.65,
+      "provenance": 0.7,
+      "freshness": 1.0,
+      "completeness": 1.0,
+      "quality": 1.0,
+      "agreement": null,
+      "track_record": null
+    },
+    "used": [
+      "authority",
+      "provenance",
+      "freshness",
+      "completeness",
+      "quality"
+    ]
+  },
+  "known_issues": []
+}

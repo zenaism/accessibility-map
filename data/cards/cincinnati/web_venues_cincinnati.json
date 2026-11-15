@@ -1,0 +1,50 @@
+{
+  "schema": "atlas.dataset_card/1",
+  "id": "cincinnati.web_venues_cincinnati",
+  "source": "web_venues_cincinnati",
+  "region": "cincinnati",
+  "title": "web venues cincinnati",
+  "connector": "web",
+  "publisher": null,
+  "url": null,
+  "licence": "public web page; cite URL",
+  "collected": true,
+  "entities": 0,
+  "observations": 0,
+  "documents": 25,
+  "events": 0,
+  "attributes": {},
+  "null_rates": {},
+  "duplicates_share": 0.0,
+  "bbox": null,
+  "observed_range": null,
+  "last_retrieved": "2026-11-12",
+  "failed_fetches": 20,
+  "robots_skipped": 0,
+  "pages_fetched": 46,
+  "age_days": 3,
+  "refresh_days": 180,
+  "trust": {
+    "score": 76.5,
+    "tier": "B",
+    "components": {
+      "authority": 0.55,
+      "provenance": 0.7,
+      "freshness": 1.0,
+      "completeness": 0.697,
+      "quality": 1.0,
+      "agreement": null,
+      "track_record": null
+    },
+    "used": [
+      "authority",
+      "provenance",
+      "freshness",
+      "completeness",
+      "quality"
+    ]
+  },
+  "known_issues": [
+    "20 pages failed to fetch"
+  ]
+}
