@@ -53,7 +53,13 @@ def build() -> pd.DataFrame:
     for source, spec in config("sources").items():
         for region in spec["regions"]:
             d = PROCESSED / region
-            row = {"source": source, "type": spec["type"], "region": region}
+            row = {
+                "source": source,
+                "type": spec["type"],
+                "region": region,
+                "url": spec.get("url", ""),
+                "licence": spec.get("license", ""),
+            }
             ent, obs = d / f"{source}.entities.parquet", d / f"{source}.obs.parquet"
             docs, events = d / f"{source}.docs.parquet", d / f"{source}.events.parquet"
             if ent.exists():
@@ -94,6 +100,8 @@ def build() -> pd.DataFrame:
         "source",
         "type",
         "region",
+        "url",
+        "licence",
         "collected",
         "records",
         "categories",

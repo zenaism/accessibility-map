@@ -1,0 +1,570 @@
+# Question categories: everything a wheelchair user might ask about, in one machine-readable list.
+# This file drives data fetching and discovery: which OSM tags to query, which Overture categories to
+# keep, which words mark a relevant web page, which attributes to extract, how fresh the data must be.
+# docs/categories.md is GENERATED from this file (python scripts/make_categories_doc.py): edit here.
+#
+# Fields
+#   label           short name shown to people
+#   asks            example questions (used for the evaluation question bank and for keyword ideas)
+#   kind            place | route | event | service | infrastructure | condition | information
+#   osm             OpenStreetMap selectors (Overpass style, without the bbox); a starting list, extend per region
+#   overture        Overture places category hints: UNCHECKED, verify against the current Overture taxonomy
+#   attributes      attribute names from config/attributes.yaml to extract (new names live in new_attributes)
+#   new_attributes  attributes this category needs that attributes.yaml does not have yet (name: meaning)
+#   page_words      words and phrases that mark a relevant web page or PDF (for crawl relevance scoring)
+#   sources         source kinds that usually carry this category (see docs/source_types.md letters A to K)
+#   refresh_days    how often the data should be re-fetched (null = rarely changes)
+#   temporal        true if values expire (events, closures); store valid_from and valid_to
+#   priority        P0 first regions, P1 next, P2 later
+#   status          have = collected for Cincinnati and Oxford | partial | none
+
+trails_hiking:
+  label: Accessible trails and hiking routes
+  asks:
+    - Is there a paved or hard-packed trail near me?
+    - How steep is it, how wide, what surface?
+    - Is there accessible parking and a restroom at the trailhead?
+    - Can I borrow an all-terrain (track) chair?
+  kind: route
+  osm:
+    - 'way["highway"~"^(path|footway|cycleway|track|bridleway)$"]["name"]'
+    - 'relation["route"~"^(hiking|foot|bicycle|walking)$"]'
+    - 'nwr["tourism"="viewpoint"]'
+  overture: [park, hiking_trail, nature_reserve]
+  attributes: [trail_surface, trail_width, trail_grade, accessible_parking, restroom_accessible, seating_rest, all_terrain_chair, mobility_device_policy, notice]
+  new_attributes:
+    trail_length: "Length of the trail or loop, in km or miles"
+    trail_loop: "Loop, out-and-back or one-way"
+    trail_cross_slope: "Cross slope of the tread (percent)"
+    trail_obstacles: "Roots, steps, gates, narrow bridges, sections not passable"
+  page_words: [accessible trail, wheelchair accessible trail, paved trail, ADA trail, universal access, all-terrain chair, track chair, grade, surface, trailhead]
+  sources: [A, C, D, K]
+  refresh_days: 180
+  temporal: false
+  priority: P0
+  status: partial
+
+parks_outdoors:
+  label: Parks, gardens, playgrounds and nature areas
+  asks:
+    - Which parks have accessible paths, restrooms and picnic tables?
+    - Is there an accessible playground, kayak launch or fishing pier?
+  kind: place
+  osm:
+    - 'nwr["leisure"~"^(park|nature_reserve|garden|playground|dog_park|fishing|picnic_table)$"]["name"]'
+    - 'nwr["boundary"="protected_area"]["name"]'
+  overture: [park, playground, garden, campground, beach]
+  attributes: [entrance_step_free, accessible_route_inside, accessible_parking, restroom_accessible, seating_rest, adaptive_recreation, accessible_lodging, all_terrain_chair]
+  new_attributes:
+    picnic_accessible: "Accessible picnic tables or shelters"
+    playground_accessible: "Playground with accessible surface and equipment"
+  page_words: [accessible park, accessibility, playground, picnic, shelter, kayak launch, fishing pier, campground, accessible campsite]
+  sources: [A, C, D]
+  refresh_days: 180
+  temporal: false
+  priority: P0
+  status: partial
+
+adaptive_sports_recreation:
+  label: Adaptive sports and recreation
+  asks:
+    - Where can I play wheelchair basketball, swim, ski or kayak?
+    - Who lends adaptive equipment?
+  kind: service
+  osm:
+    - 'nwr["leisure"~"^(sports_centre|swimming_pool|fitness_centre|pitch|golf_course)$"]'
+  overture: [sports_and_recreation, gym, swimming_pool]
+  attributes: [adaptive_recreation, entrance_step_free, restroom_accessible, accessible_parking, companion_admission]
+  new_attributes:
+    pool_lift: "Pool lift or accessible entry into the pool"
+    program_eligibility: "Who can join, cost, registration"
+  page_words: [adaptive sports, adaptive recreation, wheelchair basketball, adaptive, para, therapeutic recreation, accessible equipment, pool lift]
+  sources: [C, K, F]
+  refresh_days: 90
+  temporal: false
+  priority: P1
+  status: partial
+
+restrooms:
+  label: Restrooms and changing tables
+  asks:
+    - Where is the nearest accessible restroom?
+    - Is there an adult changing table?
+    - Is it open now, is it free?
+  kind: place
+  osm:
+    - 'nwr["amenity"="toilets"]'
+    - 'nwr["changing_table"]'
+  overture: [public_toilet]
+  attributes: [restroom_accessible, restroom_family, adult_changing_table, entrance_step_free, notice]
+  new_attributes:
+    restroom_hours: "Opening hours of a public restroom"
+    restroom_fee: "Charge to use it"
+    restroom_stall_size: "Stall width or turning space, if stated"
+  page_words: [accessible restroom, accessible toilet, adult changing table, changing places, family restroom, companion restroom, restroom hours]
+  sources: [A, B, C]
+  refresh_days: 90
+  temporal: false
+  priority: P0
+  status: have
+
+parking_dropoff:
+  label: Accessible parking and drop-off
+  asks:
+    - Where can I park close to the entrance, with room for a ramp van?
+    - Is there accessible parking at this venue, how many, what does it cost?
+    - Where do I get dropped off?
+  kind: place
+  osm:
+    - 'nwr["amenity"="parking"]'
+    - 'nwr["parking_space"="disabled"]'
+    - 'nwr["capacity:disabled"]'
+  overture: [parking]
+  attributes: [accessible_parking, drop_off, transit_access]
+  new_attributes:
+    parking_van_accessible: "Van-accessible stalls (side access aisle, height clearance)"
+    parking_distance_to_entrance: "Walking distance from accessible stalls to the entrance"
+    parking_cost: "Fee and permit rules for accessible parking"
+    parking_garage_clearance: "Height clearance of a garage"
+  page_words: [accessible parking, handicap parking, disabled parking, van accessible, ADA parking, drop-off, valet, garage clearance, parking map]
+  sources: [A, C, D, K]
+  refresh_days: 180
+  temporal: false
+  priority: P0
+  status: partial
+
+events:
+  label: Events and activities nearby
+  asks:
+    - What is happening near me this weekend that I can get into?
+    - Is there ASL, audio description, captions, sensory-friendly hours?
+    - Is the event venue step-free, and where do wheelchair users sit?
+  kind: event
+  osm: []
+  overture: [event_space, performing_arts]
+  attributes: [accessible_seating, sensory_friendly, asl_interpretation, captioning, audio_description, assistive_listening, companion_admission, accessible_parking, notice]
+  new_attributes:
+    event_start_end: "Start and end date and time"
+    event_cost: "Ticket cost and any accessibility discount"
+    event_registration: "Registration or request deadline for accommodations"
+  page_words: [event, events calendar, accessibility, ASL, wheelchair seating, sensory friendly, audio described, relaxed performance, request accommodation]
+  sources: [C, F, D]
+  refresh_days: 7
+  temporal: true
+  priority: P0
+  status: have
+
+food_drink:
+  label: Restaurants, cafes and bars
+  asks:
+    - Which restaurants have a step-free entrance and an accessible restroom?
+    - Are the tables and counters at a usable height?
+  kind: place
+  osm:
+    - 'nwr["amenity"~"^(restaurant|cafe|bar|pub|fast_food|ice_cream|biergarten)$"]'
+  overture: [restaurant, cafe, bar, fast_food_restaurant, bakery]
+  attributes: [entrance_step_free, automatic_door, restroom_accessible, accessible_parking, seating_rest, braille, large_print]
+  new_attributes:
+    table_clearance: "Table or counter height and knee clearance; space between tables"
+    outdoor_seating_accessible: "Accessible outdoor seating"
+  page_words: [wheelchair accessible, accessibility, accessible entrance, ramp, step-free, restroom, parking, patio]
+  sources: [A, C, B]
+  refresh_days: 180
+  temporal: false
+  priority: P0
+  status: partial
+
+culture_entertainment:
+  label: Museums, theaters, libraries and attractions
+  asks:
+    - Can I get around the whole museum? Are wheelchairs lent?
+    - Where do wheelchair users sit in the theater? Is there companion seating?
+  kind: place
+  osm:
+    - 'nwr["tourism"~"^(museum|gallery|attraction|zoo|aquarium|theme_park|artwork)$"]'
+    - 'nwr["amenity"~"^(theatre|cinema|library|arts_centre|community_centre)$"]'
+    - 'nwr["historic"]'
+  overture: [museum, art_gallery, theater, movie_theater, library, zoo, aquarium, landmark_and_historical_building]
+  attributes: [entrance_step_free, accessible_route_inside, elevator, wheelchair_loan, scooter_or_ecv, accessible_seating, companion_admission, sensory_friendly, quiet_room, restroom_accessible, accessibility_map, accessibility_contact, ramp_steep]
+  new_attributes: {}
+  page_words: [accessibility, accessible, plan your visit, visitor guide, wheelchair, sensory, accessibility guide, access guide]
+  sources: [C, D]
+  refresh_days: 180
+  temporal: false
+  priority: P0
+  status: have
+
+shopping_daily_services:
+  label: Shopping and daily services
+  asks:
+    - Which grocery stores, pharmacies and banks are step-free?
+    - Is there a motorized cart, an accessible checkout?
+  kind: place
+  osm:
+    - 'nwr["shop"~"^(supermarket|convenience|mall|department_store|chemist|clothes)$"]'
+    - 'nwr["amenity"~"^(bank|post_office|pharmacy|atm)$"]'
+  overture: [grocery_store, supermarket, shopping_center, pharmacy, bank, post_office]
+  attributes: [entrance_step_free, automatic_door, scooter_or_ecv, accessible_parking, restroom_accessible]
+  new_attributes:
+    accessible_checkout: "Lowered counter or accessible checkout lane"
+    aisle_width: "Aisle width or clear path inside"
+  page_words: [accessibility, accessible, motorized cart, wheelchair, ADA, store services]
+  sources: [A, C]
+  refresh_days: 180
+  temporal: false
+  priority: P1
+  status: partial
+
+health_care:
+  label: Hospitals, clinics and care
+  asks:
+    - Is this clinic wheelchair accessible, are exam tables adjustable?
+    - Where is the accessible entrance and parking at the hospital?
+  kind: place
+  osm:
+    - 'nwr["amenity"~"^(hospital|clinic|doctors|dentist|pharmacy)$"]'
+    - 'nwr["healthcare"]'
+  overture: [hospital, clinic, doctor, dentist, physical_therapy]
+  attributes: [entrance_step_free, accessible_route_inside, elevator, accessible_parking, drop_off, restroom_accessible, wheelchair_loan, accessibility_contact, asl_interpretation]
+  new_attributes:
+    exam_table_adjustable: "Height-adjustable exam table or accessible exam room"
+    patient_lift: "Patient lift or transfer assistance"
+  page_words: [accessibility, patient accessibility, accessible exam, wheelchair, interpreter, parking, entrances, visitor information]
+  sources: [C, A]
+  refresh_days: 180
+  temporal: false
+  priority: P1
+  status: partial
+
+transit_mobility:
+  label: Transit and getting around
+  asks:
+    - Is this bus stop accessible? Does the bus have a ramp?
+    - Is the elevator at the station working today?
+    - How do I use paratransit, am I eligible, how do I book?
+    - Is there a wheelchair-accessible taxi or rideshare?
+  kind: infrastructure
+  osm:
+    - 'nwr["highway"="bus_stop"]'
+    - 'nwr["public_transport"~"^(platform|stop_position|station)$"]'
+    - 'nwr["railway"~"^(station|halt|tram_stop|subway_entrance)$"]'
+    - 'nwr["amenity"~"^(taxi|bus_station|ferry_terminal)$"]'
+  overture: [bus_station, train_station, airport, taxi_service, transit_station]
+  attributes: [transit_access, accessible_parking, drop_off, notice]
+  new_attributes:
+    stop_wheelchair_boarding: "GTFS wheelchair_boarding for a stop"
+    stop_shelter_bench: "Shelter and bench at the stop"
+    vehicle_ramp_lift: "Low floor, ramp or lift on the vehicle"
+    elevator_status: "Elevator or escalator working or out of service now"
+    paratransit_rules: "Eligibility, service area, booking, fares"
+    wav_taxi_rideshare: "Wheelchair-accessible taxi or rideshare available"
+  page_words: [paratransit, ADA paratransit, accessible service, elevator outage, wheelchair, ramp, lift, eligibility, how to ride]
+  sources: [A, G, B]
+  refresh_days: 1
+  temporal: true
+  priority: P0
+  status: partial
+
+street_network:
+  label: Sidewalks, ramps, crossings and slope
+  asks:
+    - Is there a step-free route from A to B?
+    - How steep is this street? Is there a curb ramp at the crossing?
+    - Is there an audible signal, is the sidewalk blocked?
+  kind: infrastructure
+  osm:
+    - 'way["highway"~"^(footway|path|pedestrian|steps|cycleway)$"]'
+    - 'node["kerb"]'
+    - 'nwr["crossing"]'
+    - 'node["highway"="traffic_signals"]'
+  overture: []
+  attributes: [ramp_steep]
+  new_attributes:
+    sidewalk_present: "Sidewalk present on a street side"
+    sidewalk_width: "Clear width"
+    surface_condition: "Cracks, heaving, roughness"
+    curb_ramp_present: "Curb ramp at a crossing, with detectable warning if known"
+    crossing_signal_aps: "Signalised crossing, accessible pedestrian signal"
+    running_slope: "Slope along the path (percent)"
+    cross_slope: "Slope across the path (percent)"
+    steps_present: "Steps on the way"
+  page_words: [sidewalk, curb ramp, crosswalk, pedestrian signal, accessible route, transition plan, ADA inventory]
+  sources: [A, B, G, I]
+  refresh_days: 90
+  temporal: false
+  priority: P0
+  status: have
+
+lodging:
+  label: Hotels and places to stay
+  asks:
+    - Is there a roll-in shower? How many accessible rooms?
+    - Is the pool accessible?
+  kind: place
+  osm:
+    - 'nwr["tourism"~"^(hotel|motel|hostel|guest_house|apartment|camp_site)$"]'
+  overture: [hotel, motel, bed_and_breakfast, campground]
+  attributes: [accessible_lodging, entrance_step_free, elevator, accessible_parking, restroom_accessible, wheelchair_loan]
+  new_attributes:
+    roll_in_shower: "Roll-in shower in accessible rooms"
+    accessible_room_count: "Number of accessible rooms"
+  page_words: [accessible room, roll-in shower, ADA room, accessibility, mobility accessible, bed height]
+  sources: [C, B]
+  refresh_days: 180
+  temporal: false
+  priority: P1
+  status: none
+
+education_campus:
+  label: Campuses and schools
+  asks:
+    - Which campus buildings and routes are accessible?
+    - Where is disability services, where is accessible parking?
+  kind: place
+  osm:
+    - 'nwr["amenity"~"^(university|college|school)$"]'
+    - 'nwr["building"~"^(university|college|school|dormitory)$"]'
+  overture: [university, college, school]
+  attributes: [entrance_step_free, elevator, accessible_parking, accessibility_map, accessibility_contact, transit_access]
+  new_attributes: {}
+  page_words: [disability services, accessibility, accessible entrance map, parking map, building access, accommodations]
+  sources: [C, D, K]
+  refresh_days: 180
+  temporal: false
+  priority: P1
+  status: partial
+
+civic_government:
+  label: Government, voting and civic services
+  asks:
+    - Is my polling place accessible?
+    - Is city hall, the courthouse or the DMV step-free?
+  kind: place
+  osm:
+    - 'nwr["amenity"~"^(townhall|courthouse|police|fire_station|polling_station)$"]'
+    - 'nwr["office"="government"]'
+  overture: [city_hall, courthouse, government_office, post_office]
+  attributes: [entrance_step_free, automatic_door, elevator, accessible_parking, accessibility_contact, asl_interpretation]
+  new_attributes:
+    polling_place_accessible: "Polling place accessibility assessment"
+  page_words: [accessibility, ADA, polling place, accommodations, accessible entrance]
+  sources: [C, A, I]
+  refresh_days: 180
+  temporal: false
+  priority: P2
+  status: none
+
+worship_community:
+  label: Places of worship and community centers
+  asks:
+    - Is the church or community center step-free, with accessible seating?
+  kind: place
+  osm:
+    - 'nwr["amenity"~"^(place_of_worship|community_centre|social_facility)$"]'
+  overture: [place_of_worship, community_center]
+  attributes: [entrance_step_free, accessible_route_inside, restroom_accessible, accessible_parking, accessible_seating]
+  new_attributes: {}
+  page_words: [accessibility, accessible entrance, wheelchair, ramp, hearing loop]
+  sources: [C]
+  refresh_days: 365
+  temporal: false
+  priority: P2
+  status: none
+
+sports_venues:
+  label: Stadiums and arenas (watching sport)
+  asks:
+    - Where are wheelchair seats, how do I book, is there companion seating?
+  kind: place
+  osm:
+    - 'nwr["leisure"~"^(stadium|sports_centre)$"]'
+  overture: [stadium_arena, sports_venue]
+  attributes: [accessible_seating, companion_admission, entrance_step_free, accessible_parking, elevator, restroom_accessible, accessibility_map]
+  new_attributes:
+    wheelchair_seat_booking: "How to buy wheelchair-space tickets"
+  page_words: [accessible seating, ADA seating, wheelchair seating, accessibility guest services, accessible entrance]
+  sources: [C, D]
+  refresh_days: 180
+  temporal: false
+  priority: P1
+  status: partial
+
+mobility_equipment_services:
+  label: Equipment, repair and rental
+  asks:
+    - Who repairs wheelchairs, rents a scooter or an accessible van?
+    - Where can I borrow equipment?
+  kind: service
+  osm:
+    - 'nwr["shop"~"^(medical_supply|mobility)$"]'
+    - 'nwr["healthcare"="medical_supply"]'
+  overture: [medical_supply, durable_medical_equipment]
+  attributes: [mobility_service, wheelchair_loan, all_terrain_chair, adaptive_recreation]
+  new_attributes:
+    equipment_loan_program: "Free or low-cost equipment loan program (terms)"
+  page_words: [wheelchair repair, mobility equipment, durable medical equipment, loan closet, accessible van, ramp, lift]
+  sources: [C, K]
+  refresh_days: 180
+  temporal: false
+  priority: P1
+  status: partial
+
+support_rights:
+  label: Support services, rights and reporting
+  asks:
+    - Who do I call to report a broken ramp or request a curb ramp?
+    - What are my rights, how do I file an ADA complaint?
+    - Where is the independent living center, what benefits exist?
+  kind: information
+  osm:
+    - 'nwr["office"="association"]["social_facility"]'
+    - 'nwr["amenity"="social_facility"]'
+  overture: [social_service_organization, nonprofit_organization]
+  attributes: [accessibility_contact]
+  new_attributes:
+    reporting_channel: "Where to report a barrier (311 or form), with URL and phone"
+    ada_coordinator: "City or agency ADA coordinator contact"
+    service_eligibility: "Eligibility, cost and how to apply for a service"
+  page_words: [ADA coordinator, report a problem, curb ramp request, "311", complaint, independent living, disability services, benefits, "211"]
+  sources: [C, B, K, I]
+  refresh_days: 180
+  temporal: false
+  priority: P1
+  status: partial
+
+housing:
+  label: Accessible housing
+  asks:
+    - Where are accessible apartments, what are the rules for modifications?
+  kind: information
+  osm:
+    - 'nwr["building"~"^(apartments|residential)$"]["wheelchair"]'
+  overture: [apartment, housing_authority]
+  attributes: [entrance_step_free, elevator, accessible_parking]
+  new_attributes:
+    accessible_units: "Number or share of accessible units"
+    modification_rules: "Rules on ramps and modifications"
+  page_words: [accessible apartment, accessible unit, housing authority, reasonable accommodation, home modification]
+  sources: [C, K]
+  refresh_days: 365
+  temporal: false
+  priority: P2
+  status: none
+
+emergency_safety:
+  label: Emergencies, shelters and safety
+  asks:
+    - Where is an accessible cooling or warming center or shelter?
+    - How do I get emergency alerts, how do I evacuate with a wheelchair?
+  kind: information
+  osm:
+    - 'nwr["emergency"~"^(assembly_point|shelter)$"]'
+    - 'nwr["amenity"~"^(shelter|hospital)$"]'
+  overture: [emergency_service]
+  attributes: [entrance_step_free, accessible_parking, restroom_accessible, notice]
+  new_attributes:
+    shelter_accessible: "Accessible emergency shelter, cooling or warming center"
+    evacuation_info: "Evacuation or alert guidance for people with mobility disabilities"
+  page_words: [cooling center, warming center, shelter, evacuation, emergency preparedness, people with disabilities, accessible shelter]
+  sources: [C, G]
+  refresh_days: 30
+  temporal: true
+  priority: P2
+  status: none
+
+temporary_conditions:
+  label: Closures, construction, snow and outages
+  asks:
+    - Is the route, elevator or entrance blocked today?
+    - Is the trail closed after the storm, is the sidewalk icy?
+  kind: condition
+  osm: []
+  overture: []
+  attributes: [notice]
+  new_attributes:
+    closure_start_end: "When a closure starts and ends"
+    closure_reason: "Construction, event, weather, repair"
+    detour_info: "Detour and whether it is accessible"
+  page_words: [closure, closed, construction, detour, outage, out of service, icy, flooded, alert, notice]
+  sources: [G, A, F]
+  refresh_days: 1
+  temporal: true
+  priority: P1
+  status: partial
+
+comfort_environment:
+  label: Rest, shade, lighting and noise
+  asks:
+    - Are there benches and shade along this route?
+    - Is the route lit at night, is the place loud or crowded?
+  kind: condition
+  osm:
+    - 'node["amenity"="bench"]'
+    - 'node["highway"="street_lamp"]'
+    - 'nwr["amenity"="shelter"]'
+  overture: []
+  attributes: [seating_rest, quiet_room, sensory_friendly]
+  new_attributes:
+    shade_cover: "Tree or structure shade along the path"
+    lighting: "Street lighting present"
+    noise_crowding: "Typical noise or crowding, if stated"
+  page_words: [shade, benches, rest area, lighting, quiet hours, crowded, noise level]
+  sources: [A, B, E]
+  refresh_days: 365
+  temporal: false
+  priority: P2
+  status: none
+
+tourism_itineraries:
+  label: Accessible travel and itineraries
+  asks:
+    - What can I do in this city in a weekend with a wheelchair?
+    - Is there an accessible tour, a wheelchair-friendly itinerary?
+  kind: information
+  osm:
+    - 'nwr["tourism"~"^(information|attraction|viewpoint)$"]'
+  overture: [tourist_attraction, visitor_center, tour_operator]
+  attributes: [accessibility_map, accessibility_contact, wheelchair_loan]
+  new_attributes:
+    accessible_tour: "Tour or guide with accessible vehicles or routes"
+    itinerary_source: "Link to a wheelchair-tested itinerary"
+  page_words: [accessible travel, accessibility guide, wheelchair-friendly, itinerary, visitor guide, accessible tour]
+  sources: [C, E]
+  refresh_days: 180
+  temporal: false
+  priority: P1
+  status: partial
+
+sensory_communication:
+  label: Hearing, vision and cognitive access (cross-cutting)
+  asks:
+    - Is there ASL, captioning, audio description, braille, large print?
+    - Is there a quiet room or a sensory-friendly time?
+  kind: information
+  osm: []
+  overture: []
+  attributes: [asl_interpretation, captioning, assistive_listening, audio_description, braille, large_print, tactile, sensory_friendly, quiet_room, service_animals]
+  new_attributes: {}
+  page_words: [ASL, interpreter, captioning, audio description, assistive listening, braille, large print, tactile, sensory friendly, service animals]
+  sources: [C, D, F]
+  refresh_days: 180
+  temporal: false
+  priority: P1
+  status: partial
+
+lived_experience:
+  label: What people report (cross-cutting, low confidence)
+  asks:
+    - What is it really like, what do other wheelchair users say?
+  kind: information
+  osm: []
+  overture: []
+  attributes: [listed_accessible]
+  new_attributes:
+    reported_experience: "First-hand report with author type, date and sentiment"
+  page_words: [my experience, wheelchair, accessible, not accessible, review, tip]
+  sources: [E, B]
+  refresh_days: 90
+  temporal: false
+  priority: P2
+  status: none

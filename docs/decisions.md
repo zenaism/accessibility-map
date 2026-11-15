@@ -19,6 +19,41 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-18: Question categories and source tracking live in code and update themselves (2026-11-15, accepted)
+**Decision:** (1) `config/categories.yaml` is the single list of what wheelchair users ask about (trails, parking, restrooms, events, and so on), with the OSM selectors, Overture hints, attributes, page keywords, source kinds and refresh rates to fetch each; `docs/categories.md` is generated from it and checked against `config/attributes.yaml`. (2) Every `atlas fetch` appends a line to `data/ledger/fetch_log.jsonl` (source, region, time, ok or error) and refreshes `docs/source_inventory.md` and `data/source_inventory.csv`, which now include each source's URL and licence.
+**Why:** the user wants the category list reused for later data fetching and wants the list of sources tracked without manual upkeep. Generated docs cannot drift from the config; the ledger is also the history needed in D-17.
+**Alternatives:** a hand-written category doc and source list (drift, forgotten updates); a database table for the ledger (more moving parts for a small log).
+**Costs / revisit if:** the inventory rewrites its whole table on each fetch (fine at this size); the OSM and Overture hints are a starting point and Overture names are unchecked.
+**Basis:** recorded (user request, this session; `src/atlas/cli.py`, `src/atlas/inventory.py`, `scripts/make_categories_doc.py`).
+
+### D-17: Keep history from day one (2026-11-15, proposed)
+**Decision:** never overwrite data. Every observation carries `observed_at`, `valid_from`, `valid_to` and its source snapshot; a change adds a row. Archive real-time and fast-changing sources (GTFS-Realtime, weather, 311, key web pages) on a schedule, and keep every extraction run (model, prompt version, output).
+**Why:** predictions (missing attributes, repair risk, outages, source reliability) and trends need what changed and when, and that history cannot be rebuilt later. Storing it costs little now.
+**Alternatives:** keep only the latest value (smaller, but forecasting and "last confirmed" are impossible); archive only on demand (misses what we did not know we needed).
+**Costs / revisit if:** more disk and a more careful schema; hourly feeds across many regions can grow fast, so thin or compress old snapshots if space runs out.
+**Basis:** recorded (user request to plan for future computing and prediction, this session; `data_needs.md` section 3).
+
+### D-16: Rate sources and facts automatically; no manual review (2026-11-15, proposed)
+**Decision:** a trust engine scores each source (0 to 100: authority, provenance, freshness, completeness, internal quality, cross-source agreement, track record) and each fact (source score x extraction reliability x freshness x corroboration - conflicts). Sources are accepted automatically (Tier A, B), quarantined (C) or rejected (D). The assistant shows facts as confirmed, reported or unknown.
+**Why:** the user cannot hand-check data, and manual review would not scale to a country. Showing the rating keeps the assistant honest instead of treating all sources as equally true.
+**Alternatives:** human approval of every source (does not scale, no one to do it); no rating at all (all sources look equally reliable, unsafe); crowd voting on facts (needs many users).
+**Costs / revisit if:** the rating measures consistency, not truth, so a confidently wrong source can pass; starting weights are guesses until reference data accumulates. Revisit after the first regions: compare scores against official data and the lab's wheelchair recordings, and tighten the thresholds.
+**Basis:** recorded (user request, this session; `system_overview.md` section 4). The weights and cut-offs are my proposal: confirm.
+
+### D-15: Zero-budget design: free tools, rules first, models last (2026-11-15, accepted)
+**Decision:** plan and build everything to run at $0: no paid search, LLM, vision or hosting APIs. Use rules and filters first, small local open models only on pages that pass, free OCR and PDF parsers, Playwright for JavaScript pages, caching by content hash, and free hosts (Zenodo, Hugging Face, GitHub releases) for data releases.
+**Why:** the user has no budget for now. A design that needs paid APIs would stall, and cheap-first processing also makes a national crawl feasible on modest hardware.
+**Alternatives:** wait for funding (blocks progress); use frontier-model APIs on free credits (not reliable at national scale and credits run out).
+**Costs / revisit if:** lower extraction accuracy than frontier models, slower processing, a smaller route D (search), files instead of a live API. Revisit when funding or university compute becomes available: first upgrade the claim-extraction model, then add a search API.
+**Basis:** recorded (user instruction, this session; `national_data_plan.md` section 0.1). The specific free tools and their limits are unchecked: verify before relying on them.
+
+### D-14: A source is complete only after independent checks pass (2026-11-15, proposed)
+**Decision:** every crawl ends with six completeness gates (status audit, sitemap coverage, count check, archive check, keyword audit, sample audit); failures go to a gap queue and show in the coverage report. Pages needing JavaScript are fetched with a headless browser.
+**Why:** the user wants to be sure we fetch every page we might need. A crawler cannot know what it missed unless it compares itself with something independent, and silent gaps would become silent wrong answers ("unknown" would be reported as "no").
+**Alternatives:** crawl to a fixed depth and trust it (cheapest, but gaps are invisible); manual spot checks only (does not scale to a country).
+**Costs / revisit if:** more requests and compute (archive lookups, headless browser, audits); tune the sample size and gate thresholds after the first two regions.
+**Basis:** recorded (user request, this session; `national_data_plan.md` section 3.4).
+
 ### D-13: Diagrams as Mermaid text in the docs (2026-11-15, accepted)
 **Decision:** system diagrams are written in Mermaid inside `docs/architecture.md` (green = exists, blue = planned), and every new design proposal comes with one.
 **Why:** the user learns the system fastest from pictures. Mermaid renders in Obsidian and on GitHub, lives in git as text so diffs show what changed, and needs no drawing tool.

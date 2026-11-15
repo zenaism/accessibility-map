@@ -4,16 +4,37 @@ from __future__ import annotations
 
 import argparse
 import importlib
+import json
 import logging
+import time
+from datetime import datetime, timezone
 
-from .core import config, log
+from .core import ROOT, config, log
+
+LEDGER = ROOT / "data/ledger/fetch_log.jsonl"
+
+
+def _ledger(entry: dict) -> None:
+    """Append one line per fetch attempt: the permanent history of what was fetched, when, and whether it worked."""
+    LEDGER.parent.mkdir(parents=True, exist_ok=True)
+    with LEDGER.open("a") as f:
+        f.write(json.dumps(entry) + "\n")
 
 
 def _run(source: str, region: str) -> None:
     spec = config("sources")[source]
     if region not in spec["regions"]:
         return
-    importlib.import_module(f"atlas.connectors.{spec['type']}").run(source, spec, region)
+    start, t0 = datetime.now(timezone.utc).isoformat(timespec="seconds"), time.time()
+    entry = {"source": source, "region": region, "type": spec["type"], "url": spec.get("url", ""), "started": start}
+    try:
+        importlib.import_module(f"atlas.connectors.{spec['type']}").run(source, spec, region)
+        entry.update(status="ok", seconds=round(time.time() - t0, 1))
+    except Exception as exc:
+        entry.update(status="error", error=f"{type(exc).__name__}: {exc}"[:300], seconds=round(time.time() - t0, 1))
+        _ledger(entry)
+        raise
+    _ledger(entry)
 
 
 def main() -> None:
@@ -66,6 +87,13 @@ def main() -> None:
                 _run(s, r)
             except Exception:
                 log.exception("[%s] %s failed", r, s)
+    # keep the source list current: every fetch refreshes docs/source_inventory.md and data/source_inventory.csv
+    try:
+        from .inventory import write as write_inventory
+
+        write_inventory()
+    except Exception:
+        log.exception("could not refresh the source inventory")
 
 
 if __name__ == "__main__":
