@@ -20,7 +20,7 @@ import pandas as pd
 from ..core import ROOT
 
 DB = ROOT / "data/kb/atlas.duckdb"
-SITE = "https://zenaism.github.io/ohio-access-atlas/data/map"
+SITE = "https://zenaism.github.io/accessibility-map/data/map"
 
 
 def _rows(region: str):

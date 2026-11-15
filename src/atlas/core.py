@@ -19,7 +19,7 @@ from shapely.geometry import shape
 
 ROOT = Path(__file__).resolve().parents[2]
 RAW, PROCESSED = ROOT / "data" / "raw", ROOT / "data" / "processed"
-USER_AGENT = "ohio-access-atlas/0.1 (academic accessibility research, Miami University)"
+USER_AGENT = "accessibility-map/0.1 (academic accessibility research, Miami University)"
 WGS84, METRIC = "EPSG:4326", "EPSG:32616"  # UTM 16N covers both regions
 
 log = logging.getLogger("atlas")

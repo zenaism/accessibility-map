@@ -5,8 +5,8 @@
 **Wheelchair and blind / low-vision access information for Cincinnati and Oxford, Ohio: collected, sourced, and mapped.**
 A Miami University research project.
 
-**Maps:** [Cincinnati](https://zenaism.github.io/ohio-access-atlas/data/map/cincinnati.html) · [Oxford](https://zenaism.github.io/ohio-access-atlas/data/map/oxford.html)
-**Text-only, screen-reader friendly:** [All Cincinnati places](https://zenaism.github.io/ohio-access-atlas/data/map/places/cincinnati/index.html) · [All Oxford places](https://zenaism.github.io/ohio-access-atlas/data/map/places/oxford/index.html)
+**Maps:** [Cincinnati](https://zenaism.github.io/accessibility-map/data/map/cincinnati.html) · [Oxford](https://zenaism.github.io/accessibility-map/data/map/oxford.html)
+**Text-only, screen-reader friendly:** [All Cincinnati places](https://zenaism.github.io/accessibility-map/data/map/places/cincinnati/index.html) · [All Oxford places](https://zenaism.github.io/accessibility-map/data/map/places/oxford/index.html)
 
 The Cincinnati and Oxford maps can show live Google Places accessibility details when a matched Place ID and a restricted browser API key are configured; details load when a place is selected.
 

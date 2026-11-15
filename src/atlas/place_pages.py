@@ -17,8 +17,8 @@ from pathlib import Path
 
 from .map_viewer import ICONS, RATING_HELP, RATINGS
 
-SITE = "https://zenaism.github.io/ohio-access-atlas/data/map"
-REPO = "https://github.com/zenaism/ohio-access-atlas"
+SITE = "https://zenaism.github.io/accessibility-map/data/map"
+REPO = "https://github.com/zenaism/accessibility-map"
 MARK = {"yes": "✓", "partly": "~", "no": "✕", "not known": "?"}
 ACCESS = {
     "audio_description": "audio described",

@@ -2,8 +2,8 @@
 
 **Open the interactive maps** (icons, legend, filters, clickable facts with sources):
 
-- [Cincinnati map](https://zenaism.github.io/ohio-access-atlas/data/map/cincinnati.html)
-- [Oxford map](https://zenaism.github.io/ohio-access-atlas/data/map/oxford.html)
+- [Cincinnati map](https://zenaism.github.io/accessibility-map/data/map/cincinnati.html)
+- [Oxford map](https://zenaism.github.io/accessibility-map/data/map/oxford.html)
 
 They are served by GitHub Pages from this folder and update whenever `make map` output is pushed.
 
