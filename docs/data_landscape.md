@@ -5,6 +5,8 @@ Status: ✅ in pipeline · 🔜 next · 💡 later · ❌ not viable. Probed end
 
 ## 1. What information matters (the target schema)
 
+_This is the single attribute list for the project. `national_data_plan.md` (question families) and `assistant_design.md` (question bank) refer to it instead of repeating it._
+
 | Need | Attributes | Why |
 |---|---|---|
 | Can I move along this path? | sidewalk present, surface, smoothness/cracks, running slope, cross slope, width, obstructions | ADA 403 accessible route |
