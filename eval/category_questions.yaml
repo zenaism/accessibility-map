@@ -532,7 +532,7 @@
   status: unlabelled
 - id: lived_experience-1
   category: lived_experience
-  priority: P2
+  priority: P1
   question: What is it really like, what do other wheelchair users say?
   attributes:
   - listed_accessible

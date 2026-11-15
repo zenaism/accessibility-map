@@ -234,13 +234,11 @@ Our position: we accept a harder build to get trustworthy, explainable answers. 
 
 ---
 
-## 10. Open questions
+## 10. Open questions (answered 2026-11-15)
 
-1. Are the starting weights and the 80 / 50 / 30 tier cut-offs acceptable, or do you want them stricter?
-2. Do you want the one-time labelled set (about 100 facts) built from official data, for calibration?
-3. Is there a lab or university GPU we can use for local models?
-4. Which formats does the other team want, and how often do they need updates?
-5. Maryland: whole state or which counties; which other cities and what deadline?
+Answered by you on 2026-11-15 (see `questions_for_you.md`); the effects are in decision D-21.
+
+**Still open:** who is the crawler's contact person (B4); whether the lab's wheelchair recordings can be joined to the map by place and time (E1, ask your professor); whether to ask Miami's library or counsel about redistributing page-derived data (E3); the Maryland counties and deadline beyond "whole city" coverage (A1); WARC files (B2, not needed now); the rule for sites whose terms forbid bots (C2, using my default until you decide: skip and ask permission).
 
 ---
 

@@ -133,8 +133,7 @@ These cost almost nothing today and cannot be reconstructed afterwards:
 | Next (P1) | indoor and entrance details, paratransit, weather, transit real-time, permits, travel time and reachability, fill-missing-attribute model, source reliability, lab sensor data |
 | Later (P2) | deterioration prediction, personalisation from opt-in feedback, demand, obstruction detection from imagery, legal and settlement data |
 
-## 6. Open questions
-- Which two or three predictions matter most for the papers and for the other team's app? That decides which labels to chase first.
-- Is the lab's wheelchair recording data available in a form we can join to our map (locations and timestamps)?
-- How much raw history do we archive (hourly feeds, page snapshots) and where do we keep it for free? The database itself is small; the raw archives are what grow.
-- Do we want any opt-in user profile or feedback collected in v1, or only after IRB review?
+## 6. Open questions (answered 2026-11-15)
+
+Most important predictions: **outages and personal routes** (the rest chosen by me: filling missing attributes and source reliability follow because they support both). Raw history: keep everything for the two target regions and thin old snapshots later. User profile or feedback only after ethics (IRB) review. Still open: whether the lab recordings can be joined to the map (ask your professor).
+

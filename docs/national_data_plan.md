@@ -241,12 +241,9 @@ Aim: files they can read without our code, with a documented contract.
 3. Build the catalog discovery for ArcGIS Hub and Socrata first (DC is ArcGIS-Hub based; many Maryland counties publish through Socrata or ArcGIS), then CKAN and Mobility Database.
 4. Run discovery for DC only and look at the candidate list together, to tune relevance scoring before scaling.
 
-## 9. Open questions for you, your professor and the other team
+## 9. Open questions (answered 2026-11-15)
 
-1. **Which cities exactly,** and the deadline for Maryland and DC? Is "Maryland" the whole state or a few counties (for example Montgomery, Prince George's, Baltimore)?
-2. **Free resources:** with no budget, can we use lab or university machines (GPU, storage) and research credits? Where can large files live for free (lab server, university storage, Zenodo, Hugging Face)?
-3. **The other team:** which format do they want (Parquet, GeoJSON, SQLite/DuckDB, REST API), how often do they need updates, and which attributes matter most for their app?
-4. **Licensing stance:** are we only releasing data with clearly open licenses, or also fact-level extractions from websites (with links back)?
-5. **Reddit and reviews:** keep Reddit in scope, given the terms and need for keys?
-6. **Rating cut-offs:** are the tier thresholds (80 / 50 / 30) and starting weights in `system_overview.md` acceptable?
-7. **Scope of "multimodal":** are photos from street imagery (Mapillary) in scope, or only documents, posters and maps?
+Answered by you on 2026-11-15 (see `questions_for_you.md`); the effects are in decision D-21.
+
+**Still open:** who is the crawler's contact person (B4); whether the lab's wheelchair recordings can be joined to the map by place and time (E1, ask your professor); whether to ask Miami's library or counsel about redistributing page-derived data (E3); the Maryland counties and deadline beyond "whole city" coverage (A1); WARC files (B2, not needed now); the rule for sites whose terms forbid bots (C2, using my default until you decide: skip and ask permission).
+

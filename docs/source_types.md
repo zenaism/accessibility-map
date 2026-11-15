@@ -152,7 +152,7 @@ Pattern: every region has (1) a state DOT layer for state routes, (2) an ADA pla
 6. **Partnerships and requests:** start the emails now; replies take weeks.
 7. **Commercial APIs:** evaluation only.
 
-## 6. Open questions
+## 6. Open questions (partly answered 2026-11-15: Reddit and Mapillary are in scope; see decision D-21)
 - Which licence terms can we accept for the dataset the other team will use (share-alike data such as Mapillary and ODbL OSM affect redistribution)?
 - Is Reddit access (and its approval time) worth it for the first release?
 - Does the lab want street imagery (Mapillary) in scope, or only documents, posters and maps?
