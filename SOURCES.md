@@ -46,7 +46,7 @@ This list separates data already collected from ideas for later. Google Places m
 - Venue accessibility pages (zoo, stadiums, museums) 💡: per-venue sites
 - Tile2Net (sidewalks from aerial imagery) 💡: https://github.com/VIDA-NYU/tile2net
 
-## From accessibility_research_directory.md (checked 2026-11-07)
+## From docs/resource_directory.md (checked 2026-11-07)
 - Miami campus map (Concept3D; SDS accessibility layers) 🔜 ask SDS/Campus Planning for export: https://map.miamioh.edu/
 - Miami SDS parking & transportation 🔜: https://miamioh.edu/academic-programs/resources-services/student-disability-services/accommodations-and-services/parking-transportation.html
 - City of Oxford, OH (real site; NOT oxfordohio.gov) 🔜 records request: https://www.cityofoxford.org/
