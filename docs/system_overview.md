@@ -211,11 +211,11 @@ Our position: we accept a harder build to get trustworthy, explainable answers. 
 | Visitor ratings (Supabase) | ✅ built |
 | Region resolver (Census and OSM) for new regions | 🔵 planned |
 | Automatic discovery (catalogs, gov crawl, place-driven) | 🔵 planned |
-| Trust engine (source and fact rating) | 🔵 planned |
+| Trust engine (source and fact rating): scores, tiers, caps, fact confidence | ✅ built, version 0 (`trust.py`, `config/trust.yaml`); agreement and track record not measurable yet |
 | Completeness checks and gap queue | 🔵 planned |
 | Multimodal extraction with local models | 🔵 planned (partly done by hand for posters) |
 | Entity matching and fusion | 🔵 partly (place matching exists) |
-| Release files with dataset cards, schema v2 | 🔵 planned |
+| Dataset cards for every source and region; schema v2 with history; raw-fetch manifest; candidate-source table | ✅ built, version 0 (`make cards`, `make candidates`); release packaging still planned |
 | Agent loop with a local model | 🔵 planned |
 | Maryland, DC, Dayton data | 🔵 planned; first sources identified in `source_types.md` |
 
@@ -258,5 +258,6 @@ Our position: we accept a harder build to get trustworthy, explainable answers. 
 | Research questions and study design | `research_questions.md`, `study_design.md` |
 | Progress and findings | `progress_log.md` |
 | Index of all docs | `README.md` |
+| Web crawler: research, options, architecture, tests, phases | `crawler_plan.md` |
 | Question categories and how to fetch each | `categories.md` (generated from `../config/categories.yaml`) |
 | Source tracker (auto-updated after each fetch) | `source_inventory.md`, `../data/source_inventory.csv`, `../data/ledger/fetch_log.jsonl` |

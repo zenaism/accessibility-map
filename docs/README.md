@@ -10,6 +10,8 @@ One topic per file. Where two files touch the same subject, the "owner" below is
 | [`national_data_plan.md`](national_data_plan.md) | Plan for automated, nationwide collection (draft) | discovery, fetching, storage, release format |
 | [`data_design.md`](data_design.md) | Cincinnati/Oxford scope, categories, record shapes, pipeline, map | the current data model |
 | [`categories.md`](categories.md) | Generated list of all question categories (trails, parking, restrooms, events, ...) with how to fetch each; source is `../config/categories.yaml` | what users ask about, drives fetching |
+| [`data_dictionary.md`](data_dictionary.md) | Generated: every column of the observation table (schema v2), the dataset card, candidate table and raw manifest | exact data formats |
+| [`crawler_plan.md`](crawler_plan.md) | Research and implementation plan for the web crawler (requirements, tool comparison, architecture, tests, phases) | how we fetch websites |
 | [`data_needs.md`](data_needs.md) | All data we need: now, for computing, for prediction; what to keep from day one | data requirements and future use |
 | [`data_landscape.md`](data_landscape.md) | What users need and every way to get it, by acquisition method | acquisition strategy |
 | [`source_catalog.md`](source_catalog.md) | Researched candidate sources: what each adds, access, terms, priority | source reasoning |

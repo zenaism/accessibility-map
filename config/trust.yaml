@@ -1,0 +1,75 @@
+# Trust engine settings (docs/system_overview.md section 4). Rates every source 0 to 100 and every fact 0 to 1,
+# with NO manual checking. The rating measures how believable the evidence is, not whether it is true.
+# All numbers here are STARTING GUESSES; they should be tuned once reference data exists (decision D-16).
+
+# Weights of the seven source components. A component that cannot be measured yet (null) is dropped
+# and the remaining weights are rescaled, so the score is always out of 100.
+weights:
+  authority: 0.25       # who published it
+  provenance: 0.10      # licence, URL and retrieval date recorded
+  freshness: 0.15       # age against how often the data should change
+  completeness: 0.15    # did the fetch get everything (failures, empty results)
+  quality: 0.15         # valid values, locations present, few duplicates
+  agreement: 0.10       # matches independent sources (not measurable until the fusion step exists)
+  track_record: 0.10    # past accuracy against reference data (not measurable until reference data exists)
+
+# Tier cut-offs on the 0-100 source score
+tiers:
+  A: 80    # accepted automatically
+  B: 50    # accepted, shown as "reported"
+  C: 30    # quarantined (kept, not used for answers); below this: D = rejected
+
+# Authority by connector type (0 to 1). Override a single source in authority_by_source.
+authority_by_type:
+  arcgis: 0.90          # official GIS layer
+  socrata: 0.85         # official open-data portal
+  gtfs: 0.85            # transit agency feed
+  slope: 0.85           # computed from USGS elevation
+  overpass: 0.65        # OpenStreetMap (crowd, open)
+  osm_destinations: 0.65
+  osm_entrances: 0.65
+  osm_walk_network: 0.65
+  overture: 0.60        # compiled open places
+  web: 0.55             # a website: official pages score higher via authority_by_source
+  events_ical: 0.60
+  mura_calendar: 0.60
+  reddit: 0.30          # lived experience: signal, not proof
+authority_by_source: {}
+
+# Candidate sources found by discovery, by what kind of publisher they are
+authority_by_kind:
+  official_inventory: 0.95
+  official_site: 0.80
+  open_dataset: 0.70
+  venue_statement: 0.60
+  crowd: 0.45
+  lived_experience: 0.30
+  unknown: 0.20
+
+# How often each connector type should be re-fetched (days). Freshness is 1 within this age, then falls
+# linearly to 0 at four times this age.
+expected_refresh_days:
+  arcgis: 365
+  socrata: 30
+  gtfs: 90
+  slope: 1825
+  overpass: 180
+  osm_destinations: 180
+  osm_entrances: 180
+  osm_walk_network: 180
+  overture: 180
+  web: 180
+  events_ical: 7
+  mura_calendar: 7
+  reddit: 30
+default_refresh_days: 180
+
+# Fact confidence (docs/system_overview.md 4.2)
+fact:
+  corroboration_bonus: 0.15      # per independent agreeing source, up to max_corroborations
+  max_corroborations: 3
+  conflict_penalty: 0.20         # per conflicting source, up to max_conflicts
+  max_conflicts: 2
+  shown_as:                      # what the assistant may say
+    confirmed: 0.70
+    reported: 0.40               # below this: unknown (never stated as fact)

@@ -1,0 +1,52 @@
+id,connector,collected,records,observations,licence,last_retrieved,age_days,trust_score,tier,issues
+cincinnati.osm,overpass,True,41959,27796,ODbL-1.0 (c) OpenStreetMap contributors,2026-11-07,8.0,85.3,A,
+oxford.osm,overpass,True,6315,3894,ODbL-1.0 (c) OpenStreetMap contributors,2026-11-07,8.0,85.3,A,
+cincinnati.cagis_curb_ramps,arcgis,True,14970,14970,CAGIS public data (City of Cincinnati / Hamilton County); confirm redistribution terms,2026-11-07,8.0,96.9,A,
+cincinnati.cagis_public_steps,arcgis,True,160,160,CAGIS public data; confirm redistribution terms,2026-11-07,8.0,96.9,A,
+cincinnati.cagis_sidewalks,arcgis,True,220792,220792,CAGIS public data; confirm redistribution terms,2026-11-07,8.0,96.9,A,
+cincinnati.cagis_traffic_signals,arcgis,True,5324,5324,CAGIS public data; confirm redistribution terms,2026-11-07,8.0,96.9,A,
+cincinnati.cincy_311,socrata,True,24639,24639,Open Data Cincy (public domain per portal terms; confirm),2026-11-07,8.0,91.6,A,
+cincinnati.gtfs_metro,gtfs,True,2320,2320,Cincinnati Metro GTFS (agency terms),2026-11-07,8.0,95.3,A,
+oxford.gtfs_bcrta,gtfs,True,61,61,BCRTA GTFS (agency terms),2026-11-07,8.0,95.3,A,
+oxford.slope_3dep,slope,True,3872,7744,USGS 3DEP (public domain),2026-11-07,8.0,95.3,A,
+cincinnati.slope_3dep_local,slope,True,20062,40124,USGS 3DEP (public domain),2026-11-07,8.0,95.3,A,
+oxford.slope_3dep_local,slope,True,3872,7744,USGS 3DEP (public domain),2026-11-07,8.0,95.3,A,
+cincinnati.slope_cagis,slope,False,0,0,CAGIS public data; confirm redistribution terms,,,0.0,D,not collected yet
+cincinnati.reddit,reddit,False,0,0,"Reddit Data API terms; store ids + hashed authors only, do not redistribute text",,,0.0,D,not collected yet
+oxford.reddit,reddit,False,0,0,"Reddit Data API terms; store ids + hashed authors only, do not redistribute text",,,0.0,D,not collected yet
+cincinnati.overture_places,overture,True,92859,0,CDLA-Permissive-2.0 / Apache-2.0 / ODbL by upstream dataset (see `datasets` column),2026-11-12,3.0,80.0,A,
+oxford.overture_places,overture,True,2758,0,CDLA-Permissive-2.0 / Apache-2.0 / ODbL by upstream dataset (see `datasets` column),2026-11-12,3.0,80.0,A,
+cincinnati.osm_destinations,osm_destinations,True,5054,2170,ODbL-1.0 (c) OpenStreetMap contributors,2026-11-12,3.0,85.3,A,
+oxford.osm_destinations,osm_destinations,True,285,71,ODbL-1.0 (c) OpenStreetMap contributors,2026-11-12,3.0,85.3,A,
+cincinnati.web_venues_cincinnati,web,True,25,0,public web page; cite URL,2026-11-12,3.0,76.5,B,20 pages failed to fetch
+oxford.web_venues_oxford,web,True,79,0,public web page; cite URL,2026-11-12,3.0,71.2,B,114 pages failed to fetch
+oxford.web_trails_oxford,web,True,29,0,public web page; cite URL,2026-11-12,3.0,81.9,A,1 pages failed to fetch; 45 pages skipped because robots.txt asks bots not to fetch them
+cincinnati.web_trails_cincinnati,web,True,14,0,public web page; cite URL,2026-11-12,3.0,81.9,A,1 pages failed to fetch; 20 pages skipped because robots.txt asks bots not to fetch them
+cincinnati.web_programs_cincinnati,web,True,7,0,public web page; cite URL,2026-11-12,3.0,79.8,B,1 pages failed to fetch
+cincinnati.web_access_platforms,web,True,1,0,public web page; cite URL; ask before bulk use,2026-11-12,3.0,82.2,A,
+oxford.web_access_platforms,web,True,1,0,public web page; cite URL; ask before bulk use,2026-11-12,3.0,82.2,A,
+cincinnati.events_ical_cincinnati,events_ical,True,41,0,public calendar feed; cite URL,2026-11-12,3.0,83.8,A,
+cincinnati.web_parks_cincinnati,web,True,6,0,public web page; cite URL,2026-11-12,3.0,82.2,A,
+oxford.events_ical_oxford,events_ical,True,814,0,public calendar feed; cite URL,2026-11-12,3.0,83.8,A,
+oxford.web_gov_oxford_rendered,web,True,3,0,public web page; cite URL,2026-11-12,3.0,82.2,A,
+oxford.web_metroparks,web,True,18,0,public web page; cite URL,2026-11-12,3.0,82.2,A,
+cincinnati.events_cincy_parks,mura_calendar,True,264,0,public calendar; cite URL,2026-11-12,3.0,83.8,A,
+cincinnati.web_parks_cincinnati_city,web,True,9,0,public web page; cite URL,2026-11-12,3.0,82.2,A,
+cincinnati.web_venues_cincinnati_2,web,True,31,0,public web page; cite URL,2026-11-12,3.0,81.6,A,1 pages failed to fetch
+oxford.web_miami_maps,web,True,2,0,public document; cite URL,2026-11-12,3.0,75.9,B,1 pages failed to fetch
+cincinnati.osm_entrances,osm_entrances,True,28,28,ODbL-1.0 (c) OpenStreetMap contributors,2026-11-12,3.0,85.3,A,
+oxford.osm_entrances,osm_entrances,True,97,97,ODbL-1.0 (c) OpenStreetMap contributors,2026-11-12,3.0,85.3,A,
+cincinnati.web_access_performances,web,True,24,0,venue websites; facts with short quotes and links only,2026-11-12,3.0,82.2,A,
+cincinnati.web_venues_3,web,True,34,0,venue websites; facts with short quotes and links only,2026-11-12,3.0,81.1,A,2 pages failed to fetch
+oxford.web_venues_3,web,True,34,0,venue websites; facts with short quotes and links only,2026-11-12,3.0,81.1,A,2 pages failed to fetch
+cincinnati.web_disability_events,web,True,11,0,"organization websites; event title, date, place and link only",2026-11-12,3.0,82.2,A,
+oxford.web_disability_events,web,True,11,0,"organization websites; event title, date, place and link only",2026-11-12,3.0,82.2,A,
+oxford.web_oxford_more,web,True,16,0,official and visitor-bureau websites; facts with short quotes and links only,2026-11-12,3.0,75.9,B,8 pages failed to fetch; 1 pages skipped because robots.txt asks bots not to fetch them
+oxford.web_oxford_more_2,web,True,11,0,official websites and student press; facts with short quotes and links only,2026-11-12,3.0,78.2,B,3 pages failed to fetch
+oxford.web_oxford_press,web,True,4,0,"news articles; facts with short quotes, dates and links only",2026-11-12,3.0,75.9,B,2 pages failed to fetch
+oxford.web_oxford_restaurants,web,True,67,0,visitor-bureau listings (self-reported by businesses); feature tags and links only,2026-11-12,3.0,82.2,A,
+oxford.web_oxford_retry,web,True,3,0,official websites and news; facts with short quotes and links only,2026-11-12,3.0,72.8,B,3 pages failed to fetch
+cincinnati.web_cincinnati_more,web,True,17,0,official and business websites; facts with short quotes and links only,2026-11-12,3.0,72.3,B,19 pages failed to fetch
+cincinnati.web_mobility_services,web,True,7,0,business websites; services and contact only,2026-11-12,3.0,76.6,B,3 pages failed to fetch
+cincinnati.osm_walk_network,osm_walk_network,False,0,0,ODbL-1.0 (c) OpenStreetMap contributors; elevation USGS 3DEP (public domain),,,0.0,D,not collected yet
+oxford.osm_walk_network,osm_walk_network,False,0,0,ODbL-1.0 (c) OpenStreetMap contributors; elevation USGS 3DEP (public domain),,,0.0,D,not collected yet

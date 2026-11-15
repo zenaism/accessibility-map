@@ -1,0 +1,72 @@
+{
+  "schema": "atlas.dataset_card/1",
+  "id": "cincinnati.osm",
+  "source": "osm",
+  "region": "cincinnati",
+  "title": "osm",
+  "connector": "overpass",
+  "publisher": null,
+  "url": null,
+  "licence": "ODbL-1.0 (c) OpenStreetMap contributors",
+  "collected": true,
+  "entities": 41959,
+  "observations": 27796,
+  "documents": 0,
+  "events": 0,
+  "attributes": {
+    "crossing": 11893,
+    "surface": 5908,
+    "barrier": 2381,
+    "tactile_paving": 1871,
+    "crossing:signals": 1368,
+    "highway": 977,
+    "kerb": 861,
+    "wheelchair": 719,
+    "incline": 597,
+    "lit": 422,
+    "width": 266,
+    "handrail": 183
+  },
+  "null_rates": {
+    "value": 0.0,
+    "attribute": 0.0,
+    "lat": 0.0,
+    "lon": 0.0,
+    "observed_at": 1.0
+  },
+  "duplicates_share": 0.0,
+  "bbox": [
+    -84.70757,
+    39.05593,
+    -84.3709,
+    39.2188
+  ],
+  "observed_range": null,
+  "last_retrieved": "2026-11-07",
+  "failed_fetches": 0,
+  "robots_skipped": 0,
+  "pages_fetched": 0,
+  "age_days": 8,
+  "refresh_days": 180,
+  "trust": {
+    "score": 85.3,
+    "tier": "A",
+    "components": {
+      "authority": 0.65,
+      "provenance": 0.7,
+      "freshness": 1.0,
+      "completeness": 1.0,
+      "quality": 1.0,
+      "agreement": null,
+      "track_record": null
+    },
+    "used": [
+      "authority",
+      "provenance",
+      "freshness",
+      "completeness",
+      "quality"
+    ]
+  },
+  "known_issues": []
+}

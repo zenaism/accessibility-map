@@ -1,0 +1,61 @@
+{
+  "schema": "atlas.dataset_card/1",
+  "id": "oxford.gtfs_bcrta",
+  "source": "gtfs_bcrta",
+  "region": "oxford",
+  "title": "gtfs bcrta",
+  "connector": "gtfs",
+  "publisher": "files.mobilitydatabase.org",
+  "url": "https://files.mobilitydatabase.org/mdb-240/latest.zip",
+  "licence": "BCRTA GTFS (agency terms)",
+  "collected": true,
+  "entities": 61,
+  "observations": 61,
+  "documents": 0,
+  "events": 0,
+  "attributes": {
+    "wheelchair_boarding": 61
+  },
+  "null_rates": {
+    "value": 0.0,
+    "attribute": 0.0,
+    "lat": 0.0,
+    "lon": 0.0,
+    "observed_at": 1.0
+  },
+  "duplicates_share": 0.0,
+  "bbox": [
+    -84.7675,
+    39.49107,
+    -84.7215,
+    39.52813
+  ],
+  "observed_range": null,
+  "last_retrieved": "2026-11-07",
+  "failed_fetches": 0,
+  "robots_skipped": 0,
+  "pages_fetched": 0,
+  "age_days": 8,
+  "refresh_days": 90,
+  "trust": {
+    "score": 95.3,
+    "tier": "A",
+    "components": {
+      "authority": 0.85,
+      "provenance": 1.0,
+      "freshness": 1.0,
+      "completeness": 1.0,
+      "quality": 1.0,
+      "agreement": null,
+      "track_record": null
+    },
+    "used": [
+      "authority",
+      "provenance",
+      "freshness",
+      "completeness",
+      "quality"
+    ]
+  },
+  "known_issues": []
+}

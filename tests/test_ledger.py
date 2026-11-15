@@ -1,5 +1,6 @@
 """Every fetch attempt, good or bad, leaves one line in the fetch ledger."""
 
+import contextlib
 import json
 import types
 
@@ -20,10 +21,8 @@ def test_ledger_records_success_and_failure(tmp_path, monkeypatch):
     monkeypatch.setattr(cli.importlib, "import_module", lambda name: _fake(True))
     cli._run("s", "r")
     monkeypatch.setattr(cli.importlib, "import_module", lambda name: _fake(False))
-    try:
+    with contextlib.suppress(RuntimeError):
         cli._run("s", "r")
-    except RuntimeError:
-        pass
     rows = [json.loads(x) for x in cli.LEDGER.read_text().splitlines()]
     assert [r["status"] for r in rows] == ["ok", "error"]
     assert rows[1]["error"].startswith("RuntimeError")

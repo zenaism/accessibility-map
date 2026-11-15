@@ -1,0 +1,64 @@
+{
+  "schema": "atlas.dataset_card/1",
+  "id": "cincinnati.gtfs_metro",
+  "source": "gtfs_metro",
+  "region": "cincinnati",
+  "title": "gtfs metro",
+  "connector": "gtfs",
+  "publisher": "files.mobilitydatabase.org",
+  "url": "https://files.mobilitydatabase.org/mdb-307/latest.zip",
+  "licence": "Cincinnati Metro GTFS (agency terms)",
+  "collected": true,
+  "entities": 2320,
+  "observations": 2320,
+  "documents": 0,
+  "events": 0,
+  "attributes": {
+    "wheelchair_boarding": 2320
+  },
+  "null_rates": {
+    "value": 0.0,
+    "attribute": 0.0,
+    "lat": 0.0,
+    "lon": 0.0,
+    "observed_at": 0.0
+  },
+  "duplicates_share": 0.0,
+  "bbox": [
+    -84.70744,
+    39.07392,
+    -84.37096,
+    39.21786
+  ],
+  "observed_range": [
+    "20261004",
+    "20261004"
+  ],
+  "last_retrieved": "2026-11-07",
+  "failed_fetches": 0,
+  "robots_skipped": 0,
+  "pages_fetched": 0,
+  "age_days": 8,
+  "refresh_days": 90,
+  "trust": {
+    "score": 95.3,
+    "tier": "A",
+    "components": {
+      "authority": 0.85,
+      "provenance": 1.0,
+      "freshness": 1.0,
+      "completeness": 1.0,
+      "quality": 1.0,
+      "agreement": null,
+      "track_record": null
+    },
+    "used": [
+      "authority",
+      "provenance",
+      "freshness",
+      "completeness",
+      "quality"
+    ]
+  },
+  "known_issues": []
+}
