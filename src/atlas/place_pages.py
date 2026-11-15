@@ -78,7 +78,7 @@ def _page(title: str, body: str, canonical: str, up: str) -> str:
 <a class="skip" href="#main">Skip to content</a>
 <header><p>{up}</p></header>
 <main id="main">{body}</main>
-<footer><p>Ohio Access Atlas, a Miami University research project. Information comes from the sources linked
+<footer><p>Accessibility Map, a Miami University research project. Information comes from the sources linked
 on each page and may be out of date; please call ahead. <a href="{REPO}/issues/new">Report a problem</a>.</p></footer>
 </body></html>
 """
@@ -311,7 +311,7 @@ def index_html(fc: dict, region: str) -> str:
             + "</ul>"
         )
     up = f'<a href="../../{region}.html">{city} map</a>'
-    return _page(f"All places in {city}: Ohio Access Atlas", body, f"{SITE}/places/{region}/index.html", up)
+    return _page(f"All places in {city}: Accessibility Map", body, f"{SITE}/places/{region}/index.html", up)
 
 
 def shows_html(fc: dict, region: str) -> str | None:

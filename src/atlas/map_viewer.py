@@ -73,7 +73,7 @@ ICONS = {
 }
 
 TEMPLATE = r"""<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><title>__TITLE__ · Ohio Access Atlas</title>
+<html lang="en"><head><meta charset="utf-8"><title>__TITLE__ · Accessibility Map</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Wheelchair accessibility of places, restrooms, trails and events, with sources.">
 <meta name="theme-color" content="#ffffff">
@@ -888,7 +888,7 @@ document.getElementById('status').textContent = 'The map could not be initialize
 
 def render(
     data: dict,
-    title: str = "Ohio Access Atlas",
+    title: str = "Accessibility Map",
     nav: str = "",
 ) -> str:
     """data = {region: FeatureCollection}; nav = extra HTML after the date (e.g. a link to the other city)."""

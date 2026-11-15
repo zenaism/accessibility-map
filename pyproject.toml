@@ -1,7 +1,7 @@
 [project]
 name = "accessibility-map"
 version = "0.1.0"
-description = "Multi-source, provenance-tracked wheelchair accessibility data for Cincinnati and Oxford, Ohio"
+description = "Multi-source, provenance-tracked wheelchair accessibility data, starting with Cincinnati and Oxford, Ohio"
 requires-python = ">=3.11"
 dependencies = [
   "geopandas>=1.0",
