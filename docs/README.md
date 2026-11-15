@@ -6,7 +6,7 @@ One topic per file. Where two files touch the same subject, the "owner" below is
 |---|---|---|
 | [`research_questions.md`](research_questions.md) | The four (revised) research questions, papers, venues, plan | RQs, paper plan, timeline |
 | [`study_design.md`](study_design.md) | Method and threats to validity | how we test the RQs |
-| [`literature/`](literature/) | Seven literature reviews (topic1 to topic7) | related work |
+| [`literature/`](literature/) | `literature_review.md` is the short synthesis with the gap map; `topic1` to `topic7` are the detailed notes behind it | related work |
 | [`national_data_plan.md`](national_data_plan.md) | Plan for automated, nationwide collection (draft) | discovery, fetching, storage, release format |
 | [`data_design.md`](data_design.md) | Cincinnati/Oxford scope, categories, record shapes, pipeline, map | the current data model |
 | [`categories.md`](categories.md) | Generated list of all question categories (trails, parking, restrooms, events, ...) with how to fetch each; source is `../config/categories.yaml` | what users ask about, drives fetching |
