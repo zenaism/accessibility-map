@@ -1,6 +1,6 @@
 # Progress log and findings
 
-_Snapshot from the Claude Doc "Data & RAG Implementation Plan" (12 Nov 2026). The Claude Doc is where this is kept current; copy updates here when you commit._
+_Started as a snapshot of the Claude Doc "Data & RAG Implementation Plan" (12 Nov 2026). From 15 Nov 2026 this file is the up-to-date copy: the Claude Doc belongs to another Claude account and could not be edited from here, so keep this one current._
 
 ## Progress and to-do
 
@@ -10,6 +10,11 @@ The maps are live: [Cincinnati](https://zenaism.github.io/accessibility-map/data
 
 | Date | What | Where |
 | --- | --- | --- |
+| 2026-11-15 | **Nationwide plan and system design.** Draft plan for automated collection across the US (discovery by catalogs, government sites and place-driven pages; completeness checks; free tools only because there is no budget); automatic trust rating of sources and facts instead of hand checking; system overview with pros and cons and a comparison with other architectures; 11 Mermaid diagrams, all checked to render. | `docs/national_data_plan.md`, `docs/system_overview.md`, `docs/architecture.md` |
+| 2026-11-15 | **Research on source types beyond government data** and first findings for the target regions (DC ADA curb ramps, Maryland highway pedestrian facilities and the OpenSidewalks/TDEI data for Baltimore and Montgomery counties, Dayton ADA plan and Ohio DOT layer). Plan for what data to keep for future computing and prediction (history, labels, context). | `docs/source_types.md`, `docs/data_needs.md` |
+| 2026-11-15 | **26 question categories** (trails, parking, restrooms, events, health, transit, and more) as a config file for fetching, with a generated readable list that is checked against the attribute list. | `config/categories.yaml`, `docs/categories.md` |
+| 2026-11-15 | **Source tracker updates itself:** every fetch now adds a line to a fetch log and refreshes the source inventory (now with URL and licence). Test added; 81 tests pass. | `src/atlas/cli.py`, `src/atlas/inventory.py`, `data/ledger/` |
+| 2026-11-15 | **Repo renamed to accessibility-map**; titles and docs made location-neutral; docs restructured (big plan split into topic files, index added, old research plan merged into study design); decision log started (D-01 to D-18); project skill added. | GitHub, `docs/README.md`, `docs/decisions.md`, `.claude/skills/` |
 | 2026-11-13 | One-page notes on which research questions the system can answer and how: 5 of 8 inside the system (RQ2 today; RQ5 and RQ6 once a model is connected to the 6 tools; RQ3 and RQ4 start in the system and are finished by a field audit), 3 need people (RQ1, RQ7, RQ8). Includes a figure placing each question on the system pipeline. Current counts: 676 places, 972 facts (27 about vision, at 15 places), 229 events | docs/research\_questions\_system\_notes.docx, docs/figures/rq\_system\_map.png (not committed yet) |
 | 2026-11-13 | Research brief for the assistant, written from the view of a person who has low vision or is blind and uses a wheelchair: who they are (44.9% of US adults with vision impairment also report a mobility disability), a day of questions, what the research says, 8 research questions each explained (why, what is known, method, measures, expected result, risks), a stronger version of the prompt, and 24 new questions for the question bank. 56 sources, 24 checked at the source. Suggested start: needs study (ethics application), answerability analysis, grounded-answer benchmark | docs/accessibility\_assistant\_research\_brief.docx (Word, not committed yet) |
 | 2026-11-12 | Google area searches (25 requests, within the free allowance and the daily quota): 281 new places with Google accessibility answers (restaurants, cafés, bars, breweries, hotels, pharmacies, groceries) in the private map only. Private map: Cincinnati 710 places, Oxford 229. Public map unchanged | data/private/ (not published) |
@@ -52,6 +57,10 @@ The maps are live: [Cincinnati](https://zenaism.github.io/accessibility-map/data
 
 ### To do: next (I can do these)
 
+- [ ] Nationwide build, phase 0 (after you approve the plan): observation schema v2 with history, dataset cards for existing sources, the trust engine (source and fact rating), and the question set per category
+- [ ] Region resolver (Census and OSM) and automatic discovery, then run it for Washington DC first; then Maryland and Dayton
+- [ ] Add the new attributes listed in `config/categories.yaml` to `config/attributes.yaml`
+- [ ] Start the history archives that cannot be recovered later (GTFS-Realtime alerts, weather, page snapshots)
 - [ ] Scrape new sources: The Bridge Adaptive Sports (thebridgeadaptive.org), University of Cincinnati (uc.edu), UC Health (uchealth.com), Cincinnati Children's Hospital (cincinnatichildrens.org), Flying Pig Marathon community events (flyingpigmarathon.com/community-events), and Grandma's Marathon (grandmasmarathon.com; note: held in Duluth, MN, outside our area; check whether the Flying Pig Marathon was meant)
 - [ ] Parking accessibility on the Miami campus: where accessible spaces are in each lot, how many, permit rules, drop-off points near main buildings (sources: Parking & Transportation pages and maps, 2023 parking map, email to parking@MiamiOH.edu)
 - [ ] Paging for the place list instead of "Show more" (done)
@@ -69,7 +78,9 @@ The maps are live: [Cincinnati](https://zenaism.github.io/accessibility-map/data
 
 ### To do: needs you
 
-- [ ] Spot-check 20 venue facts and the 3 poster records (all marked not yet checked by a person)
+- [ ] Review and approve `docs/national_data_plan.md` and `docs/system_overview.md`; answer their open questions (Maryland scope and other cities, rating cut-offs, GPU or storage at the lab or university, format for the other lab team)
+- [ ] Send data-request emails: Maryland GIS (pedestrian facilities licence), TDEI/OpenSidewalks, AXS Map, Wheel the World
+- [ ] ~~Spot-check 20 venue facts and the 3 poster records~~ (replaced: no manual checking; automatic rating, decision D-16)
 - [ ] Verify zenaism@miamioh.edu on your GitHub account so commits link to you (done: commits already link to zenaism)
 - [ ] Claude API key for the assistant
 - [ ] Google Places and Yelp access; Meta Content Library application; Reddit API credentials
