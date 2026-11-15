@@ -20,3 +20,6 @@ data/dem/*.part
 .vscode/
 data/kb/
 data/private/
+
+# Private lab notes (unpublished results)
+docs/lab_sensing/
