@@ -9,12 +9,15 @@ One topic per file. Where two files touch the same subject, the "owner" below is
 | [`literature/`](literature/) | Seven literature reviews (topic1 to topic7) | related work |
 | [`national_data_plan.md`](national_data_plan.md) | Plan for automated, nationwide collection (draft) | discovery, fetching, storage, release format |
 | [`data_design.md`](data_design.md) | Cincinnati/Oxford scope, categories, record shapes, pipeline, map | the current data model |
+| [`categories.md`](categories.md) | Generated list of all question categories (trails, parking, restrooms, events, ...) with how to fetch each; source is `../config/categories.yaml` | what users ask about, drives fetching |
+| [`data_needs.md`](data_needs.md) | All data we need: now, for computing, for prediction; what to keep from day one | data requirements and future use |
 | [`data_landscape.md`](data_landscape.md) | What users need and every way to get it, by acquisition method | acquisition strategy |
 | [`source_catalog.md`](source_catalog.md) | Researched candidate sources: what each adds, access, terms, priority | source reasoning |
-| [`source_inventory.md`](source_inventory.md) | Generated counts per source (`make inventory`), do not edit | what is on disk |
+| [`source_inventory.md`](source_inventory.md) | **Source tracker, updates itself after every `atlas fetch`**: URL, licence, counts, last retrieved, failures. Do not edit | what is on disk |
 | [`resource_directory.md`](resource_directory.md) | Annotated list of local accessibility organisations and platforms | people and organisations |
 | [`assistant_design.md`](assistant_design.md) | Tool-using assistant design and the 44-question bank | assistant, evaluation questions |
-| [`architecture.md`](architecture.md) | Mermaid diagrams: system, discovery, extraction, data model, storage, assistant | how the system fits together |
+| [`system_overview.md`](system_overview.md) | **Start here.** How the system works, automatic rating, pros and cons, comparison with other architectures, status | the overview |
+| [`architecture.md`](architecture.md) | Mermaid diagrams: system, discovery, crawl and completeness checks, extraction, data model, storage, assistant | how the system fits together |
 | [`source_types.md`](source_types.md) | Non-government source types, licences, region findings (DC, MD, Dayton) | which kinds of sources we need |
 | [`decisions.md`](decisions.md) | Decision log: what we chose, why, alternatives, costs | the reasoning behind choices |
 | [`progress_log.md`](progress_log.md) | Dated progress, findings, collection status, to-do (snapshot of the Claude Doc) | what has been done |

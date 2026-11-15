@@ -2,57 +2,47 @@
 
 Mermaid diagrams, so they render in Obsidian and on GitHub and stay diffable as text. Colour key used in every diagram: **green = exists today** (Cincinnati and Oxford pipeline), **blue = planned** in [`national_data_plan.md`](national_data_plan.md), **grey = external**. Reasons behind the choices are in [`decisions.md`](decisions.md).
 
-## 1. The whole system in one picture
+## 1. The big picture: four layers
 
-Read left to right: where data comes from, what we do to it, what comes out, who uses it.
+Data flows left to right through four layers. Each layer has one job, and the layer below only trusts what the layer above passes down.
 
 ```mermaid
 flowchart LR
-  subgraph SRC["Sources"]
-    direction TB
-    S1["Open geodata: OSM, Overture, elevation, Census"]
-    S2["Government: city and state GIS, 311, ADA plans, transit GTFS"]
-    S3["Venue and tourism websites, hospitals, universities, nonprofits"]
-    S4["Documents: PDFs, posters, maps, floor plans"]
-    S5["Community: crowd maps, forums, our own ratings"]
-  end
-  subgraph PIPE["Pipeline"]
-    direction TB
-    P1["1 Discover sources"]
-    P2["2 Review and approve"]
-    P3["3 Fetch to raw store"]
-    P4["4 Extract: text, tables, OCR, vision"]
-    P5["5 Normalize to entities and observations"]
-    P6["6 Fuse: dedupe, conflicts, confidence"]
-    P1 --> P2 --> P3 --> P4 --> P5 --> P6
-  end
-  subgraph OUT["Outputs"]
-    direction TB
-    O1["Versioned release: GeoParquet plus dataset cards"]
-    O2["DuckDB knowledge base"]
-    O3["Map and text pages"]
-  end
-  subgraph USE["Users of the data"]
-    direction TB
-    U1["Accessibility assistant"]
-    U2["Other lab team's app"]
-    U3["Researchers and papers"]
-  end
-  SRC --> P1
-  P6 --> O1
-  O1 --> O2
-  O1 --> O3
-  O2 --> U1
-  O1 --> U2
-  O1 --> U3
-  O3 --> U3
+  L1["<b>📥 1 SOURCES</b><br/>where facts live<br/><br/>🗺️ Open maps<br/>OSM · Overture · elevation<br/><br/>🏛️ Government<br/>GIS · 311 · transit · ADA plans<br/><br/>🌐 Websites<br/>venues · tourism · hospitals<br/><br/>📄 Documents<br/>PDFs · posters · maps<br/><br/>💬 People<br/>ratings · forums"]
+  L2["<b>⚙️ 2 COLLECT</b><br/>find · fetch · check<br/><br/>🔎 Discover sources<br/><br/>🤖 Auto-approve by score<br/><br/>⬇️ Fetch and save raw<br/><br/>🧪 Completeness checks"]
+  L3["<b>🧠 3 UNDERSTAND</b><br/>files become facts<br/><br/>📖 Read<br/>text · OCR · vision<br/><br/>🧾 Facts with<br/>quote and source<br/><br/>📍 Match to real places<br/><br/>⚖️ Fuse<br/>conflicts · confidence"]
+  L4["<b>📦 4 SERVE</b><br/>who uses it<br/><br/>🗃️ Release files<br/>for the other lab team<br/><br/>🤖 Assistant<br/>answers questions<br/><br/>🗺️ Public map<br/>and text pages<br/><br/>📊 Research papers"]
+  L1 ==> L2 ==> L3 ==> L4
 
-  classDef built fill:#d4edda,stroke:#2e7d32,color:#111
+  classDef built fill:#d4edda,stroke:#2e7d32,stroke-width:2px,color:#111
+  classDef mixed fill:#e0f2fe,stroke:#0369a1,stroke-width:2px,color:#111
+  class L1,L2,L3,L4 mixed
+```
+
+Each box is one layer: the list inside is what it holds or does. Cincinnati and Oxford already run most of layers 1 to 3 plus the map and the assistant tools; discovery, review, completeness checks, matching and fusion, and the release files are planned. See the detailed diagrams below for each part.
+
+
+## 1b. One fact's journey (a concrete example)
+
+This is what happens to a single sentence on a zoo's website, from the web page to an answer.
+
+```mermaid
+flowchart LR
+  W["🌐 Zoo website<br/>'Accessibility' page"] --> F["⬇️ Fetched and saved<br/>exactly as received<br/>+ date + hash"]
+  F --> R["📖 Read<br/>'Main paths are paved<br/>and wheelchair accessible'"]
+  R --> Q{"Quote really<br/>on the page?"}
+  Q -- no --> X["🗑️ Dropped"]
+  Q -- yes --> O["🧾 Fact<br/>place: Zoo<br/>attribute: paths<br/>value: accessible<br/>confidence: medium"]
+  O --> M["📍 Matched to the<br/>Zoo on the map<br/>by name and location"]
+  M --> U["⚖️ Compared with<br/>OSM and other sources"]
+  U --> A["🤖 Assistant:<br/>'The zoo says main paths are<br/>accessible (zoo website, 2026).<br/>Jungle Trails: unknown.'"]
+
   classDef planned fill:#dbeafe,stroke:#1d4ed8,color:#111
-  classDef ext fill:#eeeeee,stroke:#777,color:#111
-  class S1,S2,S4,P3,P4,P5,O2,O3 built
-  class P1,P2,P6,O1,S3,S5,U1,U2 planned
-  class U3 ext
+  classDef built fill:#d4edda,stroke:#2e7d32,color:#111
+  classDef bad fill:#fde2e2,stroke:#b91c1c,color:#111
+  class W,F,R,Q,O,M built
+  class U,A planned
+  class X bad
 ```
 
 ## 2. Discovery: how new sources are found without hand-picking
@@ -71,9 +61,9 @@ flowchart TB
   CAND --> T["Triage: LLM reads metadata and a short sample only"]
   T --> V{"Automated checks: inside region, geometry, sane values, licence, robots.txt"}
   V -- fail --> REJ["Rejected, remembered so not re-proposed"]
-  V -- pass --> H{"Human review: accept, fix mapping, reject"}
-  H -- reject --> REJ
-  H -- accept --> REG["Added to source registry sources.yaml"]
+  V -- pass --> H{"Trust engine: score the source"}
+  H -- "Tier D" --> REJ
+  H -- "Tier A or B" --> REG["Added to source registry sources.yaml"]
   REG --> F["Fetch and ingest"]
   H -. accepted mappings become examples .-> T
 
@@ -85,7 +75,7 @@ flowchart TB
 
 ## 3. Multimodal extraction: from raw file to checked claims
 
-Every input type ends as the same thing: claims with a quote or image region, so a person can verify the original.
+Every input type ends as the same thing: claims with a quote or image region, so anyone, or any later check, can verify the original.
 
 ```mermaid
 flowchart LR
@@ -199,7 +189,7 @@ sequenceDiagram
   participant CLI as atlas region add
   participant Geo as Census TIGER and OSM
   participant Disc as Discovery
-  participant Rev as Review queue
+  participant Rev as Trust engine
   participant Pipe as Fetch, extract, fuse
   participant Rel as Release and coverage report
   You->>CLI: add "Washington DC"
@@ -207,8 +197,8 @@ sequenceDiagram
   Geo-->>CLI: pinned region entry
   CLI->>Disc: run routes A to D
   Disc-->>Rev: candidate sources with draft mappings
-  You->>Rev: accept, fix or reject each one
-  Rev->>Pipe: approved sources only
+  Rev->>Rev: score each source, auto-approve tiers A and B
+  Rev->>Pipe: accepted sources only
   Pipe->>Rel: observations, dataset cards, coverage per attribute
   Rel-->>You: "What can the assistant answer here" report
 ```
@@ -221,12 +211,121 @@ stateDiagram-v2
   new --> triaged: LLM reads metadata
   triaged --> rejected: checks fail or low relevance
   triaged --> needs_review: checks pass
-  needs_review --> approved: accepted by a person
-  needs_review --> rejected: rejected by a person
+  needs_review --> approved: score is Tier A or B
+  needs_review --> rejected: score is Tier D, or Tier C is quarantined
   approved --> ingested: fetched and extracted
   ingested --> stale: past refresh date
   stale --> ingested: re-fetched
   ingested --> retired: source gone or licence changed
   rejected --> [*]
   retired --> [*]
+```
+
+## 9. Fetching everything: the crawl and its completeness gates
+
+The goal is that nothing we might need is silently missed. Every URL we learn about gets a final status, and a source is not "done" until the gates pass.
+
+```mermaid
+flowchart TB
+  SEED["Seeds: approved source URLs"] --> FR[("Frontier: every URL seen, with a status")]
+  MAP["sitemap.xml and robots.txt sitemaps"] --> FR
+  FEED["RSS, Atom and calendar feeds"] --> FR
+  ARCH["Wayback and Common Crawl URL lists for the same domain"] --> FR
+  FR --> SCOPE{"In scope? same site, allowed by robots.txt, within depth and budget"}
+  SCOPE -- no --> SK["Recorded as skipped with a reason"]
+  SCOPE -- yes --> FET["Fetch with retries, rate limit, ETag"]
+  FET --> KIND{"What came back?"}
+  KIND -->|static HTML| EXT["Save raw and extract links"]
+  KIND -->|needs JavaScript or hidden content| REN["Headless browser: render, expand tabs and accordions, click load more"]
+  KIND -->|PDF, image, spreadsheet| DOC["Save file and register as document"]
+  KIND -->|error, login wall, soft 404, empty| FAIL["Recorded as failed with a reason"]
+  REN --> EXT
+  EXT --> LINKS["New links, pagination, embedded files, iframes"]
+  LINKS --> FR
+  FR --> DONE{"Frontier empty or budget reached?"}
+  DONE -- no --> SCOPE
+  DONE -- yes --> GATES["Completeness gates, see next diagram"]
+
+  classDef planned fill:#dbeafe,stroke:#1d4ed8,color:#111
+  classDef built fill:#d4edda,stroke:#2e7d32,color:#111
+  classDef bad fill:#fde2e2,stroke:#b91c1c,color:#111
+  class SEED,MAP,FEED,ARCH,FR,SCOPE,REN,LINKS,DONE,GATES planned
+  class FET,KIND,EXT,DOC built
+  class SK,FAIL bad
+```
+
+## 10. Completeness gates: how we know we got everything
+
+Each gate compares what we fetched with an independent measure of what exists. Anything that does not match goes to the gap queue instead of being ignored.
+
+```mermaid
+flowchart LR
+  G0["Crawl finished"] --> C1 & C2 & C3 & C4 & C5 & C6
+  C1["1 Status audit: every URL fetched, failed or skipped, none unknown"]
+  C2["2 Sitemap coverage: share of sitemap URLs fetched"]
+  C3["3 Count check: API or GIS reports total rows, compare with rows saved"]
+  C4["4 Archive check: URLs in Wayback or Common Crawl that we never saw"]
+  C5["5 Keyword audit: site search for wheelchair, accessible, ADA, ramp, elevator finds pages we did not fetch"]
+  C6["6 Sample audit: random pages outside the crawl, LLM and person check if relevant"]
+  C1 & C2 & C3 & C4 & C5 & C6 --> R{"All gates pass?"}
+  R -- yes --> OK["Source marked complete, dated, coverage recorded"]
+  R -- no --> GAP[("Gap queue")]
+  GAP --> A1["Retry with backoff"]
+  GAP --> A2["Re-fetch with headless browser"]
+  GAP --> A3["Raise depth or budget"]
+  GAP --> A4["Ask the owner for the data or hand-collect"]
+  GAP --> A5["Mark as blocked, record why, show in report"]
+  A1 & A2 & A3 --> G0
+  A4 & A5 --> REP["Coverage report per source and region"]
+  OK --> REP
+  REP --> HUM["Gaps listed in the release notes, nothing hidden"]
+
+  classDef planned fill:#dbeafe,stroke:#1d4ed8,color:#111
+  classDef bad fill:#fde2e2,stroke:#b91c1c,color:#111
+  class G0,C1,C2,C3,C4,C5,C6,R,OK,GAP,A1,A2,A3,A4,A5,REP,HUM planned
+```
+
+## 11. The zero-budget stack: which free tool does each step
+
+Spend compute only where it pays: cheap rules first, small local models only on pages that pass, cache everything.
+
+```mermaid
+flowchart LR
+  subgraph FIND["Find"]
+    F1["OSM and Overture website fields"]
+    F2["Open-data catalog APIs"]
+    F3["sitemaps, Wayback and Common Crawl indexes"]
+  end
+  subgraph GET["Fetch"]
+    G1["Python requests and a polite crawler"]
+    G2["Playwright headless browser for JavaScript pages"]
+  end
+  subgraph READ["Read"]
+    R1["Rules: keywords and section headings"]
+    R2["PDF parsers: PyMuPDF, pdfplumber, Docling"]
+    R3["OCR: Tesseract or PaddleOCR"]
+    R4["Local open model on pages that passed the rules"]
+    R5["Local vision model only on relevant images"]
+  end
+  subgraph KEEP["Store and share"]
+    K1["Local disk raw files and Parquet"]
+    K2["DuckDB file"]
+    K3["Zenodo, Hugging Face or GitHub releases"]
+  end
+  FIND --> GET --> R1
+  R1 -->|not relevant| SKIP["Skipped, recorded in coverage report"]
+  R1 -->|relevant| R2 & R3
+  R2 & R3 --> R4
+  R3 -->|image content| R5
+  R4 & R5 --> HC["Automatic checks: quote, double extraction, entailment"]
+  HC --> K1 --> K2 --> K3
+  CACHE[("Cache by content hash: nothing processed twice")] -.-> R4
+  CACHE -.-> R5
+
+  classDef planned fill:#dbeafe,stroke:#1d4ed8,color:#111
+  classDef built fill:#d4edda,stroke:#2e7d32,color:#111
+  class F1,F2,F3,G2,R1,R4,R5,HC,K3,CACHE planned
+  class G1,R2,R3,K1,K2 built
+  classDef bad fill:#eeeeee,stroke:#777,color:#111
+  class SKIP bad
 ```

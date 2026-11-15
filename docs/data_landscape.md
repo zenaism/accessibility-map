@@ -5,7 +5,7 @@ Status: ✅ in pipeline · 🔜 next · 💡 later · ❌ not viable. Probed end
 
 ## 1. What information matters (the target schema)
 
-_This is the single attribute list for the project. `national_data_plan.md` (question families) and `assistant_design.md` (question bank) refer to it instead of repeating it._
+_This is the single attribute list for the questions the assistant answers. Data needed for computing and prediction (history, labels, context, user profile) is in `data_needs.md`. `national_data_plan.md` (question families) and `assistant_design.md` (question bank) refer to it instead of repeating it._
 
 | Need | Attributes | Why |
 |---|---|---|

@@ -9,12 +9,15 @@ description: Project guide for the Accessibility Map repo (wheelchair accessibil
 A multimodal data-fusion layer and assistant for wheelchair users, started for Cincinnati and Oxford, Ohio, now being extended to Maryland, DC, Dayton and eventually the whole US. The maps are a visualization; the product is the dataset plus the assistant. Another lab team will consume the data in their own accessibility app, so formats and schema must stay stable and documented. Reference predecessor: MU-Smart/Accessibility-Assistant (NYC, Manhattan).
 
 ## Where things are (read these first)
+- `docs/system_overview.md`: START HERE. Whole system, rating scheme, pros and cons, comparison.
 - `docs/README.md`: index of every doc and which doc owns which topic. Edit the owner, do not repeat content elsewhere.
 - `docs/national_data_plan.md`: the plan for automated, nationwide collection (draft until approved).
 - `docs/architecture.md`: Mermaid diagrams of the system.
 - `docs/source_types.md`: which kinds of sources beyond government, with licences.
 - `docs/decisions.md`: decision log (what, why, alternatives, costs).
 - `docs/data_landscape.md` section 1: the single attribute list (what users need).
+- `config/categories.yaml`: every question category and how to fetch it (docs/categories.md is generated: `python scripts/make_categories_doc.py`). Add or change categories there.
+- Source tracker: `docs/source_inventory.md` and `data/source_inventory.csv` refresh automatically after every `atlas fetch`; `data/ledger/fetch_log.jsonl` is the append-only fetch history. Do not edit them by hand.
 - `SOURCES.md`: status of each source (collected, next, idea). `config/sources.yaml` and `config/regions.yaml`: the registry the pipeline reads.
 - `src/atlas/`: connectors, export, map, assistant (DuckDB knowledge base in `assistant/kb.py`). Commands: `make map`, `make kb`, `make inventory`, `make test`.
 
@@ -23,9 +26,10 @@ A multimodal data-fusion layer and assistant for wheelchair users, started for C
 2. **Record the why.** When something non-obvious is decided (tool, format, source, policy), add a numbered entry at the top of `docs/decisions.md` with decision, why, alternatives, costs/revisit, and a Basis line saying *recorded* (written somewhere) or *inferred* (reconstructed, needs confirming). Never present guessed reasoning as the user's.
 3. **No duplicate docs.** Check `docs/README.md` for the owner before writing; link instead of copying. Update the index when adding a doc.
 4. **Plan doc.** The Claude Doc "Data & RAG Implementation Plan" has a "Progress and to-do" section; after a chunk of work, add a Done row there and mirror it in `docs/progress_log.md`.
-5. **Discover automatically, review before ingesting.** Do not hand-pick sources for new regions: use the discovery routes in the national plan; a person approves each candidate.
+5. **Discover automatically, rate automatically.** Do not hand-pick sources for new regions: use the discovery routes in the national plan; the trust engine rates each candidate automatically (no one can hand-check data); see `docs/system_overview.md` section 4. Show uncertainty: confirmed, reported, unknown.
 6. **Provenance on every fact:** source URL, retrieval date, verbatim quote or page/region, method, confidence, licence. Raw files are immutable.
-7. **Licences:** Google Places and Yelp are live lookups and evaluation only, never stored. Check terms before redistributing anything (OSM ODbL, CC BY-SA imagery, etc.).
+7. **Budget is $0 for now.** Design and build with free data, free tools and local models; never assume a paid API (search, LLM, vision, hosting). Rules and filters first, models last, cache by content hash. See `docs/national_data_plan.md` section 0.1.
+8. **Licences:** Google Places and Yelp are live lookups and evaluation only, never stored. Check terms before redistributing anything (OSM ODbL, CC BY-SA imagery, etc.).
 
 ## Repo conventions
 - Commit as Mariam Zenaishvili <zenaism@miamioh.edu>; no AI co-author lines. Work on `main`; push directly.

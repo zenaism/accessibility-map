@@ -6,7 +6,27 @@ Companion docs: diagrams in [`architecture.md`](architecture.md); source kinds b
 
 ## 0. Goal and constraints
 
+> **Constraint: no budget for now ($0).** Everything below must run on free data, free tools and hardware we already have (a laptop, possibly lab or university machines). Section 0.1 says what that changes. Free-tier limits change often and were not all verified: re-check each before relying on it.
+
 **Goal.** A multimodal data-fusion layer for a wheelchair accessibility assistant that works for any US place. This repo's maps are a visualization of that data, not the product. The product is the dataset plus the assistant that reasons over it.
+
+### 0.1 What a $0 budget changes
+
+| Plan element | Paid version (avoided) | Free replacement | Consequence |
+|---|---|---|---|
+| Finding sites (route D) | search API (Google, Bing, SerpAPI) | place-driven discovery from OSM `website` tags and Overture websites, sitemaps, open-data catalog APIs, Wayback and Common Crawl URL indexes; a handful of manual queries per region | slower and less complete for obscure sites; route D shrinks to a small hand-run supplement |
+| Reading text (claim extraction, triage) | hosted LLM API | **rules first** (keyword and section matching, as the NYC predecessor did), then a **local open model** (for example through Ollama) on only the pages that pass; run overnight; cache by content hash | lower accuracy than a frontier model, so the quote-must-appear check and human review matter more |
+| Reading images, posters, scans | hosted vision model | free OCR (Tesseract or PaddleOCR) first; a **local vision-language model** only on images that look relevant | slow; needs a GPU or patience; hand-check more |
+| PDFs | paid document-AI services | free parsers (PyMuPDF, pdfplumber, Docling or Marker) | good for text PDFs; scanned and complex layouts need OCR |
+| Triage of candidate sources | LLM reads metadata | keyword rules plus a small local embedding model for relevance; LLM draft only for the mapping step, locally | review queue is slightly longer |
+| JavaScript pages | paid scraping services | Playwright headless browser (free) | slower crawl, more local compute |
+| Storage and sharing | cloud buckets | local disk for raw files; free hosts for releases: Zenodo (DOI), Hugging Face Datasets, GitHub releases (with size limits), university storage | other team gets versioned files, not a live service |
+| Serving to the other team | hosted API | files only (GeoParquet, DuckDB file); a read-only API only if someone can host it for free | fine for v1 |
+| Assistant model | paid API key (Claude Pro does not include API use) | a local open model, or free-tier credits where available (check terms) | assistant quality is bounded by the local model; keep the tools-only evaluation, which needs no model |
+| Compute | cloud GPUs | laptop, lab machines, free Colab tiers, or university compute if available (to ask) | prefer small regions and batch jobs |
+| Ratings backend | paid database | Supabase free tier (already in use) | keep within its limits |
+
+Principles that follow: (1) **spend compute only where it pays**: cheap rules and filters first, models last, and cache everything by content hash so nothing is processed twice; (2) **prefer structured and national sources**, which cost nothing to process; (3) **start with the two target regions and measure** time per page before scaling; (4) **record skipped work** (for example "needs vision model, not yet run") so the coverage report is honest; (5) ask early about free university or lab resources (GPU access, storage, research credits), and about free research access programs, which may remove some limits.
 
 **What exists today** (Cincinnati and Oxford, built by hand): a declarative source registry (`config/sources.yaml`), regions pinned to OSM boundaries (`config/regions.yaml`), connectors for ArcGIS, Socrata, GTFS, Overpass, Overture, iCal and generic web pages, a common observation schema (entity, attribute, value, signal, source, date, license) and a DuckDB knowledge base for the assistant.
 
@@ -26,7 +46,7 @@ Companion docs: diagrams in [`architecture.md`](architecture.md); source kinds b
 2. **Two kinds of sources, treated differently.**
    - *National layers* cover every region the day we add it: OSM, Overture, USGS 3DEP elevation, Census ACS, GTFS feeds (via the Mobility Database), NPS, FHWA/NTD data. Build these once.
    - *Local layers* (city sidewalk inventories, 311 data, ADA plans, venue pages) must be discovered per region.
-3. **Discover, then triage, then approve.** Automated discovery proposes; an LLM classifier scores relevance from metadata; a human approves in a short review queue. Nothing unreviewed enters a release.
+3. **Discover, then triage, then approve.** Automated discovery proposes; an LLM classifier scores relevance from metadata; the trust engine rates it and accepts or rejects it automatically (see `system_overview.md` section 4) in a short review queue. Nothing unreviewed enters a release.
 4. **Provenance on every fact.** Each observation keeps its source URL, retrieval time, a quote or page/bbox, the extraction method, a confidence score and the license.
 5. **Raw data is immutable.** Store what we fetched, exactly as fetched, with a content hash. Re-extraction later (better model, new schema) never needs re-fetching.
 6. **Legal and polite by default.** Respect robots.txt, rate limits and terms of service. Record licenses per source. Google Places and Yelp details are not stored for redistribution (as today).
@@ -58,7 +78,7 @@ The same families become the **evaluation set**: write 10 to 20 realistic questi
 ## 3. Architecture
 
 ```
- Region registry ──► Source discovery ──► Triage + review queue ──► Fetch (raw store)
+ Region registry ──► Source discovery ──► Trust engine (auto-approve) ──► Fetch (raw store)
                                                                           │
                        Extraction (text / PDF / image / table) ◄──────────┘
                                           │
@@ -74,7 +94,7 @@ The same families become the **evaluation set**: write 10 to 20 realistic questi
 - Input: a name like "Maryland", "Washington DC", "Dayton OH".
 - Resolve through the Census TIGER boundary files and OSM (Nominatim), then **pin the OSM relation ID** (the existing rule, to avoid the "Manhattan, Kansas" mistake).
 - A region has a level: `state`, `county`, `place`. A state expands to counties and its larger cities. Store FIPS/GEOID so Census data joins cleanly.
-- Output: an entry in `config/regions.yaml`, generated, with a human check.
+- Output: an entry in `config/regions.yaml`, generated and checked by the automatic rules in `system_overview.md` section 4.
 
 ### 3.2 Source discovery (the part you asked to automate)
 
@@ -96,19 +116,19 @@ Each hit is a *candidate dataset* with metadata (title, description, fields, geo
 
 **C. Place-driven discovery (venues and businesses).** This is the scalable core for the consumer questions:
 - Start from the **place list** (OSM and Overture POIs in the region).
-- Use the `website` tag where present; otherwise find the official site through a search API.
+- Use the `website` tag where present; otherwise look it up in Overture, Wikidata or the venue's listing on a tourism site. A search API is optional (see 0.1); with no budget we use it only by hand.
 - For each site, fetch only the pages that look like accessibility, visit, directions, parking or events pages (link text and URL patterns, then a classifier).
 - Tourism boards ("Enjoy Oxford"-style visitor sites) are found the same way: search for the destination marketing organization per region, then crawl.
 
-**D. Templated web search for what the above miss.** A fixed set of query templates per scenario family and region (for example "{city} ADA transition plan", "{city} accessible trails wheelchair", "{city} paratransit eligibility"). Use a proper search API (Brave, Bing, SerpAPI or Google Custom Search), not scraping results pages. Deduplicate by domain and keep only results that pass the relevance classifier.
+**D. Templated web search for what the above miss.** A fixed set of query templates per scenario family and region (for example "{city} ADA transition plan", "{city} accessible trails wheelchair", "{city} paratransit eligibility"). If we later have budget, use a proper search API (Brave, Bing, SerpAPI or Google Custom Search), never scraped results pages. With $0, run this route by hand for a short list of queries per region. Deduplicate by domain and keep only results that pass the relevance classifier.
 
 Every route writes to one table, `source_candidates`: URL, discovery route, region, type guess, relevance score, license/robots status, status (`new`, `approved`, `rejected`, `ingested`).
 
 ### 3.3 Triage and review
 
-- A cheap LLM pass reads **metadata and a short sample only** (not the whole source) and answers: what attribute family does this serve, what geometry, what fields map to which attributes, is it current, is the license usable.
+- At $0 this uses keyword rules and a small local model (see 0.1). A cheap LLM pass reads **metadata and a short sample only** (not the whole source) and answers: what attribute family does this serve, what geometry, what fields map to which attributes, is it current, is the license usable.
 - For structured candidates, the LLM drafts the `sources.yaml` entry (connector type, URL, `where` filter, field-to-attribute mapping). Automated checks then validate the draft: rows fall inside the region, geometry type matches, value distributions look sane, row count is plausible.
-- A human sees a one-screen review per candidate (accept, reject, fix mapping). This is the only manual step. Rejected sources are remembered so they are not re-proposed.
+- **No human review.** The trust engine scores each candidate (authority, provenance, freshness, completeness, internal quality, cross-source agreement, track record) and routes it: Tier A accepted, Tier B accepted as "reported" only, Tier C quarantined, Tier D rejected. Rejected sources are remembered so they are not re-proposed.
 - Over time, approved mappings become examples that improve the drafting.
 
 ### 3.4 Fetching and the raw store
@@ -117,6 +137,21 @@ Every route writes to one table, `source_candidates`: URL, discovery route, regi
 - Respect robots.txt, rate limit per host, send an honest user agent, use ETag/If-Modified-Since to avoid re-downloads.
 - Store `raw/{region}/{source_id}/{YYYY-MM-DD}/...` with a sidecar `manifest.json`: URL, fetched_at, HTTP status and headers, SHA-256, size, license, robots decision.
 - Refresh schedule per source type: live alerts (minutes to hours), 311 and events (daily to weekly), inventories (monthly), plans and PDFs (quarterly), boundaries and elevation (yearly).
+
+#### Completeness: making sure we fetch everything we might need
+
+A crawl is only useful if we know what it missed. Rules, with diagrams 9 and 10 in [`architecture.md`](architecture.md):
+
+1. **Every URL gets a final status.** The frontier records each URL as fetched, failed, skipped (with reason: robots.txt, off-site, over budget) or duplicate. "Unknown" is not allowed at the end of a crawl. (The repo already counts failed fetches and robots-skipped pages in `source_inventory.md`; this extends it.)
+2. **Several ways to find pages, not just following links:** the seed page, `sitemap.xml` and sitemaps listed in `robots.txt`, RSS and calendar feeds, and the URL lists of the Wayback Machine and Common Crawl for the same domain.
+3. **Fetch what a plain download misses:** pages that need JavaScript, content hidden in tabs and accordions, "load more" and numbered pagination, iframes and embedded viewers, and linked PDFs, images and spreadsheets (registered as documents, then extracted).
+4. **Structured sources are paged until exhausted,** and the total the server reports (ArcGIS `returnCountOnly`, Socrata count, API totals) is compared with the rows saved.
+5. **Six completeness gates** after each crawl: status audit, sitemap coverage, count check, archive check, keyword audit (a site's own search for wheelchair, accessible, ADA, ramp, elevator versus pages we fetched), and a random sample of uncrawled pages checked for relevance.
+6. **Gaps are queued, not ignored:** retry, re-fetch with a headless browser, raise depth or budget, ask the owner, or mark blocked with the reason. A source is "complete" only when the gates pass; otherwise the coverage report shows exactly what is missing.
+7. **Budgets are explicit.** If a crawl stops because of a page or time budget, that is reported as incomplete rather than finished.
+8. **Re-crawls compare with the last crawl,** so removed pages and changed content are noticed (see refresh schedule above).
+
+Limits to state honestly: some pages are behind logins, robots.txt exclusions or paywalls, and "everything we might need" can only be measured against the independent checks above, not against an unknown total.
 
 ### 3.5 Multimodal extraction
 
@@ -164,19 +199,19 @@ Aim: files they can read without our code, with a documented contract.
 - **Coverage report per region:** for each scenario family, which attributes exist and for what share of the region (generated from the dataset cards). This is the "what can the assistant answer here" page.
 - **Question-set evaluation:** the scenario questions from section 2, answered with and without each source, to show what each source adds.
 - **Comparison data:** Google Places stays comparison-only, as now.
-- **Human spot checks** logged in a table so quality numbers can be reported in the paper.
+- **No manual checking is assumed.** Quality is estimated by the automatic checks in `system_overview.md` section 4 (quote check, double extraction, entailment check, reference data, question bank, planted tests). If time allows, a one-time labelled set of about 100 facts, built automatically from official data, calibrates the weights.
 
 ## 6. Risks and how we handle them
 
 | Risk | Handling |
 |---|---|
 | Terms of service and copyright of scraped sites | robots.txt, rate limits, store snippets and facts plus a link, not whole-site mirrors for redistribution; per-source license field; ask the professor/IRB about anything unclear |
-| LLM errors and hallucinated claims | quote-must-appear rule, confidence, review queue, precision sampling |
+| LLM errors and hallucinated claims | quote-must-appear rule, double extraction, entailment check, confidence tiers, precision estimated against reference data |
 | Cost at national scale | LLMs read metadata and sampled pages first; heavy extraction only for approved sources; cache by content hash |
 | Search API cost and quotas | per-region query budgets; prefer place-driven discovery (OSM `website`) over search |
 | Stale or wrong data | freshness shown on every fact, re-fetch schedule, conflict flags |
 | Personal data in forums | only public posts, strip usernames, follow Reddit API terms |
-| Messy local data (a different schema per city) | LLM-drafted mapping plus automated validation, then human approval |
+| Messy local data (a different schema per city) | LLM-drafted mapping plus automated validation, then automatic scoring and approval |
 | Scope creep | fixed phases below; each phase has a demo and a numeric exit criterion |
 
 ## 7. Phases
@@ -205,9 +240,9 @@ Aim: files they can read without our code, with a documented contract.
 ## 9. Open questions for you, your professor and the other team
 
 1. **Which cities exactly,** and the deadline for Maryland and DC? Is "Maryland" the whole state or a few counties (for example Montgomery, Prince George's, Baltimore)?
-2. **Storage:** where can large files live (lab server, university storage, a cloud bucket) and what budget is there for LLM, vision-model and search API calls?
+2. **Free resources:** with no budget, can we use lab or university machines (GPU, storage) and research credits? Where can large files live for free (lab server, university storage, Zenodo, Hugging Face)?
 3. **The other team:** which format do they want (Parquet, GeoJSON, SQLite/DuckDB, REST API), how often do they need updates, and which attributes matter most for their app?
 4. **Licensing stance:** are we only releasing data with clearly open licenses, or also fact-level extractions from websites (with links back)?
 5. **Reddit and reviews:** keep Reddit in scope, given the terms and need for keys?
-6. **Human review:** who reviews candidate sources and claims, and how many hours per week?
+6. **Rating cut-offs:** are the tier thresholds (80 / 50 / 30) and starting weights in `system_overview.md` acceptable?
 7. **Scope of "multimodal":** are photos from street imagery (Mapillary) in scope, or only documents, posters and maps?
