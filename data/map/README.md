@@ -1,4 +1,4 @@
-# Ohio Access Atlas maps
+# Accessibility Map maps
 
 **Open the interactive maps** (icons, legend, filters, clickable facts with sources):
 

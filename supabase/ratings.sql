@@ -1,4 +1,4 @@
--- Community accessibility ratings for the Ohio Access Atlas maps.
+-- Community accessibility ratings for the Accessibility Map maps.
 --
 -- Run once in the Supabase SQL editor (Dashboard -> SQL -> New query -> paste -> Run).
 -- Safe to re-run: every statement is idempotent.

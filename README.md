@@ -1,8 +1,8 @@
 <div align="center">
 
-# Ohio Access Atlas
+# Accessibility Map
 
-**Wheelchair and blind / low-vision access information for Cincinnati and Oxford, Ohio: collected, sourced, and mapped.**
+**Wheelchair and blind / low-vision access information for places across the US: collected, sourced, and mapped. Coverage so far: Cincinnati and Oxford, Ohio.**
 A Miami University research project.
 
 **Maps:** [Cincinnati](https://zenaism.github.io/accessibility-map/data/map/cincinnati.html) · [Oxford](https://zenaism.github.io/accessibility-map/data/map/oxford.html)

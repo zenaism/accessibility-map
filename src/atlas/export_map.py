@@ -708,7 +708,7 @@ def write() -> list[Path]:
     (MAP / "index.html").write_text(
         render(
             map_data,
-            "Ohio Access Atlas: Cincinnati and Oxford",
+            "Cincinnati and Oxford",
         )
     )
     old = MAP / "atlas_viewer.html"
