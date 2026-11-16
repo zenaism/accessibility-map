@@ -10,6 +10,7 @@ from collections import Counter
 import pandas as pd
 import pytest
 
+from atlas.crawler import urls
 from tests.crawler_site import Site
 
 SPEC = {
@@ -276,3 +277,8 @@ def test_place_seeds_skip_chains_and_aggregators(monkeypatch):
         spec["seeds"] == ["https://localcafe.com/"]
         and spec["seed_places"]["localcafe.com"]["place_id"] == "a"
     )
+
+
+def test_relative_sitemap_addresses_in_robots_txt_are_resolved():
+    assert urls.normalize("/sitemap.xml", "https://www.example.gov/") == "https://www.example.gov/sitemap.xml"
+    assert urls.normalize("https://other.org/s.xml", "https://www.example.gov/") == "https://other.org/s.xml"

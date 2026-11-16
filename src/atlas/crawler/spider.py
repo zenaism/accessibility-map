@@ -160,7 +160,9 @@ class AtlasSpider(scrapy.Spider):
         )
         found = re.findall(r"(?im)^\s*sitemap:\s*(\S+)", response.text) if response.status == 200 else []
         for sm in found or [origin + p for p in SITEMAP_PATHS]:
-            u = urls.normalize(sm)
+            u = urls.normalize(
+                sm, origin + "/"
+            )  # some sites list a relative address ("Sitemap: /sitemap.xml")
             if (
                 u
                 and urls.in_scope(u, self.hosts)
