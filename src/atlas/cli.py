@@ -63,6 +63,7 @@ def main() -> None:
             "extract",
             "discover",
             "archive",
+            "agree",
         ],
     )
     ap.add_argument("source", nargs="?", default="all")
@@ -92,6 +93,13 @@ def main() -> None:
         from .inventory import write
 
         print(write())
+        return
+    if a.command == "agree":
+        from . import fusion
+
+        for r in regions:
+            if r in fusion.PAIRS:
+                print(f"[{r}]", json.dumps(fusion.agreement(r), indent=2))
         return
     if a.command == "archive":
         from . import history

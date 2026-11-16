@@ -1,7 +1,7 @@
 id,connector,collected,records,observations,licence,last_retrieved,age_days,trust_score,tier,issues
 cincinnati.osm,overpass,True,41959,27796,ODbL-1.0 (c) OpenStreetMap contributors,2026-11-07,9.0,85.3,A,
 oxford.osm,overpass,True,6315,3894,ODbL-1.0 (c) OpenStreetMap contributors,2026-11-07,9.0,85.3,A,
-dc.osm,overpass,True,130331,140849,ODbL-1.0 (c) OpenStreetMap contributors,2026-11-16,0.0,85.3,A,
+dc.osm,overpass,True,130331,140849,ODbL-1.0 (c) OpenStreetMap contributors,2026-11-16,0.0,82.4,A,
 dayton.osm,overpass,False,0,0,ODbL-1.0 (c) OpenStreetMap contributors,,,0.0,D,not collected yet
 cincinnati.cagis_curb_ramps,arcgis,True,14970,14970,CAGIS public data (City of Cincinnati / Hamilton County); confirm redistribution terms,2026-11-07,9.0,96.9,A,
 cincinnati.cagis_public_steps,arcgis,True,160,160,CAGIS public data; confirm redistribution terms,2026-11-07,9.0,96.9,A,

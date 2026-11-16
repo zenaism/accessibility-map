@@ -1,0 +1,44 @@
+{
+  "schema": "atlas.dataset_card/1",
+  "id": "dayton.osm_entrances",
+  "source": "osm_entrances",
+  "region": "dayton",
+  "title": "osm entrances",
+  "connector": "osm_entrances",
+  "publisher": null,
+  "url": null,
+  "licence": "ODbL-1.0 (c) OpenStreetMap contributors",
+  "collected": false,
+  "entities": 0,
+  "observations": 0,
+  "documents": 0,
+  "events": 0,
+  "attributes": {},
+  "null_rates": {},
+  "duplicates_share": 0.0,
+  "bbox": null,
+  "observed_range": null,
+  "last_retrieved": null,
+  "failed_fetches": 0,
+  "robots_skipped": 0,
+  "pages_fetched": 0,
+  "age_days": null,
+  "refresh_days": 180,
+  "trust": {
+    "score": 0.0,
+    "tier": "D",
+    "components": {
+      "authority": 0.65,
+      "provenance": 0.5,
+      "freshness": null,
+      "completeness": null,
+      "quality": null,
+      "agreement": null,
+      "track_record": null
+    },
+    "used": []
+  },
+  "known_issues": [
+    "not collected yet"
+  ]
+}
