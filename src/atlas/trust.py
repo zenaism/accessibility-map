@@ -103,6 +103,22 @@ def fact_confidence(
     return round(min(1.0, max(0.0, (source_score_100 / 100) * extraction * decay * boost - pen)), 3)
 
 
+def half_life(attribute: str) -> float:
+    """Days after which a fact about this attribute has half its weight."""
+    c = _cfg()
+    for cls, names in c["attribute_class"].items():
+        if attribute in names:
+            return float(c["half_life_days"][cls])
+    return float(c["half_life_days"]["default"])
+
+
+def aged(confidence: float, age: float | None, attribute: str) -> float:
+    """Confidence allowing for the age of the evidence: it halves every half-life of the attribute's class."""
+    if age is None or confidence is None:
+        return confidence
+    return round(confidence * 0.5 ** (age / half_life(attribute)), 3)
+
+
 def shown_as(confidence: float | None) -> str:
     """What the assistant may say: confirmed, reported (name the source) or unknown (never stated as fact)."""
     if confidence is None:

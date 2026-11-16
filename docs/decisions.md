@@ -19,6 +19,13 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-27: Old evidence loses weight at the speed of its kind of fact (2026-11-16, proposed)
+**Decision:** a fact's confidence halves after a half-life that depends on what it is about: **14 days** for temporary things (closures, notices, outages, events), **365 days** for operational things (programs, equipment loans, interpreters, captions, contacts, policies, hours), **3,650 days** for physical features (entrances, ramps, elevators, restrooms, surfaces), and 1,095 days for anything unclassified. Classes and numbers are in `config/trust.yaml`; `trust.aged()` applies them.
+**Why:** the research to-do "decide how much weight old sources get" has no single answer: a four-year-old ramp survey is still useful, a four-week-old closure notice is not. Treating all ages alike would either bury good old inventories (DC's 2016 ramp survey) or keep stale notices alive. Three classes are simple to explain and to test.
+**Alternatives:** one half-life for everything (too crude); no decay and show the date only (the assistant would still need a rule for what to say); learn half-lives from re-crawls (best, needs the change history that only now starts to accumulate).
+**Costs / revisit if:** the numbers are educated guesses; physical features can change faster after renovations or construction; revisit once re-crawls and the history archive show how often each attribute really changes.
+**Basis:** inferred (my proposal, not yet confirmed by the user or tested against data); implemented and unit-tested.
+
 ### D-26: Vision model: llava-phi3 through Ollama, for pictures OCR cannot read (2026-11-16, accepted)
 **Decision:** maps, signs and posters whose OCR text is short (under 60 characters) are described by `llava-phi3` (4.2 GB loaded), within a per-crawl budget (`budget.vision_images`, off by default), cached by image hash; the description (kind, summary, accessibility items) is stored as a lead, never as a fact on its own. Only one local model is loaded at a time.
 **Why:** the first choice, `qwen2.5vl:3b`, crashes inside the installed Ollama 0.14.1 (a segfault on load, checked in the server log) and `gemma3:4b` needs a newer Ollama; upgrading software on the user's machine was not asked for. `llava-phi3` loads, answers in about 15 seconds per image and described a test sign correctly ("Accessible Entrance, ramp on the left", wheelchair symbol listed).

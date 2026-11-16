@@ -126,3 +126,12 @@ def test_raw_manifest_never_records_param_values(tmp_path, monkeypatch):
     line = json.loads((tmp_path / "manifest.jsonl").read_text())
     assert line["params"] == ["key", "q"] and "SECRET" not in json.dumps(line)
     assert line["sha256"].startswith("ba7816bf") and line["bytes"] == 3
+
+
+def test_old_facts_lose_weight_at_the_speed_of_their_kind():
+    assert trust.half_life("notice") == 14 and trust.half_life("wheelchair_loan") == 365
+    assert trust.half_life("entrance_step_free") == 3650 and trust.half_life("something_new") == 1095
+    assert trust.aged(0.8, 14, "notice") == 0.4  # a two-week-old closure notice has half its weight
+    assert trust.aged(0.8, 365, "wheelchair_loan") == 0.4
+    assert trust.aged(0.8, 365, "entrance_step_free") > 0.7  # a year-old entrance fact is still strong
+    assert trust.aged(0.8, None, "notice") == 0.8
