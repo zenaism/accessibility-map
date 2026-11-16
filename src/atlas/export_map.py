@@ -663,18 +663,14 @@ def write() -> list[Path]:
         "rating_rule": rate.__doc__.strip(),
         "features": [feature for collection in data.values() for feature in collection["features"]],
     }
-    GOOGLE_PLACES_FILE.write_text(
-        json.dumps(combined, ensure_ascii=False, separators=(",", ":"))
-    )
+    GOOGLE_PLACES_FILE.write_text(json.dumps(combined, ensure_ascii=False, separators=(",", ":")))
     written.append(GOOGLE_PLACES_FILE)
     combined = json.loads(GOOGLE_PLACES_FILE.read_text())
     map_data = {
         region: {
             **collection,
             "features": [
-                feature
-                for feature in combined["features"]
-                if feature["properties"]["region"] == region
+                feature for feature in combined["features"] if feature["properties"]["region"] == region
             ],
         }
         for region, collection in data.items()

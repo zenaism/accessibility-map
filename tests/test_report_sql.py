@@ -22,9 +22,12 @@ def test_browsers_cannot_touch_the_table_or_the_review_view():
     assert not re.search(r"grant\s+(select|insert|update|delete|all)\s+on\s+public\.problem_reports", SQL)
 
 
-def test_the_only_public_doors_are_the_two_functions():
+def test_the_only_public_doors_are_the_three_functions():
     grants = re.findall(r"grant execute on function public\.(\w+) to anon", SQL)
-    assert sorted(grants) == ["report_ping", "submit_problem_report"]
+    assert sorted(grants) == ["delete_problem_report", "report_ping", "submit_problem_report"]
+    assert (
+        "revoke all on function public.purge_old_reports from public, anon, authenticated" in SQL
+    )  # retention is the team's tool
     assert re.search(r"security definer set search_path = public", SQL)
 
 

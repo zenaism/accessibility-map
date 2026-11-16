@@ -36,7 +36,7 @@ class Fake:
     """A stand-in for the Supabase REST API: records what the form sends and can be told to fail."""
 
     def __init__(self):
-        self.ping_ok, self.fail, self.received, self.pings = True, [], [], 0
+        self.ping_ok, self.fail, self.received, self.pings, self.deleted = True, [], [], 0, []
         fake = self
 
         class H(BaseHTTPRequestHandler):
@@ -70,6 +70,9 @@ class Fake:
                         return self._send(code, json.dumps({"message": msg}))
                     fake.received.append(body)
                     return self._send(200, json.dumps(body["p_report_id"][:8].upper()))
+                if self.path.endswith("delete_problem_report"):
+                    fake.deleted.append(body)
+                    return self._send(200, "true")
                 self._send(404, "{}")
 
         self.httpd = ThreadingHTTPServer(("127.0.0.1", 0), H)
@@ -409,4 +412,25 @@ def test_robot_trap_field_is_hidden_from_people_but_sent(pw, fake):
     page.get_by_role("button", name="Send report").click()
     page.wait_for_selector(".rp-ok")
     assert fake.received[0]["p_website"] == "http://spam.example"  # the database function drops it silently
+    ctx.close()
+
+
+def test_privacy_note_is_in_the_form_and_a_sent_report_can_be_deleted(pw, fake):
+    ctx, page = page_for(pw, fake)
+    page.wait_for_selector("[data-report]:visible")
+    open_form(page)
+    page.get_by_text("How we use your report").click()
+    assert "24 months" in page.locator("details.priv").inner_text()
+    fill(page)
+    page.get_by_role("button", name="Send report").click()
+    page.wait_for_selector(".rp-ok")
+    page.get_by_role("button", name="Delete this report").click()
+    page.wait_for_selector("text=Your report was deleted.")
+    assert fake.deleted == [
+        {
+            "p_report_id": fake.received[0]["p_report_id"],
+            "p_device_id": "11111111-1111-4111-8111-111111111111",
+        }
+    ]
+    assert not page.get_by_role("button", name="Delete this report").is_visible()
     ctx.close()
