@@ -19,6 +19,13 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-28: Agreement between sources is measured as corroboration, never as coverage (2026-11-16, accepted)
+**Decision:** the trust engine's "agreement" part is the share of what a crowd source *claims* that an independent source backs up within a distance (corroboration), computed by `fusion.py`. What a crowd map *lacks* (coverage) is reported but never lowers its score; the official inventory is not scored by agreement at all. First use, Washington DC: OSM lowered or flush kerbs are corroborated by the official curb-ramp inventory 89% of the time (15 m), audible-signal tags only 29% (25 m).
+**Why:** OpenStreetMap is incomplete by nature (it holds 28% of DC's inventoried ramps), so punishing it for what it does not contain would make every crowd source look bad; what matters for believing a claim is whether independent evidence supports it. Conflicts (624 inventory ramps rated "missing" where OSM maps a lowered kerb) are listed as leads, because either source can be out of date.
+**Alternatives:** agreement as overlap in both directions (confuses incompleteness with error); no agreement measure (the trust part stays empty).
+**Costs / revisit if:** matching by position can pair neighbouring features; the inventory is from 2016, so a low audible-signal figure may reflect newer installations rather than OSM errors; only DC has a configured pair so far; revisit with the same test on Cincinnati (CAGIS) and a field check of a sample of conflicts.
+**Basis:** recorded (computed on the fetched DC data; `src/atlas/fusion.py`, 3 tests).
+
 ### D-27: Old evidence loses weight at the speed of its kind of fact (2026-11-16, proposed)
 **Decision:** a fact's confidence halves after a half-life that depends on what it is about: **14 days** for temporary things (closures, notices, outages, events), **365 days** for operational things (programs, equipment loans, interpreters, captions, contacts, policies, hours), **3,650 days** for physical features (entrances, ramps, elevators, restrooms, surfaces), and 1,095 days for anything unclassified. Classes and numbers are in `config/trust.yaml`; `trust.aged()` applies them.
 **Why:** the research to-do "decide how much weight old sources get" has no single answer: a four-year-old ramp survey is still useful, a four-week-old closure notice is not. Treating all ages alike would either bury good old inventories (DC's 2016 ramp survey) or keep stale notices alive. Three classes are simple to explain and to test.

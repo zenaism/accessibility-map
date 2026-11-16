@@ -1,0 +1,44 @@
+{
+  "schema": "atlas.dataset_card/1",
+  "id": "dayton.overture_places",
+  "source": "overture_places",
+  "region": "dayton",
+  "title": "overture places",
+  "connector": "overture",
+  "publisher": null,
+  "url": null,
+  "licence": "CDLA-Permissive-2.0 / Apache-2.0 / ODbL by upstream dataset (see `datasets` column)",
+  "collected": false,
+  "entities": 0,
+  "observations": 0,
+  "documents": 0,
+  "events": 0,
+  "attributes": {},
+  "null_rates": {},
+  "duplicates_share": 0.0,
+  "bbox": null,
+  "observed_range": null,
+  "last_retrieved": null,
+  "failed_fetches": 0,
+  "robots_skipped": 0,
+  "pages_fetched": 0,
+  "age_days": null,
+  "refresh_days": 180,
+  "trust": {
+    "score": 0.0,
+    "tier": "D",
+    "components": {
+      "authority": 0.6,
+      "provenance": 0.5,
+      "freshness": null,
+      "completeness": null,
+      "quality": null,
+      "agreement": null,
+      "track_record": null
+    },
+    "used": []
+  },
+  "known_issues": [
+    "not collected yet"
+  ]
+}

@@ -17,7 +17,7 @@ from urllib.parse import urlparse
 import pandas as pd
 import pyarrow.parquet as pq
 
-from . import trust
+from . import fusion, trust
 from .core import PROCESSED, RAW, ROOT, config
 
 CARDS = ROOT / "data" / "cards"
@@ -164,7 +164,7 @@ def build_card(source: str, spec: dict, region: str) -> dict:
         "freshness": trust.freshness(card["age_days"], exp),
         "completeness": _completeness(card),
         "quality": _quality(card),
-        "agreement": None,  # needs the fusion step
+        "agreement": fusion.corroboration_for(region, source),  # how far an independent source backs it up
         "track_record": None,  # needs reference data
     }
     card["trust"] = trust.source_score(comps) if card["collected"] else None
