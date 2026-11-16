@@ -68,6 +68,7 @@ def xlsx_text(data: bytes) -> str:
                     if c.get("t") == "s" and v is not None
                     else inline or (v.text if v is not None else "")
                 )
+            cells = ["" if c is None else str(c) for c in cells]  # empty and formula cells have no text
             if any(cells):
                 out.append(" | ".join(cells))
     return "\n".join(out)
@@ -88,5 +89,14 @@ def extract(data: bytes, ext: str) -> str:
     """Text of a .docx, .xlsx or .pptx; empty string for anything else or a refused file."""
     try:
         return {"docx": docx_text, "xlsx": xlsx_text, "pptx": pptx_text}[ext.lstrip(".").lower()](data)
-    except (Unsafe, zipfile.BadZipFile, KeyError, etree.XMLSyntaxError) as e:
+    except (
+        Unsafe,
+        zipfile.BadZipFile,
+        KeyError,
+        etree.XMLSyntaxError,
+        TypeError,
+        ValueError,
+        AttributeError,
+        IndexError,
+    ) as e:
         return f"[could not read {ext}: {e or type(e).__name__}]"

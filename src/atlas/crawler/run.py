@@ -76,6 +76,11 @@ def main(argv: list[str] | None = None) -> int:
         "--fresh", action="store_true", help="forget the queue (not the frontier) and crawl again"
     )
     ap.add_argument("--spec-file")
+    ap.add_argument(
+        "--docs-only",
+        action="store_true",
+        help="do not crawl: rebuild the documents table from what is saved",
+    )
     ap.add_argument("--allow-private", action="store_true", help="tests only: allow localhost")
     a = ap.parse_args(argv)
 
@@ -90,6 +95,12 @@ def main(argv: list[str] | None = None) -> int:
     crawl_id = datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
     frontier_path = base / "frontier.sqlite"
     logging.getLogger("scrapy").setLevel(logging.INFO)
+    if a.docs_only:
+        frontier = Frontier(base / "frontier.sqlite")
+        df = docs_mod.build(a.source, region, spec, frontier)
+        log.info("[%s] %s: rebuilt %d documents from the saved crawl", region, a.source, len(df))
+        frontier.close()
+        return 0
     process = CrawlerProcess(settings(spec, str(jobdir), str(frontier_path), a.delay, a.allow_private))
     crawler = process.create_crawler(AtlasSpider)
     process.crawl(

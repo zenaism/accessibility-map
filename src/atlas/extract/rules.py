@@ -58,6 +58,25 @@ def sentences(text: str) -> list[str]:
     return [s for s in (clean(x) for x in SENTENCE.split(text)) if MIN_LEN <= len(s) <= MAX_LEN]
 
 
+VERB = re.compile(
+    r"\b(is|are|was|were|has|have|had|be|can|may|will|must|should|offers?|provides?|includes?|features?|requires?|allows?|"
+    r"located|available|welcome|open|closed|accessible|reserved|serves?|needs?|contact|call|visit|ask|request|bring|use)\b",
+    re.I,
+)
+ACCESS_SECTION = re.compile(r"access|feature|amenit|service|facilit|visit|plan|ada\b|disab|inclusi|barrier|mobility", re.I)
+
+
+def looks_like_headline(s: str) -> bool:
+    """A title or label rather than a statement: a Title Case line, or two or three words with no verb."""
+    words = s.split()
+    if s.rstrip()[-1:] in ".!?" and VERB.search(s):
+        return False
+    caps = sum(1 for w in words if w[:1].isupper())
+    if len(words) >= 3 and caps / len(words) >= 0.7:
+        return True  # Title Case Line, a program or event name
+    return len(words) <= 3 and not VERB.search(s)  # two or three words with no verb is a label; longer bullets are kept for the model
+
+
 def polarity(sentence: str, match: re.Match, positive_no: bool = False) -> str:
     """yes / limited / no from the words just before and after the matched phrase."""
     before = sentence[max(0, match.start() - 60) : match.start()]
@@ -80,6 +99,8 @@ def find(text: str, section_path: str = "") -> list[Candidate]:
     """Candidate facts in one block of text; one per (sentence, attribute)."""
     out = []
     for s in sentences(text):
+        if looks_like_headline(s) and not ACCESS_SECTION.search(section_path):
+            continue  # a label outside an accessibility section is not a statement about a place
         for attr, r in rules().items():
             m = r["re"].search(s)
             if m:

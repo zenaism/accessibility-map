@@ -18,7 +18,7 @@ from ..core import ROOT
 
 OLLAMA = "http://127.0.0.1:11434"
 MODEL = "qwen2.5:3b"
-PROMPT_VERSION = "v1"
+PROMPT_VERSION = "v2"
 CACHE = ROOT / "data" / "cache" / "llm_facts.jsonl"
 VALUES = ["yes", "limited", "no"]
 _lock = threading.Lock()
@@ -106,11 +106,24 @@ def verify(sentence: str, attribute: str, proposed: str) -> dict:
         return cache[key]
     meaning = attributes().get(attribute, attribute)
     prompt = (
-        f'Attribute: {attribute} ({meaning})\nSentence: "{sentence}"\n\n'
-        "Does the sentence state a fact about this attribute for a specific place, venue, service or programme? "
-        'If yes, value is "yes" (available or accessible), "limited" (partly, only some areas, on request, extra cost '
-        'or conditions) or "no" (not available). detail is the key words of the sentence (at most 12 words) or an empty string.\n'
-        f"A pattern matcher guessed the value is {proposed!r}; correct it if the sentence says otherwise."
+        "Decide whether the sentence is a statement about what a place, venue or service offers or lacks for the attribute below.\n"
+        'Say states_fact=false ONLY for a headline, a title, an event or program name, a law, or text that says nothing about the attribute.\n'
+        'value: "yes" = available / accessible (also when there is a fee or it is on request), "limited" = only partly or only some areas, '
+        '"no" = not available. detail: the key words from the sentence, at most 10 words.\n\n'
+        "Examples:\n"
+        'Attribute restroom_accessible. Sentence: "Accessible restrooms are located throughout Union Terminal." '
+        '-> {"states_fact": true, "value": "yes", "detail": "throughout Union Terminal"}\n'
+        'Attribute elevator. Sentence: "There is no elevator to the second floor." '
+        '-> {"states_fact": true, "value": "no", "detail": "no elevator to second floor"}\n'
+        'Attribute wheelchair_loan. Sentence: "Wheelchairs are available for rental at the box office." '
+        '-> {"states_fact": true, "value": "yes", "detail": "rental at the box office"}\n'
+        'Attribute entrance_step_free. Sentence: "Some galleries can only be reached by stairs." '
+        '-> {"states_fact": true, "value": "limited", "detail": "some galleries only by stairs"}\n'
+        'Attribute sensory_friendly. Sentence: "Sensory-Friendly Santa" -> {"states_fact": false, "value": "no", "detail": ""}\n'
+        'Attribute asl_interpretation. Sentence: "Cincinnati State\u2019s Interpreter Training Program" '
+        '-> {"states_fact": false, "value": "no", "detail": ""}\n\n'
+        f'Now this one. Attribute {attribute} ({meaning}). Sentence: "{sentence}"\n'
+        f"(A pattern matcher guessed the value is {proposed!r}; correct it if the sentence says otherwise.)"
     )
     try:
         ans = _chat(prompt, VERIFY_SCHEMA)
