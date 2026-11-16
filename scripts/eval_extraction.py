@@ -20,9 +20,13 @@ from atlas.extract import pipeline
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--sample", type=int, default=12)
+ap.add_argument("--llm", action="store_true", help="include the local model stage (slow: about 4 s per sentence)")
+ap.add_argument("--docs", type=int, default=0, help="only the first N documents (0 = all)")
 a = ap.parse_args()
 
 sil = pipeline.silver()
+pipeline.MAX_DISCOVER = 8  # sentences per document the model reads for missed facts
+done: set[str] = set()
 auto = []
 for (src, region), grp in sil.groupby([sil.doc_id.str.split(":").str[0], "region"]):
     f = PROCESSED / region / f"{src}.docs.parquet"
@@ -30,10 +34,14 @@ for (src, region), grp in sil.groupby([sil.doc_id.str.split(":").str[0], "region
         continue
     docs = pd.read_parquet(f)
     docs = docs[docs.doc_id.isin(grp.doc_id.unique())]
-    auto.append(pipeline.extract_docs(docs, src, region))
+    if a.docs:
+        docs = docs.head(a.docs)
+    done.update(docs.doc_id)
+    auto.append(pipeline.extract_docs(docs, src, region, a.llm))
 auto = pd.concat(auto, ignore_index=True)
 auto = auto[auto.quote_verified]
 
+sil = sil[sil.doc_id.isin(done)]  # score only the documents that were read
 s_pairs = sil.groupby(["doc_id", "attribute"]).value.agg(lambda v: set(v)).reset_index()
 a_pairs = auto.groupby(["doc_id", "attribute"]).value.agg(lambda v: set(v)).reset_index()
 m = s_pairs.merge(a_pairs, on=["doc_id", "attribute"], how="left", suffixes=("_s", "_a"))

@@ -142,3 +142,15 @@ def test_a_host_where_rendering_adds_nothing_stops_getting_rendered(tmp_path):
         assert (
             len(hits) == 8 and 1 <= len(rendered_twice) <= 6
         )  # five tries, then the crawler stopped wasting the browser
+
+
+def test_excel_files_with_empty_and_formula_cells_do_not_crash():
+    sheet = (
+        f'<worksheet xmlns="{office.S[1:-1]}"><sheetData><row><c t="inlineStr"><is><t>Lot</t></is></c><c><f>1+1</f></c><c/></row>'
+        '<row><c t="inlineStr"><is><t>B</t></is></c><c><v>4</v></c></row></sheetData></worksheet>'
+    )
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("xl/worksheets/sheet1.xml", sheet)
+    text = office.xlsx_text(buf.getvalue())
+    assert "Lot" in text and "B | 4" in text

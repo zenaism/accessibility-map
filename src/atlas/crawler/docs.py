@@ -73,7 +73,14 @@ def build(source: str, region: str, spec: dict, frontier: Frontier) -> pd.DataFr
         path = pick_file(source, r["content_sha"])
         if path is None:
             continue
-        rd = read_file(path, r["content_type"] or "", r["final_url"] or r["url"], ocr_left)
+        try:
+            rd = read_file(path, r["content_type"] or "", r["final_url"] or r["url"], ocr_left)
+        except Exception as e:  # one unreadable file must never stop the whole table
+            rd = read.Read(
+                kind=path.suffix.lstrip(".") or "file",
+                title=Path(r["url"]).name,
+                method=f"failed: {type(e).__name__}",
+            )
         shot = path.with_name(f"{r['content_sha'][:12]}.screenshot.png")
         docs.append(
             {
