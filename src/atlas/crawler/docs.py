@@ -7,10 +7,47 @@ from pathlib import Path
 
 import pandas as pd
 
-from ..connectors.web import _clean_html, _pdf_text
+from ..connectors.web import _clean_html
 from ..core import out_dir
-from . import archive
+from . import archive, office, safety
 from .frontier import Frontier
+
+# which saved file to read when several share one hash prefix (the page, its rendered copy, its screenshot)
+PREFERENCE = (".rendered.html", ".html", ".pdf", ".docx", ".xlsx", ".pptx", ".csv", ".ics", ".json")
+OFFICE = {
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation": "pptx",
+}
+
+
+def pick_file(source: str, sha: str) -> Path | None:
+    files = [
+        p
+        for p in (archive.RAW / "web" / source).glob(f"{sha[:12]}.*")
+        if not p.name.endswith(".screenshot.png")
+    ]
+    for suffix in PREFERENCE:
+        for p in files:
+            if p.name.endswith(suffix):
+                return p
+    return files[0] if files else None
+
+
+def read_text(path: Path, ctype: str, url: str) -> tuple[str, str, str]:
+    """(kind, title, text) of a saved file."""
+    data = path.read_bytes()
+    if path.name.endswith((".html", ".htm")):
+        title, text, _ = _clean_html(data, url)
+        return "html", title, text
+    if path.suffix == ".pdf":
+        return "pdf", Path(url).name, safety.safe_pdf_text(data)
+    kind = OFFICE.get(ctype) or path.suffix.lstrip(".")
+    if kind in ("docx", "xlsx", "pptx"):
+        return kind, Path(url).name, office.extract(data, kind)
+    if kind in ("csv", "ics", "json", "txt"):
+        return kind, Path(url).name, data.decode("utf-8", "replace")[:500_000]
+    return kind or "file", Path(url).name, ""
 
 
 def build(source: str, region: str, spec: dict, frontier: Frontier) -> pd.DataFrame:
@@ -18,32 +55,22 @@ def build(source: str, region: str, spec: dict, frontier: Frontier) -> pd.DataFr
     for r in frontier.rows("fetched"):
         if not r["content_sha"]:
             continue
-        ctype = r["content_type"] or ""
-        ext = {"application/pdf": "pdf"}.get(
-            ctype, "html" if ctype.startswith("text/html") else ctype.split("/")[-1]
-        )
-        try:
-            data = archive.read(
-                next(Path(archive.RAW / "web" / source).glob(f"{r['content_sha'][:12]}.*")).as_posix()
-            )
-        except StopIteration:
+        path = pick_file(source, r["content_sha"])
+        if path is None:
             continue
-        title, text = "", ""
-        if ext == "html":
-            title, text, _ = _clean_html(data, r["final_url"] or r["url"])
-        elif ext == "pdf":
-            title, text = Path(r["url"]).name, _pdf_text(data)
+        kind, title, text = read_text(path, r["content_type"] or "", r["final_url"] or r["url"])
+        shot = path.with_name(f"{r['content_sha'][:12]}.screenshot.png")
         docs.append(
             {
                 "doc_id": f"{source}:{r['content_sha'][:12]}",
                 "source": source,
                 "url": r["url"],
                 "canonical_url": r["final_url"] or r["url"],
-                "screenshot": None,
+                "screenshot": str(shot) if shot.exists() else None,
                 "title": title,
                 "text": text,
-                "content_type": ext,
-                "raw_file": str(next(Path(archive.RAW / "web" / source).glob(f"{r['content_sha'][:12]}.*"))),
+                "content_type": kind,
+                "raw_file": str(path),
                 "retrieved_at": r["last_fetched"],
                 "author_type": spec.get("author_type", "official"),
                 "region": region,
@@ -53,6 +80,7 @@ def build(source: str, region: str, spec: dict, frontier: Frontier) -> pd.DataFr
                 "relevance": r["score"],
                 "content_sha": r["content_sha"],
                 "crawl_id": r["crawl_id"],
+                "rendered": bool(r["rendered"]),
             }
         )
     df = pd.DataFrame(docs)

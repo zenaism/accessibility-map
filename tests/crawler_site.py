@@ -7,10 +7,37 @@ Every request is logged with its time so tests can check behaviour (order, repea
 
 from __future__ import annotations
 
+import io
 import threading
 import time
+import zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+
+def _zip(files: dict[str, str]) -> bytes:
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        for name, body in files.items():
+            z.writestr(name, body)
+    return buf.getvalue()
+
+
+W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+SS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+DOCX = _zip({"word/document.xml": f'<w:document xmlns:w="{W}"><w:body><w:p><w:r><w:t>Accessible seating is available in row A.</w:t></w:r></w:p></w:body></w:document>'})
+XLSX = _zip({"xl/worksheets/sheet1.xml": f'<worksheet xmlns="{SS}"><sheetData><row><c t="inlineStr"><is><t>Lot</t></is></c><c><v>12</v></c></row><row><c t="inlineStr"><is><t>Van accessible</t></is></c><c><v>4</v></c></row></sheetData></worksheet>'})
+DOCX_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+XLSX_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+SPA = (
+    "<html><head><title>App</title></head><body><div id=\"root\"></div><script>"
+    "document.getElementById('root').innerHTML='<h1>Step-free entrance</h1><p>The wheelchair accessible entrance is on Main Street. "
+    "Accessible parking is in lot B. <a href=\"/spa-details\">More details</a></p>'</script></body></html>"
+)
+ACCORDION = (
+    "<html><head><title>Visit</title></head><body><button aria-expanded=\"false\" onclick=\"this.setAttribute('aria-expanded','true');"
+    "document.getElementById('p').innerText='The accessible restroom is on level two next to the elevator.'\">Restrooms</button>"
+    '<div id="p"></div></body></html>'
+)
 PDF = b"%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n"
 ACCESS = (
     "<html><head><title>Accessibility</title></head><body><h1>Accessibility</h1>"
@@ -72,6 +99,7 @@ class Site:
                     links += [(f"/blog/{i}", f"Post {i}") for i in range(1, 31)]
                     links += [(f"/img/{i}.jpg", "pic") for i in range(1, 16)]
                     links.append(("/list/page/1", "Listing"))
+                    links += [("/spa", "App"), ("/accordion", "Visit"), ("/doc.docx", "Seating guide"), ("/sheet.xlsx", "Parking table")]
                     return self.send(200, page("Home", "Welcome to the museum.", links))
                 if p == "/accessibility":
                     etag = '"acc-v1"'
@@ -86,6 +114,16 @@ class Site:
                     return self.send(
                         200, page("Orphan", "An accessible restroom is on the ground floor.", [])
                     )
+                if p == "/spa":
+                    return self.send(200, SPA.encode())
+                if p == "/spa-details":
+                    return self.send(200, page("Details", "Details about the entrance for wheelchair users and the accessible route.", []))
+                if p == "/accordion":
+                    return self.send(200, ACCORDION.encode())
+                if p == "/doc.docx":
+                    return self.send(200, DOCX, DOCX_TYPE)
+                if p == "/sheet.xlsx":
+                    return self.send(200, XLSX, XLSX_TYPE)
                 if p.startswith("/list/page/"):
                     n = int(p.split("/")[-1])
                     nxt = [(f"/list/page/{n + 1}", "Next")] if n < 8 else []
