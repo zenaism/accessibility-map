@@ -1,0 +1,56 @@
+"""The database script for problem reports: it parses, it is locked down, and it agrees with the form."""
+
+import re
+from pathlib import Path
+
+import pglast
+import pytest
+
+from atlas.report_ui import JS
+
+SQL = (Path(__file__).resolve().parents[1] / "supabase" / "problem_reports.sql").read_text()
+
+
+def test_script_parses_as_postgres():
+    assert len(pglast.parse_sql(SQL)) >= 14
+
+
+def test_browsers_cannot_touch_the_table_or_the_review_view():
+    assert "alter table public.problem_reports enable row level security" in SQL
+    assert "revoke all on public.problem_reports from anon, authenticated" in SQL
+    assert "revoke all on public.problem_reports_review from anon, authenticated" in SQL
+    assert not re.search(r"grant\s+(select|insert|update|delete|all)\s+on\s+public\.problem_reports", SQL)
+
+
+def test_the_only_public_doors_are_the_two_functions():
+    grants = re.findall(r"grant execute on function public\.(\w+) to anon", SQL)
+    assert sorted(grants) == ["report_ping", "submit_problem_report"]
+    assert re.search(r"security definer set search_path = public", SQL)
+
+
+def test_categories_match_the_form():
+    sql_cats = set(
+        re.findall(
+            r"'(\w+)'",
+            re.search(r"category\s+text not null check \(category in\s*\((.*?)\)\)", SQL, re.S).group(1),
+        )
+    )
+    js_cats = set(re.findall(r"\['(\w+)', '", JS.split("REPORT_KINDS = [")[1].split("];")[0]))
+    assert sql_cats == js_cats and len(js_cats) == 5
+
+
+def test_limits_match_the_form():
+    assert (
+        "char_length(description) between 5 and 1000" in SQL
+        and 'maxlength="1000"' in JS
+        and "t.length < 5" in JS
+    )
+    assert (
+        "octet_length(photo) <= 400000" in SQL and "blob.size <= 300000" in JS
+    )  # the browser aims below the server's limit
+    assert "\\xffd8ff" in SQL  # only JPEG data is accepted
+
+
+@pytest.mark.parametrize("word", ["p_website", "on conflict (id) do nothing", "interval '1 day'"])
+def test_abuse_and_retry_protection_is_present(word):
+    assert word in SQL

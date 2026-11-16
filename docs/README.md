@@ -22,6 +22,7 @@ One topic per file. Where two files touch the same subject, the "owner" below is
 | [`architecture.md`](architecture.md) | Mermaid diagrams: system, discovery, crawl and completeness checks, extraction, data model, storage, assistant | how the system fits together |
 | [`source_types.md`](source_types.md) | Non-government source types, licences, region findings (DC, MD, Dayton) | which kinds of sources we need |
 | [`questions_for_you.md`](questions_for_you.md) | **Your answer sheet:** every open question in one place, with my recommendations | what I need from you |
+| [`problem_reports.md`](problem_reports.md) | "Report a problem" with photo: how it works, privacy, turning it on, how the accessibility team reads reports | visitor problem reports |
 | [`decisions.md`](decisions.md) | Decision log: what we chose, why, alternatives, costs | the reasoning behind choices |
 | [`progress_log.md`](progress_log.md) | Dated progress, findings, collection status, to-do (snapshot of the Claude Doc) | what has been done |
 | [`outreach_emails.md`](outreach_emails.md) | Draft emails to data owners (not sent) | outreach |
