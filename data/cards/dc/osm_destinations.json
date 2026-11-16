@@ -8,37 +8,65 @@
   "publisher": null,
   "url": null,
   "licence": "ODbL-1.0 (c) OpenStreetMap contributors",
-  "collected": false,
-  "entities": 0,
-  "observations": 0,
+  "collected": true,
+  "entities": 10265,
+  "observations": 9521,
   "documents": 0,
   "events": 0,
-  "attributes": {},
-  "null_rates": {},
+  "attributes": {
+    "surface": 4463,
+    "crossing": 711,
+    "lit": 640,
+    "access": 613,
+    "opening_hours": 534,
+    "smoothness": 441,
+    "wheelchair": 426,
+    "width": 292,
+    "trail_visibility": 245,
+    "mtb:scale": 216,
+    "sac_scale": 213,
+    "crossing:signals": 208
+  },
+  "null_rates": {
+    "value": 0.0,
+    "attribute": 0.0,
+    "lat": 0.0,
+    "lon": 0.0,
+    "observed_at": 1.0
+  },
   "duplicates_share": 0.0,
-  "bbox": null,
+  "bbox": [
+    -77.29329,
+    38.67102,
+    -76.73943,
+    39.13098
+  ],
   "observed_range": null,
-  "last_retrieved": null,
+  "last_retrieved": "2026-11-16",
   "failed_fetches": 0,
   "robots_skipped": 0,
   "pages_fetched": 0,
-  "age_days": null,
+  "age_days": 0,
   "refresh_days": 180,
   "trust": {
-    "score": 0.0,
-    "tier": "D",
+    "score": 85.3,
+    "tier": "A",
     "components": {
       "authority": 0.65,
-      "provenance": 0.5,
-      "freshness": null,
-      "completeness": null,
-      "quality": null,
+      "provenance": 0.7,
+      "freshness": 1.0,
+      "completeness": 1.0,
+      "quality": 1.0,
       "agreement": null,
       "track_record": null
     },
-    "used": []
+    "used": [
+      "authority",
+      "provenance",
+      "freshness",
+      "completeness",
+      "quality"
+    ]
   },
-  "known_issues": [
-    "not collected yet"
-  ]
+  "known_issues": []
 }

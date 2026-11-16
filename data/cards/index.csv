@@ -27,7 +27,7 @@ dc.overture_places,overture,False,0,0,CDLA-Permissive-2.0 / Apache-2.0 / ODbL by
 dayton.overture_places,overture,False,0,0,CDLA-Permissive-2.0 / Apache-2.0 / ODbL by upstream dataset (see `datasets` column),,,0.0,D,not collected yet
 cincinnati.osm_destinations,osm_destinations,True,5054,2170,ODbL-1.0 (c) OpenStreetMap contributors,2026-11-12,4.0,85.3,A,
 oxford.osm_destinations,osm_destinations,True,285,71,ODbL-1.0 (c) OpenStreetMap contributors,2026-11-12,4.0,85.3,A,
-dc.osm_destinations,osm_destinations,False,0,0,ODbL-1.0 (c) OpenStreetMap contributors,,,0.0,D,not collected yet
+dc.osm_destinations,osm_destinations,True,10265,9521,ODbL-1.0 (c) OpenStreetMap contributors,2026-11-16,0.0,85.3,A,
 dayton.osm_destinations,osm_destinations,False,0,0,ODbL-1.0 (c) OpenStreetMap contributors,,,0.0,D,not collected yet
 cincinnati.web_venues_cincinnati,web,True,25,0,public web page; cite URL,2026-11-12,4.0,76.5,B,20 pages failed to fetch
 oxford.web_venues_oxford,web,True,79,0,public web page; cite URL,2026-11-12,4.0,71.2,B,114 pages failed to fetch
@@ -47,7 +47,7 @@ cincinnati.web_venues_cincinnati_2,web,True,31,0,public web page; cite URL,2026-
 oxford.web_miami_maps,web,True,2,0,public document; cite URL,2026-11-12,4.0,75.9,B,1 pages failed to fetch
 cincinnati.osm_entrances,osm_entrances,True,28,28,ODbL-1.0 (c) OpenStreetMap contributors,2026-11-12,4.0,85.3,A,
 oxford.osm_entrances,osm_entrances,True,97,97,ODbL-1.0 (c) OpenStreetMap contributors,2026-11-12,4.0,85.3,A,
-dc.osm_entrances,osm_entrances,False,0,0,ODbL-1.0 (c) OpenStreetMap contributors,,,0.0,D,not collected yet
+dc.osm_entrances,osm_entrances,True,17,17,ODbL-1.0 (c) OpenStreetMap contributors,2026-11-16,0.0,85.3,A,
 dayton.osm_entrances,osm_entrances,False,0,0,ODbL-1.0 (c) OpenStreetMap contributors,,,0.0,D,not collected yet
 cincinnati.web_access_performances,web,True,24,0,venue websites; facts with short quotes and links only,2026-11-12,4.0,82.2,A,
 cincinnati.web_venues_3,web,True,34,0,venue websites; facts with short quotes and links only,2026-11-12,4.0,81.1,A,2 pages failed to fetch

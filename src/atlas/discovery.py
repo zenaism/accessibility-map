@@ -23,7 +23,7 @@ ARCGIS = "https://www.arcgis.com/sharing/rest/search"
 CKAN = "https://catalog.data.gov/api/3/action/package_search"
 SERVICE_TYPES = {"Feature Service", "Map Service", "CSV", "GeoJSON", "Shapefile", "Table", "KML"}
 OFFICIAL = re.compile(
-    r"\b(city|county|state|district|department|dept|transportation|dot|gis|government|metro|transit|planning|authority|bureau|office|engineer|commission|council|regional|mvrpc|rpc|mpo)\b|opendata|engineer|mvrpc|[a-z]gis(?:$|[_.\-@])|dcgis|\bgov\b",
+    r"\b(city|county|state|district|department|dept|transportation|dot|gis|government|metro|transit|planning|authority|bureau|office|engineer|commission|council|regional|mvrpc|rpc|mpo)\b|opendata|imap|engineer|mvrpc|[a-z]gis(?:$|[_.\-@])|dcgis|\bgov\b",
     re.I,
 )
 TOPIC = re.compile(
