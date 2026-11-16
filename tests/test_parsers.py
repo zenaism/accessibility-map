@@ -130,6 +130,6 @@ def test_restaurant_fields():
 def test_arcgis_geojson_with_bad_characters_is_still_read():
     from atlas.connectors.arcgis import _read_geojson
 
-    raw = b'{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[-77.0,38.9]},"properties":{"NOTES":"line1\x0bline2","V":NaN}}]}'
+    raw = b'{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[-77.0,38.9]},"properties":{"NOTES":"line1\x0bline2","V":NaN}}]}'  # noqa: E501
     g = _read_geojson(raw)
     assert len(g) == 1 and g.geometry.iloc[0].x == -77.0
