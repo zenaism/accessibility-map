@@ -68,6 +68,19 @@ ACCESS_SECTION = re.compile(
 )
 
 
+STOPWORDS = frozenset(
+    ["the", "a", "an", "and", "or", "of", "to", "in", "on", "at", "for", "with", "is", "are", "was", "were", "be", "been", "it", "this", "that", "these", "those", "as", "by", "from", "not", "no", "can", "may", "will", "you", "your", "we", "our", "they", "their", "has", "have", "had", "if", "when", "which", "who", "all", "any"]
+)
+
+
+def is_english(s: str) -> bool:
+    """Cheap language check: enough common English words. Sentences in other languages would otherwise become 'facts'."""
+    words = re.findall(r"[a-zA-Z']+", s.lower())
+    if len(words) < 4:
+        return True  # too short to judge
+    return sum(w in STOPWORDS for w in words) / len(words) >= 0.15
+
+
 def looks_like_headline(s: str) -> bool:
     """A title or label rather than a statement: a Title Case line, or two or three words with no verb."""
     words = s.split()
@@ -103,6 +116,8 @@ def find(text: str, section_path: str = "") -> list[Candidate]:
     """Candidate facts in one block of text; one per (sentence, attribute)."""
     out = []
     for s in sentences(text):
+        if s.endswith("?") or not is_english(s):
+            continue  # a checklist question is not a statement; text in another language is not read by English rules
         if looks_like_headline(s) and not ACCESS_SECTION.search(section_path):
             continue  # a label outside an accessibility section is not a statement about a place
         for attr, r in rules().items():
