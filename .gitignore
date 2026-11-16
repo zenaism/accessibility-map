@@ -26,3 +26,6 @@ docs/lab_sensing/
 
 # Crawler runtime state (frontier database, queue, reports): re-creatable
 data/crawl/
+
+# Cached model answers (re-creatable, keyed by model + prompt version + text)
+data/cache/
