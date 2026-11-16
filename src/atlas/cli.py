@@ -66,6 +66,9 @@ def main() -> None:
     ap.add_argument("--region", default="all")
     ap.add_argument("rest", nargs="*", help="for `region`: search <query> | add <key> <name> --relation ID")
     ap.add_argument("--relation", type=int)
+    ap.add_argument(
+        "--llm", action="store_true", help="for `extract`: let the local model confirm and extend the rules"
+    )
     ap.add_argument("--buffer-km", type=float, default=15)
     a = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -86,6 +89,14 @@ def main() -> None:
         from .inventory import write
 
         print(write())
+        return
+    if a.command == "extract":
+        from .extract import pipeline
+
+        for r in regions:
+            if (pipeline.docs_file(a.source, r)).exists():
+                f = pipeline.run(a.source, r, a.llm)
+                print(f"[{r}] {a.source}: {len(f)} facts", dict(f.method.value_counts()) if len(f) else "")
         return
     if a.command == "region":
         from . import regions as reg

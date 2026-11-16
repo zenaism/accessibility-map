@@ -1,0 +1,229 @@
+# Rules for finding accessibility facts in text (src/atlas/extract/rules.py).
+# One entry per attribute in config/attributes.yaml: `any` are regular expressions (case-insensitive) that mark a sentence
+# as possibly stating that attribute. The rules only PROPOSE a sentence; the polarity (yes / limited / no) is worked out
+# from the words around the match, and a local model may confirm or reject it. The sentence itself is the quote.
+#   positive_no: true  means words like "no" belong to the phrase ("no steps" is a positive fact for a step-free entrance)
+entrance_step_free:
+  positive_no: true
+  any:
+  - step[- ]free
+  - \bno steps?\b
+  - level (entrance|access|entry)
+  - ramp(ed)? (entrance|access|entry)
+  - accessible (main |front |north |south |east |west )?(entrance|entry)
+  - wheelchair[- ]accessible (main )?(entrance|entry)
+  - (entrance|entry|entrances|doors?) (is|are) (fully )?(wheelchair )?accessible
+  - \bfully accessible\b
+  - ramps? (that )?(lead|leads|to|onto|into)
+  - accessible at the top of
+automatic_door:
+  any:
+  - automatic (door|doors)
+  - push[- ]button (door|doors|opener)
+  - power(ed)? (door|doors)
+  - door opener
+elevator:
+  any:
+  - \belevators?\b
+  - \blifts? (is|are|to|between)
+accessible_route_inside:
+  any:
+  - accessible (route|path|exhibits?|areas?|galleries|floors?)
+  - wheelchair[- ]accessible throughout
+  - fully (wheelchair[- ])?accessible
+  - all (floors|levels|exhibits) (are )?accessible
+ramp_steep:
+  any:
+  - ramps? (is|are)? ?(steeper|steep)
+  - steeper than (the )?ada
+  - steep ramps?
+restroom_accessible:
+  any:
+  - accessible (restroom|restrooms|bathroom|bathrooms|toilets?|stalls?)
+  - wheelchair[- ]accessible (restroom|restrooms|bathroom|bathrooms|toilets?)
+  - ada[- ]compliant restrooms?
+  - restrooms?:?[^.]{0,60}(wheelchair|accessib)
+  - (wheelchair|accessib)[^.]{0,40}restrooms?
+restroom_family:
+  any:
+  - family (restroom|restrooms|bathroom)
+  - companion (restroom|restrooms|bathroom)
+  - all[- ]gender (restroom|restrooms|bathroom)
+  - universal (single[- ]stall )?(restroom|restrooms)
+adult_changing_table:
+  any:
+  - adult[- ](size|sized)? ?changing (table|tables|station|stations)
+  - changing places
+wheelchair_loan:
+  any:
+  - wheelchairs? (are |is |can be |may be )?(available|borrowed|loaned|rented|checked out|provided)
+  - (loaner|loan|complimentary|free) wheelchairs?
+  - wheelchair (loan|rental)
+  - wheelchairs?[^.]{0,50}(rent|borrow|loan|free|\$)
+  - wheelchair rentals?
+  - (free|complimentary) wheelchair
+scooter_or_ecv:
+  any:
+  - scooters?\b
+  - \becvs?\b
+  - electric conveyance
+  - motorized (cart|scooter|wheelchair)s?
+accessible_parking:
+  any:
+  - accessible parking
+  - handicap(ped)? parking
+  - disabled parking
+  - van[- ]accessible
+  - ada parking
+  - parking for (visitors with )?disabilit
+drop_off:
+  any:
+  - drop[- ]?off
+  - pick[- ]?up (zone|area|point)
+accessible_seating:
+  any:
+  - wheelchair (seating|spaces?|spots?|locations?)
+  - accessible seating
+  - companion seat
+  - seating for (guests|patrons|visitors) (who use|using) wheelchairs
+  - wheelchair[- ]accessible seats?
+  - accommodate wheelchairs?
+  - wheelchairs?[^.]{0,40}seating
+  - seating[^.]{0,40}wheelchairs?
+companion_admission:
+  any:
+  - companion[s]? (is |are |gets? |receives? )?(free|admitted|discount)
+  - caregivers? (is |are )?(free|admitted)
+  - personal care attendants?
+  - free (admission|entry|ticket)s? for (a |one )?(companion|caregiver|attendant)
+seating_rest:
+  any:
+  - \bbenches\b
+  - \bbench\b
+  - places? to (rest|sit)
+  - rest (areas?|stops?)
+  - seating (is )?(available|along)
+sensory_friendly:
+  any:
+  - sensory[- ]friendly
+  - sensory (kit|kits|map|hours|room|bag)
+  - quiet hours
+  - relaxed (performance|hours)
+quiet_room:
+  any:
+  - quiet (room|space|area)
+  - calming (room|space|area)
+asl_interpretation:
+  any:
+  - \basl\b
+  - sign language
+  - interpreters?\b
+captioning:
+  any:
+  - \bcaptions?\b
+  - \bcaptioned\b
+  - \bcaptioning\b
+  - subtitles?
+assistive_listening:
+  any:
+  - assistive listening
+  - hearing loop
+  - \bfm system
+  - infrared (listening )?system
+  - hearing[- ]aid compatible
+  - assist(ed|ing|ive) listening
+  - descriptive audio
+  - listening devices?
+service_animals:
+  any:
+  - service (animals?|dogs?)
+braille:
+  any:
+  - \bbraille\b
+large_print:
+  any:
+  - large[- ]print
+audio_description:
+  any:
+  - audio[- ]describ
+  - audio description
+tactile:
+  any:
+  - \btactile\b
+  - touch tours?
+  - touchable
+accessibility_map:
+  any:
+  - accessibility (map|guide)
+  - access(ible)? guide
+  - accessible (map|route map)
+accessibility_contact:
+  any:
+  - accessibility (coordinator|office|services|contact|questions)
+  - request (an )?(accommodation|accommodations)
+  - ada coordinator
+  - contact .{0,30}(accommodation|accessibility)
+  - contact [^.]{0,60}(accessibility|accommodations?)
+  - \baccess(ibility)?@[a-z0-9.-]+
+  - special accommodations
+  - accessibility (text )?support line
+  - guest (relations|services)[^.]{0,40}(accommodat|accessib)
+transit_access:
+  any:
+  - wheelchair[- ]accessible (bus|buses|route|routes|transit|streetcar)
+  - accessible (bus|buses|transit|stop|stops)
+  - paratransit
+  - \bada (paratransit|service)
+trail_surface:
+  any:
+  - (paved|asphalt|concrete|gravel|crushed (stone|limestone)|boardwalk|packed (dirt|earth)|natural) (trail|path|surface|tread)
+  - trail surface
+  - surface (is|of the trail)
+trail_width:
+  any:
+  - \d+(\.\d+)?[- ]?(foot|feet|ft\.?|inch|inches|in\.)[- ]wide
+  - tread width
+  - trail width
+trail_grade:
+  any:
+  - \d+(\.\d+)?\s?%\s?(grade|slope|incline)
+  - (running |cross )?slope of
+  - grade of
+all_terrain_chair:
+  any:
+  - all[- ]terrain (wheel)?chairs?
+  - track ?chairs?
+  - grit (freedom )?chairs?
+adaptive_recreation:
+  any:
+  - adaptive (kayak|golf|bike|cycl|sports?|recreation|equipment|paddl)
+  - kayak launch
+  - accessible (playground|fishing|kayak|boat)
+accessible_lodging:
+  any:
+  - roll[- ]in shower
+  - accessible (guest )?(rooms?|cabins?|campsites?)
+  - ada (guest )?rooms?
+mobility_device_policy:
+  any:
+  - power[- ]driven mobility devices?
+  - \bopdmds?\b
+  - mobility devices? (are |is )?(allowed|permitted|prohibited|welcome)
+notice:
+  any:
+  - (temporarily |currently )?closed (until|for|due|through)
+  - temporarily closed
+  - closure
+  - out of service
+  - under construction
+listed_accessible:
+  any:
+  - wheelchair[- ]accessible
+  - ada[- ]accessible
+  - handicap[- ]accessible
+mobility_service:
+  any:
+  - wheelchair (repair|sales|rental|rentals)
+  - mobility (equipment|scooter) (rental|repair|sales)
+  - accessible (van|vans) (rental|sales)
+  - durable medical equipment
