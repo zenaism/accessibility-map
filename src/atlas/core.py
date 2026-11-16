@@ -18,7 +18,9 @@ import yaml
 from shapely.geometry import shape
 
 ROOT = Path(__file__).resolve().parents[2]
-RAW, PROCESSED = ROOT / "data" / "raw", ROOT / "data" / "processed"
+RAW = Path(os.environ.get("ATLAS_RAW_DIR", ROOT / "data" / "raw"))
+PROCESSED = Path(os.environ.get("ATLAS_PROCESSED_DIR", ROOT / "data" / "processed"))
+CRAWL = Path(os.environ.get("ATLAS_CRAWL_DIR", ROOT / "data" / "crawl"))  # frontier, job state, reports
 USER_AGENT = "accessibility-map/0.1 (academic accessibility research, Miami University)"
 WGS84, METRIC = "EPSG:4326", "EPSG:32616"  # UTM 16N covers both regions
 

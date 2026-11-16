@@ -10,6 +10,7 @@ The maps are live: [Cincinnati](https://zenaism.github.io/accessibility-map/data
 
 | Date | What | Where |
 | --- | --- | --- |
+| 2026-11-15 | **Crawler core built (phase C1):** Scrapy crawler with on-disk frontier (resume), robots.txt, sitemap and feed discovery, URL canonicalization, trap guards, best-first relevance steering with budgets and adaptive stop, Retry-After backoff, conditional re-crawls, private-address blocking, raw archive and manifest, documents table, coverage report, and the `type: crawl` connector. 11 tests against a local trap website pass (103 total). Recall test on a real site started (target 90% of hand-picked pages found from the homepage). | `src/atlas/crawler/`, `tests/test_crawler.py`, `scripts/crawl_recall.py` |
 | 2026-11-15 | **Crawler research and plan:** requirements with numbers, gap analysis of the current crawler, tool comparison (Scrapy, Crawlee, Crawl4AI, Browsertrix, custom), architecture with five diagrams, politeness and legal rules, relevance steering, change detection, completeness gates, security, test plan with a recall test against our 22 hand-picked sources, and an 8-phase build plan. | `docs/crawler_plan.md` |
 | 2026-11-15 | **Phase 0 started and built (version 0):** schema v2 with history (`schema.upgrade`), generated data dictionary, raw-fetch manifest, dataset cards and trust ratings for all 51 source-region pairs, automatic candidate-source rating (8 candidates for DC, Maryland, Dayton, all capped at tier B or lower where the licence is unclear), 57 category questions as an evaluation seed, 11 new tests (92 pass). | `src/atlas/trust.py`, `cards.py`, `candidates.py`, `schema.py`, `config/trust.yaml`, `data/cards/`, `data/candidates/` |
 | 2026-11-15 | **Nationwide plan and system design.** Draft plan for automated collection across the US (discovery by catalogs, government sites and place-driven pages; completeness checks; free tools only because there is no budget); automatic trust rating of sources and facts instead of hand checking; system overview with pros and cons and a comparison with other architectures; 11 Mermaid diagrams, all checked to render. | `docs/national_data_plan.md`, `docs/system_overview.md`, `docs/architecture.md` |
@@ -60,7 +61,7 @@ The maps are live: [Cincinnati](https://zenaism.github.io/accessibility-map/data
 ### To do: next (I can do these)
 
 - [x] Nationwide build, phase 0 (version 0 done; see Done table). Next: phase 1 (region resolver and discovery), then the fusion step so agreement and track record can be measured
-- [ ] Crawler phase C0: 2 to 3 day spike (Scrapy vs a small custom loop), then build C1 to C7 as in `docs/crawler_plan.md`
+- [x] Crawler C0 spike and C1 core done. Next: read the recall test result, then C2 (JavaScript pages, hidden content, files, OCR), C3 to C7 as in `docs/crawler_plan.md`
 - [ ] Region resolver (Census and OSM) and automatic discovery, then run it for Washington DC first; then Maryland and Dayton
 - [ ] Add the new attributes listed in `config/categories.yaml` to `config/attributes.yaml`
 - [ ] Start the history archives that cannot be recovered later (GTFS-Realtime alerts, weather, page snapshots)

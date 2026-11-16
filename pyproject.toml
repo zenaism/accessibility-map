@@ -14,7 +14,7 @@ dependencies = [
 [project.optional-dependencies]
 reddit = ["praw", "python-dotenv"]
 # destinations: Overture places (duckdb), web snapshots, event feeds, JS rendering
-web = ["duckdb", "beautifulsoup4", "lxml", "pypdf", "icalendar", "playwright", "pillow"]
+web = ["duckdb", "beautifulsoup4", "lxml", "pypdf", "icalendar", "playwright", "pillow", "scrapy>=2.13"]
 analysis = ["lifelines", "statsmodels", "matplotlib", "rasterio", "libpysal", "esda"]
 routing = ["networkx", "scipy"]
 dev = ["pytest", "ruff"]
@@ -42,3 +42,6 @@ testpaths = ["tests"]
 [tool.ruff.lint.per-file-ignores]
 "src/atlas/schema.py" = ["E501"]      # column documentation table
 "src/atlas/candidates.py" = ["E501"]  # seed candidate table
+"src/atlas/crawler/*.py" = ["E501"]
+"tests/crawler_site.py" = ["E501"]
+"tests/test_crawler.py" = ["E501"]
