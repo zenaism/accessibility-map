@@ -142,7 +142,9 @@ def test_crawl_resumes_without_refetching(tmp_path):
         crawl(tmp_path, site)  # same queue on disk: carries on
         total = Counter(p for p in site.paths() if p not in ("/robots.txt", "/sitemap.xml"))
         twice_by_design = {"/flaky", "/spa", "/accordion"}  # 429 then retry; plain fetch then browser render
-        assert max(n for p, n in total.items() if p not in twice_by_design and not p.startswith("/thin/")) == 1
+        assert (
+            max(n for p, n in total.items() if p not in twice_by_design and not p.startswith("/thin/")) == 1
+        )
         assert len(total) > len(part)
 
 
@@ -166,7 +168,9 @@ def test_images_have_their_own_budget(tmp_path):
     with Site() as site:
         crawl(tmp_path, site, spec={"budget": {"pages": 40, "images": 3, "megabytes": 50}})
         images = [p for p in site.paths() if p.startswith("/img/")]
-        assert 0 < len(images) <= 6  # at most 3 large pictures, up to twice that many requests (icons are only known after)
+        assert (
+            0 < len(images) <= 6
+        )  # at most 3 large pictures, up to twice that many requests (icons are only known after)
         assert "/accessibility" in site.paths() and "/hidden-orphan" in site.paths()
 
 
@@ -219,4 +223,53 @@ def test_missing_guessed_paths_are_not_failures(tmp_path):
         row = next(r for u, r in frontier_rows(tmp_path).items() if u.endswith("ada"))
         assert row["state"] == "skipped" and row["reason"].startswith("probe: not found")
         failed = [r for r in frontier_rows(tmp_path).values() if r["state"] == "failed"]
-        assert failed and not any(r["via"] == "probe" for r in failed)  # real broken links only, never our guesses
+        assert failed and not any(
+            r["via"] == "probe" for r in failed
+        )  # real broken links only, never our guesses
+
+
+def test_each_site_gets_its_own_page_budget(tmp_path):
+    with Site() as site:
+        crawl(tmp_path, site, spec={"budget": {"pages": 100, "per_host": 6, "megabytes": 50}})
+        pages = [p for p in site.paths() if not p.startswith(("/img/", "/robots", "/sitemap"))]
+        rows = frontier_rows(tmp_path)
+        assert any(r["reason"] == "host budget" for r in rows.values())
+        assert (
+            len(set(pages)) <= 6 + 12
+        )  # six queued pages plus probes, the robots/sitemap files and in-flight requests
+
+
+def test_pages_know_the_place_their_website_belongs_to(tmp_path):
+    with Site() as site:
+        host = site.url.split("//")[1].split(":")[0]
+        crawl(
+            tmp_path,
+            site,
+            name="pl",
+            spec={
+                "seed_places": {host: {"place_id": "overture:123", "name": "Test Cafe", "category": "cafe"}}
+            },
+        )
+        d = pd.read_parquet(tmp_path / "processed" / "testregion" / "pl.docs.parquet")
+        assert (d.place_id == "overture:123").all() and (d.place_name == "Test Cafe").all()
+
+
+def test_place_seeds_skip_chains_and_aggregators(monkeypatch):
+    import geopandas as gpd
+    from shapely.geometry import Point
+
+    from atlas.crawler import seeds
+
+    rows = [("a", "Local Cafe", "https://localcafe.com", 0.9), ("b", "Chain", "https://bigchain.com/1", 0.8),
+            ("c", "Chain", "https://bigchain.com/2", 0.8), ("d", "Chain", "https://bigchain.com/3", 0.8),
+            ("e", "On Yelp", "https://www.yelp.com/biz/x", 0.9), ("f", "No site", None, 0.9)]  # fmt: skip
+    gdf = gpd.GeoDataFrame({"entity_id": [r[0] for r in rows], "name": [r[1] for r in rows], "website": [r[2] for r in rows],
+                            "confidence": [r[3] for r in rows], "basic_category": "cafe"}, geometry=[Point(0, 0)] * 6)  # fmt: skip
+    monkeypatch.setattr(seeds.gpd, "read_parquet", lambda p: gdf)
+    found = seeds.places("x", {"cafe"}, 10)
+    assert [p["name"] for p in found] == ["Local Cafe"]
+    spec = seeds.crawl_spec("x", found)
+    assert (
+        spec["seeds"] == ["https://localcafe.com/"]
+        and spec["seed_places"]["localcafe.com"]["place_id"] == "a"
+    )

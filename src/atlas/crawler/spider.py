@@ -57,6 +57,10 @@ class AtlasSpider(scrapy.Spider):
             urls.host_key(h) for h in scope.get("hosts", [])
         }
         self.max_depth = scope.get("depth", 4)
+        self.per_host = budget.get("per_host", 10**9) if (budget := spec.get("budget", {})) else 10**9
+        self.host_count = (
+            Counter()
+        )  # pages queued per site: a crawl of many small sites gives each its own budget
         self.languages = set(scope.get("languages", ["en"]))
         self.render_stats: dict[str, list[int]] = {}  # host -> [renders tried, renders that added text]
         budget = spec.get("budget", {})
@@ -363,6 +367,8 @@ class AtlasSpider(scrapy.Spider):
             )  # the same page in another language: no new facts, and it eats the budget
         if (reason := urls.trap_reason(u, strict=k == "page")) and via != "sitemap":
             return skip(f"trap guard: {reason}")
+        if self.host_count[row["host"]] >= self.per_host:
+            return skip("host budget")
         if self.frontier.count_where("pattern", row["pattern"]) >= self.per_pattern:
             return skip("pattern budget")
         if self.section_count[row["section"]] >= self.per_section:
@@ -373,6 +379,7 @@ class AtlasSpider(scrapy.Spider):
         if score < 0.05 and not explore and via == "link" and depth > 1:
             return skip("low relevance")
         self.section_count[row["section"]] += 1
+        self.host_count[row["host"]] += 1
         self.images_queued += k == "image"
         self.frontier.add(u, score=score, **row)
         yield self._req(u, depth, score, relevance.priority(score), via=via)
