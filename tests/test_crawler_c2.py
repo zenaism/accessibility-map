@@ -15,7 +15,17 @@ from tests.test_crawler import crawl, frontier_rows
 
 def test_needs_render_detects_empty_app_shells():
     assert render.needs_render("", b"<div id=root></div><script src=app.js></script>")
-    assert not render.needs_render("short page", b"<html><body>Contact us</body></html>")  # static and short: no browser
+    assert render.render_signal("", b"<div id=root></div>") == "strong"  # app shell
+    assert (
+        render.render_signal("Visit", b"<button aria-expanded=false>x</button>") == "strong"
+    )  # collapsed sections
+    assert (
+        render.render_signal("Notice", b"<body>Notice<script>1</script>") == "weak"
+    )  # short page with a script
+    assert render.render_signal("short", b"<body>short</body>") is None
+    assert not render.needs_render(
+        "short page", b"<html><body>Contact us</body></html>"
+    )  # static and short: no browser
     assert render.needs_render("x" * 300, b"", "always")
     assert not render.needs_render("x" * 300, b"<html>" + b"y" * 400)
     assert not render.needs_render("", b"", "never")
@@ -120,3 +130,15 @@ def test_browser_can_be_turned_off(tmp_path):
         assert "/spa-details" not in site.paths()
         d = pd.read_parquet(tmp_path / "processed" / "testregion" / "norender.docs.parquet")
         assert not d[d.url.str.endswith("/spa")].iloc[0].rendered
+
+
+def test_a_host_where_rendering_adds_nothing_stops_getting_rendered(tmp_path):
+    from collections import Counter
+
+    with Site() as site:
+        crawl(tmp_path, site, name="waste")
+        hits = Counter(p for p in site.paths() if p.startswith("/thin/"))
+        rendered_twice = [p for p, n in hits.items() if n >= 2]
+        assert (
+            len(hits) == 8 and 1 <= len(rendered_twice) <= 6
+        )  # five tries, then the crawler stopped wasting the browser

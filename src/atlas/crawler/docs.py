@@ -3,6 +3,7 @@ the same columns the earlier web connector wrote, plus the crawl fields."""
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -54,7 +55,13 @@ def read_file(path: Path, ctype: str, url: str, ocr_left: list[int]) -> read.Rea
         r = read.read_image(data)
         ocr_left[0] -= r.ocr_pages
         return r
-    return read.Read(kind=kind or "file", title=Path(url).name)
+    if kind in ("doc", "xls", "ppt"):
+        return read.Read(
+            kind=kind,
+            title=Path(url).name,
+            method=f"skipped: legacy .{kind} (binary Office file, needs conversion)",
+        )
+    return read.Read(kind=kind or "file", title=Path(url).name, method="skipped: unknown file type")
 
 
 def build(source: str, region: str, spec: dict, frontier: Frontier) -> pd.DataFrame:
@@ -92,5 +99,10 @@ def build(source: str, region: str, spec: dict, frontier: Frontier) -> pd.DataFr
         )
     df = pd.DataFrame(docs)
     if len(df):
+        # the same bytes under several addresses (report.pdf and report_0.pdf) are one document: keep the first address,
+        # list the others, so the facts are not counted twice
+        also = df.groupby("content_sha")["url"].apply(list)
+        df = df.drop_duplicates("content_sha", keep="first").copy()
+        df["duplicate_urls"] = df["content_sha"].map(lambda s: json.dumps(also[s][1:]))
         df.to_parquet(out_dir(region) / f"{source}.docs.parquet", index=False)
     return df

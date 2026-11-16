@@ -5,6 +5,7 @@ Every URL gets a frontier row and a final state, so the completeness report can 
 
 from __future__ import annotations
 
+import asyncio
 import gzip
 import re
 from collections import Counter, deque
@@ -17,9 +18,9 @@ from scrapy import Selector, signals
 from scrapy.exceptions import CloseSpider, IgnoreRequest
 
 from ..connectors.web import _clean_html
-from . import archive, relevance, urls
+from . import archive, read, relevance, urls
 from .frontier import Frontier
-from .render import Renderer, needs_render
+from .render import Renderer, render_signal
 
 HTML = ("text/html", "application/xhtml")
 SITEMAP_PATHS = ["/sitemap.xml", "/sitemap_index.xml", "/wp-sitemap.xml"]
@@ -56,6 +57,8 @@ class AtlasSpider(scrapy.Spider):
             urls.host_key(h) for h in scope.get("hosts", [])
         }
         self.max_depth = scope.get("depth", 4)
+        self.languages = set(scope.get("languages", ["en"]))
+        self.render_stats: dict[str, list[int]] = {}  # host -> [renders tried, renders that added text]
         budget = spec.get("budget", {})
         self.max_bytes = budget.get("megabytes", 500) * 1_000_000
         raw = budget.get("pages", 300)  # pages and documents; images have their own budget
@@ -79,6 +82,7 @@ class AtlasSpider(scrapy.Spider):
         self.rendered = 0
         self.render_mode = spec.get("render", "auto")  # auto | always | never
         self.renderer = None
+        self.render_gate = None
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
@@ -130,7 +134,7 @@ class AtlasSpider(scrapy.Spider):
                     if u and self.frontier.add(
                         u, host=urls.host_key(u), depth=1, via="probe", score=0.5, section=urls.section(u)
                     ):
-                        yield self._req(u, 1, 0.5, 40)
+                        yield self._req(u, 1, 0.5, 40, via="probe")
 
     def _req(
         self, url: str, depth: int, score: float, priority: int, callback=None, via: str = "link"
@@ -211,6 +215,11 @@ class AtlasSpider(scrapy.Spider):
         if status == 304:
             self.frontier.update(url, state="unchanged", status=304, last_fetched=self._now())
             return
+        if status >= 400 and meta.get("via") == "probe":
+            self.frontier.update(
+                url, state="skipped", status=status, reason=f"probe: not found (HTTP {status})"
+            )
+            return
         if status >= 400:
             self.frontier.update(
                 url,
@@ -233,7 +242,10 @@ class AtlasSpider(scrapy.Spider):
         self.fetched += 1
         self.bytes_total += len(response.body)
         if urls.kind(url) == "image":
-            self.images_done += 1
+            if read.is_small_image(response.body):  # icons and logos do not use up the picture budget
+                self.frontier.update(url, reason="small image")
+            else:
+                self.images_done += 1
         else:
             self.pages_done += 1
         if self.bytes_total > self.max_bytes:
@@ -249,25 +261,41 @@ class AtlasSpider(scrapy.Spider):
             return
         title, text, links = _clean_html(response.body, response.url)
         sel = response  # where to look for links: the plain page, or the rendered page below
-        if self.renderer and needs_render(text, response.body, self.render_mode):
-            rr = await self.renderer.render(
-                response.url
-            )  # thin page: load it in a real browser, open what is hidden
-            if rr:
-                rrec = archive.save(
-                    self.source, url, rr["final_url"], rr["status"], "text/html", {}, rr["html"],
-                    rendered=True, screenshot=rr["screenshot"],
-                )  # fmt: skip
-                title, text, links = _clean_html(rr["html"], rr["final_url"])
-                sel = Selector(text=rr["html"].decode("utf-8", "ignore"))
-                self.frontier.update(
-                    url,
-                    rendered=1,
-                    content_sha=rrec["sha256"],
-                    bytes=len(rr["html"]),
-                    final_url=rr["final_url"],
-                )
-                self.rendered += 1
+        host = urls.host_key(url)
+        plain_len = len(text.strip())
+        signal = "strong" if self.render_mode == "always" else render_signal(text, response.body)
+        if self.render_mode == "never":
+            signal = None
+        if self.renderer and signal:
+            if self.render_gate is None:
+                self.render_gate = asyncio.Lock()
+            async with (
+                self.render_gate
+            ):  # decide inside the queue: pages waiting their turn see the latest results
+                tried, useful = self.render_stats.get(host, [0, 0])
+                # a host whose first five renders added nothing gets no more: a short page there is just a short page
+                wasteful = signal == "weak" and tried >= 5 and useful == 0
+                rr = None if wasteful else await self.renderer.render(response.url)
+                if rr:
+                    rrec = archive.save(
+                        self.source, url, rr["final_url"], rr["status"], "text/html", {}, rr["html"],
+                        rendered=True, screenshot=rr["screenshot"],
+                    )  # fmt: skip
+                    title, text, links = _clean_html(rr["html"], rr["final_url"])
+                    sel = Selector(text=rr["html"].decode("utf-8", "ignore"))
+                    self.frontier.update(
+                        url,
+                        rendered=1,
+                        content_sha=rrec["sha256"],
+                        bytes=len(rr["html"]),
+                        final_url=rr["final_url"],
+                    )
+                    self.rendered += 1
+                    added = len(text.strip()) > 1.2 * plain_len + 40
+                    if (
+                        signal == "weak"
+                    ):  # only the uncertain cases teach us whether rendering pays off on this host
+                        self.render_stats[host] = [tried + 1, useful + int(added)]
         page_score = max(relevance.score_text(text), meta.get("score", 0.0) * 0.5)
         self.frontier.update(url, score=round(page_score, 3))
         self.recent.append(page_score)
@@ -320,13 +348,20 @@ class AtlasSpider(scrapy.Spider):
         k = urls.kind(u)
         if k == "skip":
             return skip("file type not wanted")
-        if k == "image" and self.images_queued >= self.max_images:
+        if k == "image" and (
+            self.images_done >= self.max_images or self.images_queued >= 2 * self.max_images
+        ):
             return skip("image budget")
         if k == "image" and self.assets == "none":
             return skip("images not wanted")
         if k == "image" and self.assets == "maps" and not relevance.score_url(u, anchor) > 0.2:
             return skip("image not map-like")
-        if (reason := urls.trap_reason(u)) and via != "sitemap":
+        lang = urls.language_prefix(u)
+        if lang and lang not in self.languages:
+            return skip(
+                f"translation ({lang})"
+            )  # the same page in another language: no new facts, and it eats the budget
+        if (reason := urls.trap_reason(u, strict=k == "page")) and via != "sitemap":
             return skip(f"trap guard: {reason}")
         if self.frontier.count_where("pattern", row["pattern"]) >= self.per_pattern:
             return skip("pattern budget")
@@ -394,4 +429,5 @@ class AtlasSpider(scrapy.Spider):
         return now()
 
     def closed(self, reason):
+        self.logger.info("browser renders per host [tried, added text]: %s", self.render_stats)
         self.close_reason = self.stopped_reason or reason

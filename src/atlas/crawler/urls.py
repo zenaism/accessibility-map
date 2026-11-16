@@ -91,15 +91,70 @@ def pattern_key(url: str) -> str:
     return f"{host_key(url)}{path}?{keys}"
 
 
-def trap_reason(url: str, max_depth: int = 8, max_len: int = 300) -> str | None:
+LANGS = set(
+    [
+        "es",
+        "am",
+        "fr",
+        "de",
+        "it",
+        "pt",
+        "ru",
+        "zh",
+        "ko",
+        "ja",
+        "vi",
+        "ar",
+        "hi",
+        "bn",
+        "ur",
+        "so",
+        "ti",
+        "ht",
+        "pl",
+        "tl",
+        "uk",
+        "fa",
+        "tr",
+        "he",
+        "el",
+        "nl",
+        "sv",
+        "no",
+        "da",
+        "fi",
+        "cs",
+        "hu",
+        "ro",
+        "th",
+        "id",
+        "ms",
+        "sw",
+        "ne",
+        "my",
+        "km",
+        "lo",
+    ]
+)
+LANG_PREFIX = re.compile(r"^/([a-z]{2})(?:-[a-z]{2,4})?(?:/|$)", re.I)
+
+
+def language_prefix(url: str) -> str | None:
+    """'es' for https://site/es/page (a translation copy under a language folder), else None."""
+    m = LANG_PREFIX.match(urlsplit(url).path)
+    return m.group(1).lower() if m and m.group(1).lower() in LANGS else None
+
+
+def trap_reason(url: str, max_depth: int = 8, max_len: int = 300, strict: bool = True) -> str | None:
     """Why a URL looks like a crawler trap (calendar, endless parameters, repeated folders), else None."""
     p = urlsplit(url)
     segs = [s for s in p.path.split("/") if s]
     if len(url) > max_len:
         return "very long address"
-    if len(segs) > max_depth:
+    # Files legitimately live in deep folders (/sites/default/files/dc/sites/odr/...): depth and repetition only guard pages
+    if strict and len(segs) > max_depth:
         return "path too deep"
-    if any(segs[i : i + 2] == segs[i + 2 : i + 4] for i in range(len(segs) - 3)):
+    if strict and any(segs[i : i + 2] == segs[i + 2 : i + 4] for i in range(len(segs) - 3)):
         return "repeating folders"
     if CALENDAR.search(url):
         return "calendar or date archive"

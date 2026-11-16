@@ -20,7 +20,7 @@ from . import clock
 
 THIN_CHARS = 200
 SHELL = re.compile(
-    r"""<div[^>]+id=["'](root|app|__next|__nuxt|svelte)["'][^>]*>\s*</div>|enable javascript|javascript is (required|disabled)""",
+    r"""<div[^>]+id=["']?(root|app|__next|__nuxt|svelte)["']?[^>]*>\s*</div>|enable javascript|javascript is (required|disabled)""",
     re.I,
 )
 MAX_SHOT_HEIGHT = 12000
@@ -53,6 +53,23 @@ async () => {
 """
 
 
+HIDDEN_HINTS = ("aria-expanded", 'role="tab"', "role='tab'", "onclick", "data-toggle", "data-bs-toggle")
+
+
+def render_signal(text: str, html: bytes) -> str | None:
+    """How strongly a plain download suggests a browser is needed.
+    'strong': an app shell or collapsed sections that open on click (always worth a browser).
+    'weak': only a short page with scripts (worth trying, but a host where it keeps adding nothing is not retried).
+    None: a normal page."""
+    n = len(text.strip())
+    head = html[:200_000].decode("utf-8", "ignore").lower()
+    if (n < 800 and SHELL.search(head)) or (n < THIN_CHARS and any(h in head for h in HIDDEN_HINTS)):
+        return "strong"
+    if n < THIN_CHARS and "<script" in head:
+        return "weak"
+    return None
+
+
 def needs_render(text: str, html: bytes, mode: str = "auto") -> bool:
     """True when a plain download looks empty AND scripts could have built the page: almost no text plus a script
     tag, or a short page that is an app shell. A short static page (no scripts) never needs a browser."""
@@ -60,13 +77,7 @@ def needs_render(text: str, html: bytes, mode: str = "auto") -> bool:
         return False
     if mode == "always":
         return True
-    n = len(text.strip())
-    head = html[:200_000].decode("utf-8", "ignore").lower()
-    if n < THIN_CHARS:
-        return (
-            "<script" in head or "onclick" in head or "aria-expanded" in head
-        )  # something here runs code or hides text
-    return n < 800 and bool(SHELL.search(head))
+    return render_signal(text, html) is not None
 
 
 def is_private_host(host: str) -> bool:

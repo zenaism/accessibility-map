@@ -163,6 +163,14 @@ class Site:
                         ("/icon.png", "icon"),
                     ]
                     links += [
+                        ("/dup/a.pdf", "Report"),
+                        ("/dup/b.pdf", "Report copy"),
+                        ("/old.doc", "Old guide"),
+                    ]
+                    links += [(f"/icons/{i}.png", "icon") for i in range(1, 7)]
+                    links += [("/es/visite", "Visite"), ("/a/b/c/d/e/f/g/h/i/deep-guide.pdf", "Deep guide")]
+                    links += [(f"/thin/{i}", "Notice") for i in range(1, 9)]
+                    links += [
                         ("/spa", "App"),
                         ("/accordion", "Visit"),
                         ("/doc.docx", "Seating guide"),
@@ -182,6 +190,18 @@ class Site:
                     return self.send(
                         200, page("Orphan", "An accessible restroom is on the ground floor.", [])
                     )
+                if p.startswith("/dup/"):
+                    return self.send(200, TEXT_PDF + b"\n% fixture for the duplicate test\n", "application/pdf")
+                if p == "/old.doc":
+                    return self.send(200, b"\xd0\xcf\x11\xe0 legacy word", "application/msword")
+                if p.startswith("/icons/"):
+                    return self.send(200, ICON, "image/png")
+                if p.startswith("/thin/"):
+                    return self.send(200, b"<html><body>Notice.<script>var a=1;</script></body></html>")
+                if p == "/es/visite":
+                    return self.send(200, page("Visite", "Une page en espagnol.", []))
+                if p.endswith("deep-guide.pdf"):
+                    return self.send(200, TEXT_PDF, "application/pdf")
                 if p == "/rich":
                     return self.send(200, RICH)
                 if p == "/scan.pdf":

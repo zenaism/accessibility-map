@@ -1,0 +1,11 @@
+{
+  "regions": ["dc"],
+  "author_type": "official",
+  "seeds": ["https://odr.dc.gov/"],
+  "scope": {"hosts": ["odr.dc.gov"], "depth": 4},
+  "budget": {"pages": 160, "images": 20, "megabytes": 300, "per_pattern": 30, "ocr_images": 15},
+  "assets": "all",
+  "discover": {"sitemaps": true, "feeds": true, "probe_paths": true},
+  "render": "auto",
+  "explore_share": 0.1
+}
