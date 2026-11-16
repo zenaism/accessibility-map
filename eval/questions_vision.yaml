@@ -1,0 +1,171 @@
+# Questions for blind, low-vision and combined-profile users, from the research brief (Appendix B).
+# Added 2026-11-16. No tool `call` yet, so scripts/eval_tools.py does not run them; `expect_unknown` is true when the brief says the data is
+# missing. Expected answers are filled in later from data, not by hand-checking.
+- id: vision-01
+  category: finding_the_door
+  question: Which entrance of the Cincinnati Art Museum has no steps, and how do I find it from the bus stop without reading signs?
+  asked_by: Both
+  data_needed: Entrance fact (have for some venues); landmark description (missing)
+  expect_unknown: false
+  status: unlabelled
+- id: vision-02
+  category: finding_the_door
+  question: Is there someone at the door of Music Hall who can guide me to my seat?
+  asked_by: Both
+  data_needed: Staff help and access contact (partly)
+  expect_unknown: false
+  status: unlabelled
+- id: vision-03
+  category: finding_the_door
+  question: Is the automatic door button at Armstrong Student Center on the left or the right as I face the door?
+  asked_by: Both
+  data_needed: Door detail (missing)
+  expect_unknown: true
+  status: unlabelled
+- id: vision-04
+  category: finding_the_door
+  question: Where does the Metro Access van drop me at Union Terminal, and how far is the door from there?
+  asked_by: Both
+  data_needed: Drop-off fact (have for some venues); distance (missing)
+  expect_unknown: false
+  status: unlabelled
+- id: vision-05
+  category: crossings_and_kerbs
+  question: Do the corners between Fountain Square and the Aronoff have curb ramps with warning tiles?
+  asked_by: Both
+  data_needed: City curb ramps (have); warning tiles (sparse)
+  expect_unknown: false
+  status: unlabelled
+- id: vision-06
+  category: crossings_and_kerbs
+  question: Does the crossing at High Street and Campus Avenue in Oxford have a signal I can hear?
+  asked_by: Vision, both
+  data_needed: List of audible signals (missing)
+  expect_unknown: true
+  status: unlabelled
+- id: vision-07
+  category: crossings_and_kerbs
+  question: Is there a corner on my way where the ramp points into the middle of the junction and not at the crossing?
+  asked_by: Both
+  data_needed: Ramp direction (missing)
+  expect_unknown: true
+  status: unlabelled
+- id: vision-08
+  category: crossings_and_kerbs
+  question: Are there paths shared with bikes or scooters between the streetcar stop and Findlay Market?
+  asked_by: Vision, both
+  data_needed: Path types in OpenStreetMap (partly)
+  expect_unknown: false
+  status: unlabelled
+- id: vision-09
+  category: seeing_and_reading
+  question: Which museums have large-print labels or an audio guide, and a step-free way through the galleries?
+  asked_by: Both
+  data_needed: Have for some venues
+  expect_unknown: false
+  status: unlabelled
+- id: vision-10
+  category: seeing_and_reading
+  question: Is there a touch tour I can do from my chair?
+  asked_by: Both
+  data_needed: Tactile and indoor route facts (partly)
+  expect_unknown: false
+  status: unlabelled
+- id: vision-11
+  category: seeing_and_reading
+  question: Are the steps and ramps at Great American Ball Park marked with contrasting edges?
+  asked_by: Low vision
+  data_needed: Contrast marking (missing)
+  expect_unknown: true
+  status: unlabelled
+- id: vision-12
+  category: seeing_and_reading
+  question: Is the lighting dim inside this restaurant?
+  asked_by: Low vision
+  data_needed: Lighting (missing; reviews might say)
+  expect_unknown: true
+  status: unlabelled
+- id: vision-13
+  category: inside
+  question: Is the accessible restroom at the Freedom Center signed in braille, and which way is it from the entrance?
+  asked_by: Both
+  data_needed: Restroom (have); braille and direction (missing)
+  expect_unknown: false
+  status: unlabelled
+- id: vision-14
+  category: inside
+  question: Are the lift buttons at the Aronoff within reach from a chair and marked in braille?
+  asked_by: Both
+  data_needed: Missing
+  expect_unknown: true
+  status: unlabelled
+- id: vision-15
+  category: inside
+  question: Is there a quiet place to wait where I can hear my phone?
+  asked_by: Both
+  data_needed: Quiet room fact (some venues)
+  expect_unknown: false
+  status: unlabelled
+- id: vision-16
+  category: inside
+  question: Can I order at the table, or do I have to read a board and queue at a counter?
+  asked_by: Both
+  data_needed: Service style (missing)
+  expect_unknown: true
+  status: unlabelled
+- id: vision-17
+  category: combined_needs
+  question: I use a power chair and I am blind. Is the Krohn Conservatory realistic for me alone, or should I bring someone?
+  asked_by: Both
+  data_needed: Several facts; the answer must cover both needs and say what is not known
+  expect_unknown: false
+  status: unlabelled
+- id: vision-18
+  category: combined_needs
+  question: The step-free way into this building is at the back. Is that door staffed, or do I need to call ahead?
+  asked_by: Both
+  data_needed: Entrance and access contact (partly)
+  expect_unknown: false
+  status: unlabelled
+- id: vision-19
+  category: combined_needs
+  question: Which way to the library avoids steep hills and also has audible signals at every crossing?
+  asked_by: Both
+  data_needed: Slope (have); audible signals (missing). The answer must say which half is known
+  expect_unknown: false
+  status: unlabelled
+- id: vision-20
+  category: combined_needs
+  question: Is there an audio-described show this month at a theatre with wheelchair seating near the front?
+  asked_by: Both
+  data_needed: Events and seating (have)
+  expect_unknown: false
+  status: unlabelled
+- id: vision-21
+  category: trust_and_delivery
+  question: Tell me only the three things I most need to know about getting into this place.
+  asked_by: Anyone
+  data_needed: Tests answer length and choice of facts
+  expect_unknown: false
+  status: unlabelled
+- id: vision-22
+  category: trust_and_delivery
+  question: How old is the information about the ramp at the Taft Theatre?
+  asked_by: Anyone
+  data_needed: Source date (have)
+  expect_unknown: false
+  status: unlabelled
+- id: vision-23
+  category: trust_and_delivery
+  question: The venue says it is accessible. Has anyone checked?
+  asked_by: Anyone
+  data_needed: Kind of source (have); first-hand reports (missing)
+  expect_unknown: false
+  status: unlabelled
+- id: vision-24
+  category: trust_and_delivery
+  question: I am sending a photo of the entrance in front of me. Is this the step-free door?
+  asked_by: Both
+  data_needed: Photo input (planned)
+  expect_unknown: false
+  status: unlabelled

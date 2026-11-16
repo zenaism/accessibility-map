@@ -13,10 +13,6 @@
   - all_terrain_chair
   - mobility_device_policy
   - notice
-  - trail_length
-  - trail_loop
-  - trail_cross_slope
-  - trail_obstacles
   status: unlabelled
 - id: trails_hiking-2
   category: trails_hiking
@@ -49,8 +45,6 @@
   - adaptive_recreation
   - accessible_lodging
   - all_terrain_chair
-  - picnic_accessible
-  - playground_accessible
   status: unlabelled
 - id: parks_outdoors-2
   category: parks_outdoors
@@ -68,8 +62,6 @@
   - restroom_accessible
   - accessible_parking
   - companion_admission
-  - pool_lift
-  - program_eligibility
   status: unlabelled
 - id: adaptive_sports_recreation-2
   category: adaptive_sports_recreation
@@ -87,9 +79,6 @@
   - adult_changing_table
   - entrance_step_free
   - notice
-  - restroom_hours
-  - restroom_fee
-  - restroom_stall_size
   status: unlabelled
 - id: restrooms-2
   category: restrooms
@@ -111,10 +100,6 @@
   - accessible_parking
   - drop_off
   - transit_access
-  - parking_van_accessible
-  - parking_distance_to_entrance
-  - parking_cost
-  - parking_garage_clearance
   status: unlabelled
 - id: parking_dropoff-2
   category: parking_dropoff
@@ -142,9 +127,6 @@
   - companion_admission
   - accessible_parking
   - notice
-  - event_start_end
-  - event_cost
-  - event_registration
   status: unlabelled
 - id: events-2
   category: events
@@ -170,8 +152,6 @@
   - seating_rest
   - braille
   - large_print
-  - table_clearance
-  - outdoor_seating_accessible
   status: unlabelled
 - id: food_drink-2
   category: food_drink
@@ -214,8 +194,6 @@
   - scooter_or_ecv
   - accessible_parking
   - restroom_accessible
-  - accessible_checkout
-  - aisle_width
   status: unlabelled
 - id: shopping_daily_services-2
   category: shopping_daily_services
@@ -237,8 +215,6 @@
   - wheelchair_loan
   - accessibility_contact
   - asl_interpretation
-  - exam_table_adjustable
-  - patient_lift
   status: unlabelled
 - id: health_care-2
   category: health_care
@@ -255,12 +231,6 @@
   - accessible_parking
   - drop_off
   - notice
-  - stop_wheelchair_boarding
-  - stop_shelter_bench
-  - vehicle_ramp_lift
-  - elevator_status
-  - paratransit_rules
-  - wav_taxi_rideshare
   status: unlabelled
 - id: transit_mobility-2
   category: transit_mobility
@@ -286,14 +256,6 @@
   question: Is there a step-free route from A to B?
   attributes: &id012
   - ramp_steep
-  - sidewalk_present
-  - sidewalk_width
-  - surface_condition
-  - curb_ramp_present
-  - crossing_signal_aps
-  - running_slope
-  - cross_slope
-  - steps_present
   status: unlabelled
 - id: street_network-2
   category: street_network
@@ -318,8 +280,6 @@
   - accessible_parking
   - restroom_accessible
   - wheelchair_loan
-  - roll_in_shower
-  - accessible_room_count
   status: unlabelled
 - id: lodging-2
   category: lodging
@@ -356,7 +316,6 @@
   - accessible_parking
   - accessibility_contact
   - asl_interpretation
-  - polling_place_accessible
   status: unlabelled
 - id: civic_government-2
   category: civic_government
@@ -387,7 +346,6 @@
   - elevator
   - restroom_accessible
   - accessibility_map
-  - wheelchair_seat_booking
   status: unlabelled
 - id: mobility_equipment_services-1
   category: mobility_equipment_services
@@ -398,7 +356,6 @@
   - wheelchair_loan
   - all_terrain_chair
   - adaptive_recreation
-  - equipment_loan_program
   status: unlabelled
 - id: mobility_equipment_services-2
   category: mobility_equipment_services
@@ -412,9 +369,6 @@
   question: Who do I call to report a broken ramp or request a curb ramp?
   attributes: &id017
   - accessibility_contact
-  - reporting_channel
-  - ada_coordinator
-  - service_eligibility
   status: unlabelled
 - id: support_rights-2
   category: support_rights
@@ -436,8 +390,6 @@
   - entrance_step_free
   - elevator
   - accessible_parking
-  - accessible_units
-  - modification_rules
   status: unlabelled
 - id: emergency_safety-1
   category: emergency_safety
@@ -448,8 +400,6 @@
   - accessible_parking
   - restroom_accessible
   - notice
-  - shelter_accessible
-  - evacuation_info
   status: unlabelled
 - id: emergency_safety-2
   category: emergency_safety
@@ -463,9 +413,6 @@
   question: Is the route, elevator or entrance blocked today?
   attributes: &id019
   - notice
-  - closure_start_end
-  - closure_reason
-  - detour_info
   status: unlabelled
 - id: temporary_conditions-2
   category: temporary_conditions
@@ -481,9 +428,6 @@
   - seating_rest
   - quiet_room
   - sensory_friendly
-  - shade_cover
-  - lighting
-  - noise_crowding
   status: unlabelled
 - id: comfort_environment-2
   category: comfort_environment
@@ -499,8 +443,6 @@
   - accessibility_map
   - accessibility_contact
   - wheelchair_loan
-  - accessible_tour
-  - itinerary_source
   status: unlabelled
 - id: tourism_itineraries-2
   category: tourism_itineraries
@@ -536,5 +478,4 @@
   question: What is it really like, what do other wheelchair users say?
   attributes:
   - listed_accessible
-  - reported_experience
   status: unlabelled

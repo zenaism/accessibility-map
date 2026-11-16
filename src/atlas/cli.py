@@ -60,6 +60,8 @@ def main() -> None:
             "cards",
             "candidates",
             "region",
+            "extract",
+            "discover",
         ],
     )
     ap.add_argument("source", nargs="?", default="all")
@@ -89,6 +91,15 @@ def main() -> None:
         from .inventory import write
 
         print(write())
+        return
+    if a.command == "discover":
+        from . import discovery
+
+        for r in regions:
+            new = discovery.discover(r)
+            print(f"[{r}] {len(new)} new candidate sources")
+            for c in sorted(new, key=lambda c: -float(c["score"] or 0))[:15]:
+                print(f"  {c['tier']} {float(c['score']):5.1f}  {c['title'][:60]:<60} {c['publisher'][:30]}")
         return
     if a.command == "extract":
         from .extract import pipeline

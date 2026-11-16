@@ -36,6 +36,12 @@ def attributes() -> dict[str, str]:
     return yaml.safe_load((ROOT / "config" / "attributes.yaml").read_text())
 
 
+def text_attributes() -> dict[str, str]:
+    """The attributes a sentence on a website can state (the ones with rules): a short menu a small model can handle."""
+    rules = yaml.safe_load((ROOT / "config" / "fact_rules.yaml").read_text())
+    return {a: d for a, d in attributes().items() if a in rules}
+
+
 def _key(kind: str, *parts: str) -> str:
     return hashlib.sha256("\x1f".join([MODEL, PROMPT_VERSION, kind, *parts]).encode()).hexdigest()
 
@@ -107,7 +113,7 @@ def verify(sentence: str, attribute: str, proposed: str) -> dict:
     meaning = attributes().get(attribute, attribute)
     prompt = (
         "Decide whether the sentence is a statement about what a place, venue or service offers or lacks for the attribute below.\n"
-        'Say states_fact=false ONLY for a headline, a title, an event or program name, a law, or text that says nothing about the attribute.\n'
+        "Say states_fact=false ONLY for a headline, a title, an event or program name, a law, or text that says nothing about the attribute.\n"
         'value: "yes" = available / accessible (also when there is a fee or it is on request), "limited" = only partly or only some areas, '
         '"no" = not available. detail: the key words from the sentence, at most 10 words.\n\n'
         "Examples:\n"
@@ -147,7 +153,7 @@ def discover_schema() -> dict:
                 "items": {
                     "type": "object",
                     "properties": {
-                        "attribute": {"type": "string", "enum": list(attributes())},
+                        "attribute": {"type": "string", "enum": list(text_attributes())},
                         "value": {"type": "string", "enum": VALUES},
                         "detail": {"type": "string"},
                     },
@@ -165,7 +171,7 @@ def discover(sentence: str) -> list[dict]:
     cache = _load()
     if key in cache:
         return cache[key]["facts"]
-    menu = "\n".join(f"- {a}: {d}" for a, d in attributes().items())
+    menu = "\n".join(f"- {a}: {d}" for a, d in text_attributes().items())
     prompt = (
         f'Sentence: "{sentence}"\n\nWhich of these attributes does the sentence state a fact about, for a specific place, '
         f"venue, service or programme? Return an empty list if none.\n{menu}"
