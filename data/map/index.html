@@ -132,6 +132,9 @@
 
  /* report a problem */
  .rp-row{margin:.5rem 0 0} .report-btn{color:#374151}
+ .rp-fab{position:absolute;left:12px;bottom:36px;z-index:1001}
+ @media (max-width:720px){ .rp-fab{bottom:auto;top:12px} }  /* on phones the list sheet covers the bottom of the map */
+ .rp-fab .report-btn{min-height:48px;padding:10px 16px;border-radius:24px;background:#fff;border:1.5px solid #9ca3af;box-shadow:0 2px 8px rgba(17,24,39,.25);font-weight:600;font-size:15.5px}
  dialog.rp{border:0;border-radius:16px;padding:0;width:min(560px,calc(100% - 24px));max-height:calc(100dvh - 24px);overflow:auto;
    box-shadow:0 10px 40px rgba(17,24,39,.35);color:var(--ink);background:#fff}
  dialog.rp::backdrop{background:rgba(17,24,39,.55)}
@@ -143,9 +146,12 @@
  .rp fieldset{border:0;margin:0 0 16px;padding:0} .rp legend,.rp .lbl{font-weight:650;font-size:16px;padding:0;margin:0 0 6px;display:block}
  .rp .req{font-weight:400;color:#4b5563;font-size:14px}
  .rp .hint{margin:0 0 6px;color:#4b5563;font-size:14px}
- .rp-opt{display:flex;gap:12px;align-items:flex-start;border:1.5px solid #d1d5db;border-radius:12px;padding:12px 14px;margin:0 0 8px;cursor:pointer;min-height:48px}
- .rp-opt:hover{background:var(--soft)} .rp-opt input{margin:3px 0 0;width:22px;height:22px;flex:none;accent-color:#111827}
- .rp-opt:has(input:checked){border:2.5px solid #111827;padding:10.5px 12.5px;background:#f3f4f6}
+ .rp-opt{display:flex;gap:12px;align-items:center;border:1.5px solid #d1d5db;border-radius:12px;padding:10px 14px;margin:0 0 8px;cursor:pointer;min-height:48px}
+ .rp-more summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:600;font-size:16px}
+ .rp-more .lbl{margin-top:4px}
+ .rp details.priv summary{cursor:pointer;min-height:36px;display:flex;align-items:center}
+ .rp-opt:hover{background:var(--soft)} .rp-opt input{margin:0;width:22px;height:22px;flex:none;accent-color:#111827}
+ .rp-opt:has(input:checked){border:2.5px solid #111827;padding:8.5px 12.5px;background:#f3f4f6}
  .rp-opt b{display:block;font-weight:600;font-size:16px} .rp-opt small{display:block;color:#4b5563;font-size:14px;margin-top:2px}
  .rp textarea,.rp input[type=text]{width:100%;font:inherit;font-size:16px;padding:12px;border-radius:12px;border:1.5px solid #9ca3af;background:#fff;color:var(--ink)}
  .rp textarea{min-height:110px;resize:vertical} .rp textarea:focus,.rp input[type=text]:focus{outline:2.5px solid var(--focus);outline-offset:1px}
@@ -194,7 +200,6 @@
    <p id="status" role="status" aria-live="polite"></p>
    <ol id="list"></ol>
    <nav id="pager" class="pager" aria-label="Pages of places" hidden></nav>
-   <p class="rp-row" id="rp-map"></p>
   </div>
  </section>
  <section class="mapwrap" aria-label="Map. Visual companion: every place on the map is also in the list.">
@@ -202,6 +207,7 @@
    <svg class="i" viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
    <span class="vh" id="toggle-label">Hide list</span></button>
   <div id="map"></div>
+  <div class="rp-fab" id="rp-map"></div>
   <details class="legend" id="legend"><summary>
    <svg class="i" viewBox="0 0 20 20" aria-hidden="true"><circle cx="5" cy="6" r="2" fill="currentColor"/><path d="M9 6h8M9 14h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="14" r="2" fill="currentColor"/></svg>Legend</summary>
    <div class="legend-body" id="legend-body"></div></details>
@@ -838,10 +844,10 @@ loadCommunity();
 
 // ---------- report a problem (Supabase function submit_problem_report; the button shows once report_ping answers) ----------
 const REPORT_KINDS = [
-  ['blocked_or_broken', 'Something is blocked or broken', 'A ramp, elevator, door, restroom or parking space you could not use'],
-  ['wrong_info', 'The information here is wrong', 'What this map says does not match what you saw'],
-  ['less_accessible', 'It is harder to use than shown', 'It was less accessible than the rating or description says'],
-  ['missing_info', 'Something is missing', 'A place, an entrance, a restroom or a detail that should be listed'],
+  ['blocked_or_broken', 'Blocked or broken', ''],
+  ['wrong_info', 'Information is wrong', ''],
+  ['less_accessible', 'Harder to use than shown', ''],
+  ['missing_info', 'Something is missing', ''],
   ['other', 'Something else', ''],
 ];
 let REPORT_OK = false;
@@ -912,28 +918,26 @@ function openReport(ctx, opener){
     + `<form novalidate><h2 id="rp-title" tabindex="-1">Report a problem</h2>`
     + `<p class="rp-place">${ctx ? 'About: <b>' + place + '</b>' : 'About this map and website'}</p>`
     + `<div class="errsum" id="rp-errs" role="alert" tabindex="-1" hidden></div>`
-    + `<fieldset id="rp-kind"><legend>What kind of problem is it? <span class="req">(required)</span></legend>`
+    + `<fieldset id="rp-kind"><legend>What is the problem?</legend>`
     + REPORT_KINDS.map(([v, t, h]) => `<label class="rp-opt"><input type="radio" name="kind" value="${v}"${draft.k === v ? ' checked' : ''}>`
         + `<span><b>${t}</b>${h ? `<small>${h}</small>` : ''}</span></label>`).join('')
     + `<p class="err" id="rp-kind-err" hidden></p></fieldset>`
-    + `<div class="rp-field"><label class="lbl" for="rp-text">What happened? <span class="req">(required)</span></label>`
-    + `<p class="hint" id="rp-hint">A sentence or two is enough. Please do not write names or other personal details.</p>`
-    + `<textarea id="rp-text" rows="4" maxlength="1000" aria-describedby="rp-hint rp-count"></textarea>`
+    + `<div class="rp-field"><label class="lbl" for="rp-text">What happened?</label>`
+    + `<textarea id="rp-text" rows="3" maxlength="1000" placeholder="For example: the ramp is blocked" aria-describedby="rp-count"></textarea>`
     + `<p class="count" id="rp-count">0 of 1000 characters</p><p class="err" id="rp-text-err" hidden></p></div>`
-    + `<div class="rp-field"><span class="lbl" id="rp-photo-l">Add a photo <span class="req">(optional)</span></span>`
-    + `<p class="hint" id="rp-photo-h">It helps us see the problem. Location data is removed. Please avoid faces and number plates.</p>`
+    + `<div class="rp-field"><span class="lbl" id="rp-photo-l">Photo <span class="req">(optional)</span></span>`
     + `<div class="rp-photo-btns" role="group" aria-labelledby="rp-photo-l">`
     + (touch ? `<button type="button" data-cam>Take a photo</button>` : '')
     + `<button type="button" data-pick>${touch ? 'Choose a photo' : 'Choose a photo from this device'}</button></div>`
     + `<input type="file" accept="image/*" capture="environment" id="rp-cam" hidden><input type="file" accept="image/*" id="rp-file" hidden>`
     + `<div id="rp-prev" hidden></div><p class="rp-photo-msg" id="rp-pmsg" role="status" aria-live="polite"></p></div>`
-    + `<div class="rp-field"><label class="lbl" for="rp-contact">Your email or phone <span class="req">(optional)</span></label>`
-    + `<p class="hint" id="rp-contact-h">Only if you want a reply. Leave it empty to stay anonymous.</p>`
-    + `<input type="text" id="rp-contact" maxlength="200" autocomplete="off" aria-describedby="rp-contact-h"></div>`
+    + `<details class="rp-field rp-more"${draft.c ? ' open' : ''}><summary>Want a reply?</summary>`
+    + `<label class="lbl" for="rp-contact">Your email or phone <span class="req">(optional)</span></label>`
+    + `<input type="text" id="rp-contact" maxlength="200" autocomplete="off"></details>`
     + `<div class="rp-hp" aria-hidden="true"><label>Website<input type="text" id="rp-web" tabindex="-1" autocomplete="off"></label></div>`
     + `<div class="rp-actions"><button type="submit" class="primary" id="rp-send">Send report</button><button type="button" data-x>Cancel</button></div>`
-    + `<p class="priv" id="rp-status" role="status" aria-live="polite">Reports go to the accessibility team. We do not store your name or IP address.</p>`
-    + `<details class="priv"><summary>How we use your report</summary><p>We use it only to find and fix accessibility problems and to improve this map. Only the accessibility team and the researchers can read it. We keep reports for up to 24 months, and a photo or contact detail is never published. You can delete your report right after sending it.</p></details></form></div>`;
+    + `<p class="priv" id="rp-status" role="status" aria-live="polite">Anonymous. Read only by the accessibility team.</p>`
+    + `<details class="priv"><summary>How we use your report</summary><p>We use it only to find and fix accessibility problems. Only the accessibility team and the researchers read it. We keep reports for up to 24 months and never publish a photo or contact detail. Please do not write names, and avoid faces and number plates in photos. Location data is removed from photos. You can delete your report right after sending it.</p></details></form></div>`;
   const $ = id => dlg.querySelector('#' + id), form = dlg.querySelector('form'), text = $('rp-text'), contact = $('rp-contact');
   text.value = draft.t || ''; contact.value = draft.c || '';
   const kindNow = () => (form.querySelector('input[name=kind]:checked') || {}).value || '';
@@ -1029,7 +1033,7 @@ async function sendReport(ctx, v){
   if (!r.ok){ let t = ''; try { t = (await r.json()).message; } catch (x) {} throw new Error(t || `the server said ${r.status}`); }
   return await r.json();
 }
-{ const slot = document.getElementById('rp-map'); if (slot && RATECFG) slot.append(reportButton(null, 'Report a problem with this map')); }
+{ const slot = document.getElementById('rp-map'); if (slot && RATECFG) slot.append(reportButton(null, 'Report a problem')); }
 reportProbe();
 
 // ---------- legend ----------

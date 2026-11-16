@@ -235,7 +235,6 @@ __REPORT_CSS__
    <p id="status" role="status" aria-live="polite"></p>
    <ol id="list"></ol>
    <nav id="pager" class="pager" aria-label="Pages of places" hidden></nav>
-   <p class="rp-row" id="rp-map"></p>
   </div>
  </section>
  <section class="mapwrap" aria-label="Map. Visual companion: every place on the map is also in the list.">
@@ -243,6 +242,7 @@ __REPORT_CSS__
    <svg class="i" viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
    <span class="vh" id="toggle-label">Hide list</span></button>
   <div id="map"></div>
+  <div class="rp-fab" id="rp-map"></div>
   <details class="legend" id="legend"><summary>
    <svg class="i" viewBox="0 0 20 20" aria-hidden="true"><circle cx="5" cy="6" r="2" fill="currentColor"/><path d="M9 6h8M9 14h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="14" r="2" fill="currentColor"/></svg>Legend</summary>
    <div class="legend-body" id="legend-body"></div></details>

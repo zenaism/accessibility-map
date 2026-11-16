@@ -146,12 +146,7 @@ def test_button_appears_only_when_the_database_is_ready(pw, fake):
     ctx, page = page_for(pw, fake)
     page.wait_for_selector("[data-report]:visible")
     assert "Report a problem" in page.locator("[data-report]").first.inner_text()
-    assert (
-        page.locator("#rp-map [data-report]")
-        .inner_text()
-        .strip()
-        .startswith("Report a problem with this map")
-    )
+    assert page.locator("#rp-map [data-report]").inner_text().strip().startswith("Report a problem")
     ctx.close()
 
 
@@ -237,13 +232,14 @@ def test_camera_button_only_on_touch_devices(pw, fake):
 
 def fill(
     page,
-    kind="Something is blocked or broken",
+    kind="Blocked or broken",
     text="The ramp at the north door is blocked by a bench.",
     contact="",
 ):
     page.get_by_text(kind, exact=False).first.click()
     page.get_by_label("What happened?", exact=False).fill(text)
     if contact:
+        page.get_by_text("Want a reply?").click()
         page.get_by_label("Your email or phone", exact=False).fill(contact)
 
 
@@ -395,7 +391,7 @@ def test_closing_by_accident_keeps_the_text(pw, fake):
     page.wait_for_selector("dialog", state="detached")
     open_form(page)
     assert page.locator("#rp-text").input_value() == "The elevator button is out of reach."
-    assert page.get_by_role("radio", name="Something is blocked or broken", exact=False).is_checked()
+    assert page.get_by_role("radio", name="Blocked or broken", exact=False).is_checked()
     ctx.close()
 
 
