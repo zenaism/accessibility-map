@@ -45,6 +45,21 @@ One row is one claim about one attribute of one thing, with where it came from. 
 | `trust` | source score 0 to 100, tier A to D and the component values (see `config/trust.yaml`) |
 | `known_issues` | plain-language warnings generated from the measures |
 
+## Facts table (`data/processed/<region>/<source>.facts.parquet`, from `atlas extract`)
+
+| Field | Meaning |
+|---|---|
+| `doc_id`, `url`, `place`, `section` | the document, its address, its title, the heading path the sentence sits under |
+| `attribute`, `value`, `detail` | what is stated (attribute from `config/attributes.yaml`; yes, limited or no) and the key words |
+| `evidence_quote`, `quote_verified` | the verbatim sentence, checked against the document text |
+| `method`, `trigger` | rules, rules+llm or llm, and the phrase that matched |
+| `extractor`, `model`, `prompt_version` | version of the rules, the local model and the prompt version, so a later run adds rows instead of overwriting |
+| `confidence`, `extracted_at` | 0 to 1 (rules 0.5, rules confirmed by the model 0.8, model only 0.55) and when |
+
+## History archive (`data/history/<kind>/<region>/<YYYY-MM>.jsonl`, from `atlas archive`)
+
+One JSON line per snapshot with `fetched_at` and the raw answer: `weather` (current conditions), `alerts` (active weather alerts), `transit` (GTFS-Realtime service alerts).
+
 ## Candidate source table (`data/candidates/source_candidates.csv`)
 
 | Field | Meaning |
