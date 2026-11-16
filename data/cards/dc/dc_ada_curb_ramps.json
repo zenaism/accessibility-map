@@ -1,0 +1,64 @@
+{
+  "schema": "atlas.dataset_card/1",
+  "id": "dc.dc_ada_curb_ramps",
+  "source": "dc_ada_curb_ramps",
+  "region": "dc",
+  "title": "dc ada curb ramps",
+  "connector": "arcgis",
+  "publisher": "maps2.dcgis.dc.gov",
+  "url": "https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Transportation_ADA_WebMercator/MapServer/3",
+  "licence": "DC Open Data (DDOT ADA transition plan inventory, captured 2016), CC BY 4.0",
+  "collected": true,
+  "entities": 34572,
+  "observations": 34572,
+  "documents": 0,
+  "events": 0,
+  "attributes": {
+    "curb_ramp_condition": 34572
+  },
+  "null_rates": {
+    "value": 0.0051,
+    "attribute": 0.0,
+    "lat": 0.0,
+    "lon": 0.0,
+    "observed_at": 0.0
+  },
+  "duplicates_share": 0.0,
+  "bbox": [
+    -77.11438,
+    38.80696,
+    -76.91055,
+    38.99225
+  ],
+  "observed_range": [
+    "2024-06-27",
+    "2024-06-27"
+  ],
+  "last_retrieved": "2026-11-16",
+  "failed_fetches": 0,
+  "robots_skipped": 0,
+  "pages_fetched": 0,
+  "age_days": 0,
+  "refresh_days": 365,
+  "trust": {
+    "score": 96.9,
+    "tier": "A",
+    "components": {
+      "authority": 0.9,
+      "provenance": 1.0,
+      "freshness": 1.0,
+      "completeness": 1.0,
+      "quality": 0.999,
+      "agreement": null,
+      "track_record": null
+    },
+    "used": [
+      "authority",
+      "provenance",
+      "freshness",
+      "completeness",
+      "quality"
+    ]
+  },
+  "known_issues": []
+}
