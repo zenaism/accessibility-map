@@ -61,6 +61,7 @@ class AtlasSpider(scrapy.Spider):
         self.host_count = (
             Counter()
         )  # pages queued per site: a crawl of many small sites gives each its own budget
+        self.over_budget = Counter()  # URLs not queued because their site used up its page budget
         self.languages = set(scope.get("languages", ["en"]))
         self.render_stats: dict[str, list[int]] = {}  # host -> [renders tried, renders that added text]
         budget = spec.get("budget", {})
@@ -368,7 +369,10 @@ class AtlasSpider(scrapy.Spider):
         if (reason := urls.trap_reason(u, strict=k == "page")) and via != "sitemap":
             return skip(f"trap guard: {reason}")
         if self.host_count[row["host"]] >= self.per_host:
-            return skip("host budget")
+            self.over_budget[row["host"]] += (
+                1  # counted, not recorded: a huge sitemap must not flood the frontier
+            )
+            return None
         if self.frontier.count_where("pattern", row["pattern"]) >= self.per_pattern:
             return skip("pattern budget")
         if self.section_count[row["section"]] >= self.per_section:

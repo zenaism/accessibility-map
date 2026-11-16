@@ -233,7 +233,10 @@ def test_each_site_gets_its_own_page_budget(tmp_path):
         crawl(tmp_path, site, spec={"budget": {"pages": 100, "per_host": 6, "megabytes": 50}})
         pages = [p for p in site.paths() if not p.startswith(("/img/", "/robots", "/sitemap"))]
         rows = frontier_rows(tmp_path)
-        assert any(r["reason"] == "host budget" for r in rows.values())
+        assert not any(
+            r["reason"] == "host budget" for r in rows.values()
+        )  # over-budget URLs are counted, not stored
+        assert len(rows) < 120
         assert (
             len(set(pages)) <= 6 + 12
         )  # six queued pages plus probes, the robots/sitemap files and in-flight requests

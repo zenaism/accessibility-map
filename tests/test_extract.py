@@ -215,3 +215,14 @@ def test_questions_and_other_languages_are_not_facts():
     assert rules.is_english("The main entrance is step-free and the elevator is on the left.")
     assert not rules.is_english("Continúe hasta el final del vestíbulo del ascensor para llamar al ascensor.")
     assert ("elevator", "yes") in vals("The elevator is located to the left of the visitor services desk.")
+
+
+def test_patterns_do_not_match_inside_longer_words():
+    assert (
+        rules.find("We may provide additional privacy disclosures where the scope of the request requires.")
+        == []
+    )
+    assert ("notice", "yes") in vals(
+        "The north entrance has closures until the end of the month for repairs."
+    )
+    assert any(a == "elevator" for a, _ in vals("The elevator is located near the visitor services desk."))
