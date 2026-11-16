@@ -49,10 +49,24 @@ def main() -> None:
     ap = argparse.ArgumentParser(prog="atlas")
     ap.add_argument(
         "command",
-        choices=["fetch", "report", "sources", "dem", "equity", "inventory", "map", "cards", "candidates"],
+        choices=[
+            "fetch",
+            "report",
+            "sources",
+            "dem",
+            "equity",
+            "inventory",
+            "map",
+            "cards",
+            "candidates",
+            "region",
+        ],
     )
     ap.add_argument("source", nargs="?", default="all")
     ap.add_argument("--region", default="all")
+    ap.add_argument("rest", nargs="*", help="for `region`: search <query> | add <key> <name> --relation ID")
+    ap.add_argument("--relation", type=int)
+    ap.add_argument("--buffer-km", type=float, default=15)
     a = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
@@ -72,6 +86,22 @@ def main() -> None:
         from .inventory import write
 
         print(write())
+        return
+    if a.command == "region":
+        from . import regions as reg
+
+        if a.source == "search":
+            for c in reg.search(" ".join(a.rest)):
+                info = reg.describe(c["osm_relation"])
+                print(
+                    f"{c['osm_relation']:>9}  {info['area_km2']:>8} km2  {c['category']:<28} {c['name'][:70]}"
+                )
+        elif a.source == "add" and len(a.rest) >= 2 and a.relation:
+            print(reg.add(a.rest[0], " ".join(a.rest[1:]), a.relation, a.buffer_km))
+        else:
+            print(
+                'usage: region search "<place>"  |  region add <key> "<name>" --relation ID [--buffer-km N]'
+            )
         return
     if a.command == "cards":
         from .cards import write as write_cards
