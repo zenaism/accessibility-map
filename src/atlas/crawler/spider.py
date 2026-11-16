@@ -61,6 +61,10 @@ class AtlasSpider(scrapy.Spider):
         self.host_count = (
             Counter()
         )  # pages queued per site: a crawl of many small sites gives each its own budget
+        self.patience = spec.get(
+            "host_patience", 0
+        )  # drop a site after this many pages with nothing relevant (0 = never)
+        self.host_hits, self.host_misses = Counter(), Counter()
         self.over_budget = Counter()  # URLs not queued because their site used up its page budget
         self.languages = set(scope.get("languages", ["en"]))
         self.render_stats: dict[str, list[int]] = {}  # host -> [renders tried, renders that added text]
@@ -307,6 +311,7 @@ class AtlasSpider(scrapy.Spider):
         self.frontier.update(url, score=round(page_score, 3))
         self.recent.append(page_score)
         self.learn(url, page_score >= 0.1)
+        self.site_patience(urls.host_key(url), relevance.score_text(text) >= 0.05)  # what the page says, not how its address looks
         self.check_adaptive_stop()
         if self.stopped_reason:
             raise CloseSpider(self.stopped_reason)
@@ -407,6 +412,16 @@ class AtlasSpider(scrapy.Spider):
         f = self.family.setdefault(urls.family_key(url), [0, 0])
         f[0] += int(relevant)
         f[1] += 1
+
+    def site_patience(self, host: str, relevant: bool) -> None:
+        """A site that shows nothing relevant on its first few pages is unlikely to have an accessibility page: stop spending
+        requests on it (its budget is used up). A site with one relevant page is crawled on."""
+        if relevant:
+            self.host_hits[host] += 1
+            return
+        self.host_misses[host] += 1
+        if self.patience and not self.host_hits[host] and self.host_misses[host] >= self.patience:
+            self.host_count[host] = max(self.host_count[host], self.per_host)
 
     def check_adaptive_stop(self):
         a = self.adaptive

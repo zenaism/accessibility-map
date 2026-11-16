@@ -25,7 +25,12 @@ SPEC = {
 
 
 def crawl(tmp_path, site, name="t", delay="0.05", extra=(), spec=None, env_extra=None):
-    spec = {**SPEC, **(spec or {}), "seeds": [site.url + "/"]}
+    spec = spec or {}
+    spec = {
+        **SPEC,
+        **spec,
+        "seeds": [site.url + p for p in spec.get("seeds", ["/"])],
+    }  # seeds are paths on the test site
     sf = tmp_path / f"{name}.json"
     sf.write_text(json.dumps(spec))
     env = {**os.environ, "ATLAS_RAW_DIR": str(tmp_path / "raw"), "ATLAS_CRAWL_DIR": str(tmp_path / "crawl"),
@@ -282,3 +287,19 @@ def test_place_seeds_skip_chains_and_aggregators(monkeypatch):
 def test_relative_sitemap_addresses_in_robots_txt_are_resolved():
     assert urls.normalize("/sitemap.xml", "https://www.example.gov/") == "https://www.example.gov/sitemap.xml"
     assert urls.normalize("https://other.org/s.xml", "https://www.example.gov/") == "https://other.org/s.xml"
+
+
+def test_a_site_with_nothing_relevant_is_dropped_after_a_few_pages(tmp_path):
+    base = {
+        "seeds": ["/list/page/1"],  # a chain of eight listing pages with no accessibility words
+        "discover": {"sitemaps": False, "feeds": False, "probe_paths": False},
+        "scope": {"depth": 20},
+        "budget": {"pages": 100, "per_host": 50, "megabytes": 50},
+    }
+    with Site() as site:
+        crawl(tmp_path, site, name="impatient", spec={**base, "host_patience": 3})
+        short = {p for p in site.paths() if p.startswith("/list/page/")}
+    with Site() as site:
+        crawl(tmp_path, site, name="patient", spec=base)
+        full = {p for p in site.paths() if p.startswith("/list/page/")}
+    assert len(full) == 8 and len(short) < len(full)  # the impatient crawl gave up on the empty site
