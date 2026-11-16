@@ -1,6 +1,6 @@
 # Web crawler: research and implementation plan
 
-**Goal:** a crawler that finds and keeps every page, PDF and image we might need now or later, from any website, politely, for $0, and can prove how complete it was. Status: **phases C1 and C2 built and tested (2026-11-15)**: core crawler (16 tests, real-site recall 91.1% against a 90% target) and the browser fallback with hidden-content expansion, Office files and safety checks (12 tests). Phases C3 to C7 are still plans (OCR and vision are not built yet). Written 2026-11-15. Part of [`national_data_plan.md`](national_data_plan.md) section 3.4 (fetching) and the completeness gates in [`architecture.md`](architecture.md) 9 and 10. Reasons are logged in [`decisions.md`](decisions.md) (D-20).
+**Goal:** a crawler that finds and keeps every page, PDF and image we might need now or later, from any website, politely, for $0, and can prove how complete it was. Status: **phases C1 to C3 built and tested (2026-11-15)**: core crawler (real-site recall 91.1% against a 90% target), the browser fallback with hidden-content expansion, Office files and safety checks, and the reading layer (text with heading paths, tables, dates, structured data, PDF text, OCR for scans and posters). 132 tests pass. Not built yet: a vision model for maps and posters, Docling for complex PDF tables, and phases C4 to C7 beyond what C1 already has (scheduling, change-driven re-crawl, monitoring). Written 2026-11-15. Part of [`national_data_plan.md`](national_data_plan.md) section 3.4 (fetching) and the completeness gates in [`architecture.md`](architecture.md) 9 and 10. Reasons are logged in [`decisions.md`](decisions.md) (D-20).
 
 **Confidence labels.** *Checked* = confirmed in a web search on 2026-11-15, with a link in section 14. *Unchecked* = general knowledge or vendor claims; verify before relying on them. Most tool comparisons online come from vendors, so treat their numbers as directional.
 
@@ -157,6 +157,8 @@ flowchart TB
 - **WARC (optional, later):** export key sites as WARC through Browsertrix or `warcio` for standard replay and for sharing, if the lab wants it.
 
 ### 6.5 Parsing: text, tables, documents and pictures (R3, R8)
+
+_Built in C3 (`src/atlas/crawler/read.py`): trafilatura for main text with a fallback; sections with heading paths; HTML tables as rows; htmldate and extruct (JSON-LD, Microdata, Open Graph); phone and opening-hours patterns; accessibility sentences by section; PyMuPDF text by page with tables; RapidOCR (a pip-only OCR, no system install) for scanned pages and images; PDFs read in a separate process. Chosen instead of the options below: Docling and a local vision model are heavier and are left for later._
 | Input | Method (free) | Output kept |
 |---|---|---|
 | HTML text | trafilatura for the main content, with a fallback to our current extractor when it returns too little | text with heading hierarchy (so chunks keep "section path"), plus the full-page text as a second copy so nothing is lost |

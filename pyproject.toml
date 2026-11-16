@@ -14,7 +14,7 @@ dependencies = [
 [project.optional-dependencies]
 reddit = ["praw", "python-dotenv"]
 # destinations: Overture places (duckdb), web snapshots, event feeds, JS rendering
-web = ["duckdb", "beautifulsoup4", "lxml", "pypdf", "icalendar", "playwright", "pillow", "scrapy>=2.13"]
+web = ["duckdb", "beautifulsoup4", "lxml", "pypdf", "icalendar", "playwright", "pillow", "scrapy>=2.13", "trafilatura", "htmldate", "extruct", "pymupdf", "rapidocr-onnxruntime"]
 analysis = ["lifelines", "statsmodels", "matplotlib", "rasterio", "libpysal", "esda"]
 routing = ["networkx", "scipy"]
 dev = ["pytest", "ruff"]
@@ -46,3 +46,4 @@ testpaths = ["tests"]
 "tests/crawler_site.py" = ["E501"]
 "tests/test_crawler.py" = ["E501"]
 "tests/test_crawler_c2.py" = ["E501"]
+"tests/test_crawler_c3.py" = ["E501"]

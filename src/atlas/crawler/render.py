@@ -63,7 +63,9 @@ def needs_render(text: str, html: bytes, mode: str = "auto") -> bool:
     n = len(text.strip())
     head = html[:200_000].decode("utf-8", "ignore").lower()
     if n < THIN_CHARS:
-        return "<script" in head or "onclick" in head or "aria-expanded" in head  # something here runs code or hides text
+        return (
+            "<script" in head or "onclick" in head or "aria-expanded" in head
+        )  # something here runs code or hides text
     return n < 800 and bool(SHELL.search(head))
 
 

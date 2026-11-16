@@ -9,7 +9,7 @@ import pandas as pd
 
 from ..connectors.web import _clean_html
 from ..core import out_dir
-from . import archive, office, safety
+from . import archive, office, read
 from .frontier import Frontier
 
 # which saved file to read when several share one hash prefix (the page, its rendered copy, its screenshot)
@@ -34,31 +34,39 @@ def pick_file(source: str, sha: str) -> Path | None:
     return files[0] if files else None
 
 
-def read_text(path: Path, ctype: str, url: str) -> tuple[str, str, str]:
-    """(kind, title, text) of a saved file."""
+def read_file(path: Path, ctype: str, url: str, ocr_left: list[int]) -> read.Read:
+    """Read one saved file into text and structure. `ocr_left` is a one-item budget of images still allowed to be OCR'd."""
     data = path.read_bytes()
     if path.name.endswith((".html", ".htm")):
-        title, text, _ = _clean_html(data, url)
-        return "html", title, text
+        return read.read_html(data, url, _clean_html)
     if path.suffix == ".pdf":
-        return "pdf", Path(url).name, safety.safe_pdf_text(data)
+        return read.read_pdf_isolated(data)
     kind = OFFICE.get(ctype) or path.suffix.lstrip(".")
     if kind in ("docx", "xlsx", "pptx"):
-        return kind, Path(url).name, office.extract(data, kind)
+        return read.Read(kind=kind, title=Path(url).name, text=office.extract(data, kind), method="zip-xml")
     if kind in ("csv", "ics", "json", "txt"):
-        return kind, Path(url).name, data.decode("utf-8", "replace")[:500_000]
-    return kind or "file", Path(url).name, ""
+        return read.Read(
+            kind=kind, title=Path(url).name, text=data.decode("utf-8", "replace")[:500_000], method="text"
+        )
+    if path.suffix in (".jpg", ".jpeg", ".png", ".webp", ".gif"):
+        if ocr_left[0] <= 0:
+            return read.Read(kind="image", method="skipped: ocr budget")
+        r = read.read_image(data)
+        ocr_left[0] -= r.ocr_pages
+        return r
+    return read.Read(kind=kind or "file", title=Path(url).name)
 
 
 def build(source: str, region: str, spec: dict, frontier: Frontier) -> pd.DataFrame:
     docs = []
+    ocr_left = [spec.get("budget", {}).get("ocr_images", 60)]
     for r in frontier.rows("fetched"):
         if not r["content_sha"]:
             continue
         path = pick_file(source, r["content_sha"])
         if path is None:
             continue
-        kind, title, text = read_text(path, r["content_type"] or "", r["final_url"] or r["url"])
+        rd = read_file(path, r["content_type"] or "", r["final_url"] or r["url"], ocr_left)
         shot = path.with_name(f"{r['content_sha'][:12]}.screenshot.png")
         docs.append(
             {
@@ -67,14 +75,13 @@ def build(source: str, region: str, spec: dict, frontier: Frontier) -> pd.DataFr
                 "url": r["url"],
                 "canonical_url": r["final_url"] or r["url"],
                 "screenshot": str(shot) if shot.exists() else None,
-                "title": title,
-                "text": text,
-                "content_type": kind,
+                **rd.row(),
+                "content_type": rd.kind,
                 "raw_file": str(path),
                 "retrieved_at": r["last_fetched"],
                 "author_type": spec.get("author_type", "official"),
                 "region": region,
-                "chars": len(text),
+                "chars": len(rd.text),
                 "depth": r["depth"],
                 "discovered_via": r["via"],
                 "relevance": r["score"],
