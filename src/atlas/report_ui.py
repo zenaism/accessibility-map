@@ -85,11 +85,12 @@ async function reportProbe(){
   reportShow(); return REPORT_OK;
 }
 // The button. ctx = {link_id, name, region} for a place, or null for the map as a whole.
-function reportButton(ctx, label){
+function reportButton(ctx, label, short){
   const b = document.createElement('button'); b.type = 'button'; b.className = 'ghost report-btn'; b.hidden = !REPORT_OK;
   b.setAttribute('data-report', '');
   b.innerHTML = `<svg class="i" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 17V3m0 0h9l-2 3.5L14 10H5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-    + `${label || 'Report a problem'}<span class="vh">${ctx ? ' with ' + esc(ctx.name) : ' with this map'}</span>`;
+    + (short ? `${label}<span class="vh"> a problem${ctx ? ' with ' + esc(ctx.name) : ''}</span>`
+        : `${label || 'Report a problem'}<span class="vh">${ctx ? ' with ' + esc(ctx.name) : ' with this map'}</span>`);
   b.onclick = () => openReport(ctx, b);
   return b;
 }
