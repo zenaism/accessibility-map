@@ -53,7 +53,17 @@ CSS = r"""
  .rp-hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
  .rp .priv{font-size:13.5px;color:#4b5563;margin:14px 0 0}
  .rp-ok h2{margin-bottom:8px} .rp-ref{font-size:18px;font-weight:700;letter-spacing:.06em;background:#f3f4f6;display:inline-block;padding:6px 12px;border-radius:10px}
- @media (max-width:600px){ dialog.rp{width:100%;max-width:none;margin:auto 0 0;border-radius:18px 18px 0 0;max-height:94dvh} .rp-body{padding:18px 16px 24px}}
+ @media (max-width:600px){ dialog.rp{width:100%;max-width:none;margin:auto 0 0;border-radius:18px 18px 0 0;max-height:94dvh} .rp-body{padding:14px 14px 16px}
+   .rp h2{font-size:18px;margin-bottom:0} .rp .rp-place{margin:0 0 8px;font-size:14px}
+   .rp fieldset{margin:0 0 10px} .rp legend,.rp .lbl{font-size:15px;margin-bottom:4px}
+   #rp-kind{display:grid;grid-template-columns:1fr 1fr;gap:6px} #rp-kind legend{grid-column:1/-1}
+   #rp-kind .rp-opt{margin:0;padding:6px 8px;min-height:44px;gap:8px;font-size:14.5px} #rp-kind .rp-opt b{font-size:14.5px;line-height:1.2}
+   #rp-kind .rp-opt:has(input:checked){padding:4.5px 6.5px}
+   #rp-kind .rp-opt input{width:18px;height:18px} #rp-kind .err{grid-column:1/-1}
+   .rp textarea{min-height:64px;padding:9px 10px} .rp .count{display:none} .rp-field{margin:0 0 8px}
+   .rp-photo-btns{gap:8px} .rp-photo-btns button{padding:8px 12px;min-height:44px;flex:1}
+   .rp-more summary{min-height:40px} .rp .priv{margin:8px 0 0;font-size:13px} .rp-actions{margin-top:6px}
+   .rp-actions .primary{flex:1} .rp details.priv summary{min-height:32px} }
  @media (prefers-reduced-motion:no-preference){ dialog.rp[open]{animation:rpin .16s ease-out} @keyframes rpin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}} }
 """
 
