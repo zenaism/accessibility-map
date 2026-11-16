@@ -11,6 +11,7 @@ from urllib.parse import urlsplit
 
 from scrapy.exceptions import IgnoreRequest
 
+from . import clock
 from .frontier import Frontier
 
 
@@ -100,6 +101,7 @@ class RetryAfterMiddleware:
         wait = self.until.get(host, 0) - time.time()
         if wait > 0:
             await asyncio.sleep(wait)
+        clock.last[host] = time.time()
 
     def process_response(self, request, response, spider=None):
         if response.status in (429, 503):

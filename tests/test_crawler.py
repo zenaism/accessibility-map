@@ -141,9 +141,8 @@ def test_crawl_resumes_without_refetching(tmp_path):
         part = Counter(p for p in site.paths() if p not in ("/robots.txt", "/sitemap.xml"))
         crawl(tmp_path, site)  # same queue on disk: carries on
         total = Counter(p for p in site.paths() if p not in ("/robots.txt", "/sitemap.xml"))
-        assert (
-            max(n for p, n in total.items() if p != "/flaky") == 1
-        )  # /flaky is two requests by design: 429, then retry
+        twice_by_design = {"/flaky", "/spa", "/accordion"}  # 429 then retry; plain fetch then browser render
+        assert max(n for p, n in total.items() if p not in twice_by_design) == 1
         assert len(total) > len(part)
 
 
@@ -174,11 +173,19 @@ def test_images_have_their_own_budget(tmp_path):
 def test_pagination_does_not_count_toward_depth(tmp_path):
     with Site() as site:
         crawl(tmp_path, site, spec={"scope": {"depth": 3}})
-        assert "/list/page/8" in site.paths()  # eight pages deep, but each is just the next page of one listing
+        assert (
+            "/list/page/8" in site.paths()
+        )  # eight pages deep, but each is just the next page of one listing
 
 
 def test_auto_budget_grows_with_the_sitemap(tmp_path):
     with Site() as site:
-        rep = crawl(tmp_path, site, spec={"budget": {"pages": "auto", "auto_min": 3, "auto_max": 100, "megabytes": 50}})
-        assert len([p for p in site.paths() if p.startswith("/dir/place-")]) == 6  # the sitemap listed them: budget grew
+        rep = crawl(
+            tmp_path,
+            site,
+            spec={"budget": {"pages": "auto", "auto_min": 3, "auto_max": 100, "megabytes": 50}},
+        )
+        assert (
+            len([p for p in site.paths() if p.startswith("/dir/place-")]) == 6
+        )  # the sitemap listed them: budget grew
         assert rep["by_state"].get("fetched", 0) > 3

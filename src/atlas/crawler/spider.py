@@ -13,11 +13,13 @@ from urllib.parse import urlsplit
 
 import scrapy
 from lxml import etree
+from scrapy import Selector, signals
 from scrapy.exceptions import CloseSpider, IgnoreRequest
 
 from ..connectors.web import _clean_html
 from . import archive, relevance, urls
 from .frontier import Frontier
+from .render import Renderer, needs_render
 
 HTML = ("text/html", "application/xhtml")
 SITEMAP_PATHS = ["/sitemap.xml", "/sitemap_index.xml", "/wp-sitemap.xml"]
@@ -74,6 +76,24 @@ class AtlasSpider(scrapy.Spider):
         self.section_count = Counter()
         self.stopped_reason = None
         self.fetched = 0
+        self.rendered = 0
+        self.render_mode = spec.get("render", "auto")  # auto | always | never
+        self.renderer = None
+
+    @classmethod
+    def from_crawler(cls, crawler, *args, **kwargs):
+        spider = super().from_crawler(crawler, *args, **kwargs)
+        if spider.render_mode != "never":
+            st = crawler.settings
+            spider.renderer = Renderer(
+                delay=st.getfloat("DOWNLOAD_DELAY", 2.0), allow_private=st.getbool("ATLAS_ALLOW_PRIVATE")
+            )
+        crawler.signals.connect(spider._close_browser, signal=signals.spider_closed)
+        return spider
+
+    async def _close_browser(self, spider=None, reason=None):
+        if self.renderer:
+            await self.renderer.close()
 
     # ---- start: seeds, robots.txt (for Sitemap lines), probes -------------------------------------------------------
     async def start(self):
@@ -183,7 +203,7 @@ class AtlasSpider(scrapy.Spider):
                 yield from self.consider(loc, "", 0.0, 1, url, via="sitemap", lastmod=entry.get("lastmod"))
 
     # ---- pages ------------------------------------------------------------------------------------------------------
-    def parse_page(self, response):
+    async def parse_page(self, response):
         url = response.request.url
         meta = response.meta
         depth = meta.get("atlas_depth", 0)
@@ -228,6 +248,26 @@ class AtlasSpider(scrapy.Spider):
             )  # a document: judged by its address
             return
         title, text, links = _clean_html(response.body, response.url)
+        sel = response  # where to look for links: the plain page, or the rendered page below
+        if self.renderer and needs_render(text, response.body, self.render_mode):
+            rr = await self.renderer.render(
+                response.url
+            )  # thin page: load it in a real browser, open what is hidden
+            if rr:
+                rrec = archive.save(
+                    self.source, url, rr["final_url"], rr["status"], "text/html", {}, rr["html"],
+                    rendered=True, screenshot=rr["screenshot"],
+                )  # fmt: skip
+                title, text, links = _clean_html(rr["html"], rr["final_url"])
+                sel = Selector(text=rr["html"].decode("utf-8", "ignore"))
+                self.frontier.update(
+                    url,
+                    rendered=1,
+                    content_sha=rrec["sha256"],
+                    bytes=len(rr["html"]),
+                    final_url=rr["final_url"],
+                )
+                self.rendered += 1
         page_score = max(relevance.score_text(text), meta.get("score", 0.0) * 0.5)
         self.frontier.update(url, score=round(page_score, 3))
         self.recent.append(page_score)
@@ -238,28 +278,31 @@ class AtlasSpider(scrapy.Spider):
         if depth >= self.max_depth:
             return
         anchors = {}
-        for a in response.css("a[href]"):
+        for a in sel.css("a[href]"):
             anchors.setdefault(a.attrib["href"], " ".join(a.css("::text").getall()).strip())
         for href in dict.fromkeys(links):
             anchor = anchors.get(href, "")
             # pagination and directory links stay at the same depth: page 5 of a listing is not "five clicks deep"
-            yield from self.consider(
+            for req in self.consider(
                 href, anchor, page_score, depth if relevance.is_listing(href, anchor) else depth + 1, url
-            )
-        for sel in (
+            ):
+                yield req
+        for css in (
             "iframe::attr(src)",
             "link[rel=next]::attr(href)",
             "embed::attr(src)",
             "object::attr(data)",
         ):
-            for href in response.css(sel).getall():
-                yield from self.consider(href, "", page_score, depth + 1, url, via="embedded")
+            for href in sel.css(css).getall():
+                for req in self.consider(href, "", page_score, depth + 1, url, via="embedded"):
+                    yield req
         if self.discover["feeds"]:
-            for link in response.css("link[rel=alternate]"):
+            for link in sel.css("link[rel=alternate]"):
                 if link.attrib.get("type", "") in FEED_TYPES and link.attrib.get("href"):
-                    yield from self.consider(
+                    for req in self.consider(
                         link.attrib["href"], "feed", page_score, depth + 1, url, via="feed"
-                    )
+                    ):
+                        yield req
 
     # ---- deciding what to fetch -------------------------------------------------------------------------------------
     def consider(self, href, anchor, parent_score, depth, parent, via="link", lastmod=None):

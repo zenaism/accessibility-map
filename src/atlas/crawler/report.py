@@ -28,6 +28,7 @@ def build(frontier: Frontier, close_reason: str = "", stopped: str | None = None
         },
         "unfinished_queued": unfinished,
         "html_pages": len(pages),
+        "rendered_in_browser": sum(1 for r in rows if r.get("rendered")),
         "bytes": sum(r["bytes"] or 0 for r in rows),
         "ended": stopped or close_reason,
         "complete": unfinished == 0 and not stopped,

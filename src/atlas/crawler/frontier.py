@@ -16,7 +16,7 @@ from ..core import now
 COLUMNS = [
     "url", "host", "state", "reason", "depth", "via", "parent", "score", "attempts", "etag", "last_modified",
     "content_sha", "status", "content_type", "bytes", "final_url", "section", "pattern", "first_seen",
-    "last_fetched", "change_count", "crawl_id", "lastmod",
+    "last_fetched", "change_count", "crawl_id", "lastmod", "rendered",
 ]  # fmt: skip
 STATES = ("queued", "fetched", "failed", "skipped", "blocked", "unchanged")
 
@@ -32,6 +32,9 @@ class Frontier:
             "content_type TEXT, bytes INTEGER, final_url TEXT, section TEXT, pattern TEXT, first_seen TEXT, "
             "last_fetched TEXT, change_count INTEGER DEFAULT 0, crawl_id TEXT, lastmod TEXT)"
         )
+        cols = {r[1] for r in self.db.execute("PRAGMA table_info(urls)")}
+        if "rendered" not in cols:  # older frontier files
+            self.db.execute("ALTER TABLE urls ADD COLUMN rendered INTEGER DEFAULT 0")
         self.db.execute("CREATE INDEX IF NOT EXISTS ix_state ON urls(state)")
         self.db.execute("CREATE INDEX IF NOT EXISTS ix_pattern ON urls(pattern)")
         self.db.commit()
