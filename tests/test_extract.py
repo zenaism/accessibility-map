@@ -35,7 +35,9 @@ def test_each_rule_finds_its_attribute():
 
 
 def test_headings_and_short_fragments_are_not_sentences():
-    assert rules.find("Braille menus") == []  # too short to be a statement (headline-like text the rules let through is left to the model)
+    assert (
+        rules.find("Braille menus") == []
+    )  # too short to be a statement (headline-like text the rules let through is left to the model)
     assert rules.sentences("Hi.\n\nA proper sentence about the elevator on the first floor.") == [
         "A proper sentence about the elevator on the first floor."
     ]
@@ -126,3 +128,19 @@ def test_a_model_that_is_down_never_loses_the_rule_facts(monkeypatch):
     assert set(f.attribute) == {
         "entrance_step_free"
     }  # unknown verdict keeps the rule's fact (confidence stays modest)
+
+
+def test_config_files_agree_with_each_other():
+    import yaml
+
+    root = llm.ROOT / "config"
+    attrs = yaml.safe_load((root / "attributes.yaml").read_text())
+    rules_cfg = yaml.safe_load((root / "fact_rules.yaml").read_text())
+    cats = yaml.safe_load((root / "categories.yaml").read_text())
+    assert len(attrs) >= 90 and all(isinstance(v, str) and v for v in attrs.values())
+    assert set(rules_cfg) <= set(attrs), set(rules_cfg) - set(
+        attrs
+    )  # every rule belongs to a defined attribute
+    for cid, c in cats.items():
+        assert set(c["attributes"]) <= set(attrs), (cid, set(c["attributes"]) - set(attrs))
+    assert set(llm.text_attributes()) == set(rules_cfg)
