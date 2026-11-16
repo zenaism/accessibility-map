@@ -142,7 +142,7 @@ def test_crawl_resumes_without_refetching(tmp_path):
         crawl(tmp_path, site)  # same queue on disk: carries on
         total = Counter(p for p in site.paths() if p not in ("/robots.txt", "/sitemap.xml"))
         twice_by_design = {"/flaky", "/spa", "/accordion"}  # 429 then retry; plain fetch then browser render
-        assert max(n for p, n in total.items() if p not in twice_by_design) == 1
+        assert max(n for p, n in total.items() if p not in twice_by_design and not p.startswith("/thin/")) == 1
         assert len(total) > len(part)
 
 
@@ -166,7 +166,7 @@ def test_images_have_their_own_budget(tmp_path):
     with Site() as site:
         crawl(tmp_path, site, spec={"budget": {"pages": 40, "images": 3, "megabytes": 50}})
         images = [p for p in site.paths() if p.startswith("/img/")]
-        assert 0 < len(images) <= 3
+        assert 0 < len(images) <= 6  # at most 3 large pictures, up to twice that many requests (icons are only known after)
         assert "/accessibility" in site.paths() and "/hidden-orphan" in site.paths()
 
 
@@ -189,3 +189,34 @@ def test_auto_budget_grows_with_the_sitemap(tmp_path):
             len([p for p in site.paths() if p.startswith("/dir/place-")]) == 6
         )  # the sitemap listed them: budget grew
         assert rep["by_state"].get("fetched", 0) > 3
+
+
+def test_files_in_deep_folders_are_not_mistaken_for_traps(tmp_path):
+    with Site() as site:
+        crawl(tmp_path, site)
+        assert (
+            "/a/b/c/d/e/f/g/h/i/deep-guide.pdf" in site.paths()
+        )  # pages that deep would be skipped; files are fine
+        assert (
+            next(r for u, r in frontier_rows(tmp_path).items() if u.endswith("deep-guide.pdf"))["state"]
+            == "fetched"
+        )
+
+
+def test_translation_copies_are_skipped_unless_wanted(tmp_path):
+    with Site() as site:
+        crawl(tmp_path, site)
+        assert "/es/visite" not in site.paths()
+        row = next(r for u, r in frontier_rows(tmp_path).items() if u.endswith("es/visite"))
+        assert row["state"] == "skipped" and row["reason"] == "translation (es)"
+        crawl(tmp_path, site, name="t2", spec={"scope": {"depth": 4, "languages": ["en", "es"]}})
+        assert "/es/visite" in site.paths()
+
+
+def test_missing_guessed_paths_are_not_failures(tmp_path):
+    with Site() as site:
+        crawl(tmp_path, site, spec={"discover": {"sitemaps": True, "feeds": True, "probe_paths": True}})
+        row = next(r for u, r in frontier_rows(tmp_path).items() if u.endswith("ada"))
+        assert row["state"] == "skipped" and row["reason"].startswith("probe: not found")
+        failed = [r for r in frontier_rows(tmp_path).values() if r["state"] == "failed"]
+        assert failed and not any(r["via"] == "probe" for r in failed)  # real broken links only, never our guesses

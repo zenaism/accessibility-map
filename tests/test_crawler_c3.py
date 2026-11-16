@@ -110,3 +110,20 @@ def test_scans_and_posters_become_text_documents(reading_crawl):
     assert poster.method == "ocr" and "accessible" in poster.text.lower()
     icon = reading_crawl[reading_crawl.url.str.endswith("/icon.png")].iloc[0]
     assert icon.method == "skipped: small image" and icon.text == ""
+
+
+def test_a_pdf_the_main_reader_crashes_on_is_read_by_the_fallback(monkeypatch):
+    monkeypatch.setattr(read, "_run_worker", lambda data, timeout: None)  # as if PyMuPDF crashed
+    r = read.read_pdf_isolated(TEXT_PDF)
+    assert r.method == "pypdf (after pymupdf failed)" and "Lot B" in r.text
+
+
+def test_small_images_are_recognised_from_the_header():
+    assert read.is_small_image(ICON) and not read.is_small_image(POSTER)
+
+
+def test_identical_files_become_one_document_and_legacy_word_is_flagged(reading_crawl):
+    dups = reading_crawl[reading_crawl.url.str.contains("/dup/")]
+    assert len(dups) == 1 and len(json.loads(dups.iloc[0].duplicate_urls)) == 1
+    old = reading_crawl[reading_crawl.url.str.endswith("/old.doc")].iloc[0]
+    assert old.method.startswith("skipped: legacy .doc")

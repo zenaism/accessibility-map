@@ -19,6 +19,13 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-23: Rules learned from the first government site (2026-11-15, accepted)
+**Decision:** (1) Trap guards for depth and repeated folders apply to pages only, never to files (PDFs, Word, images): government sites keep files in deep folders. (2) Translated copies (pages under a language folder such as `/es/`) are skipped unless the crawl spec lists the language (`scope.languages`, default English). (3) The browser fallback is judged by signal strength: an app shell or collapsed sections always renders; a merely short page with scripts is rendered only until five tries on that host have added nothing. (4) A missing guessed path is "probe not found", never a failure. (5) Identical files under several addresses are one document. (6) A PDF the main reader crashes on is read by the fallback reader. (7) Icons and logos do not use the picture budget.
+**Why:** the first crawl of odr.dc.gov skipped all 57 PDFs and 30 Word files, spent 23% of its budget on Spanish and Amharic copies, rendered 40 pages in the browser for nothing, and reported guessed paths as failures; each rule fixes one of these and was verified on the same site and with tests.
+**Alternatives:** per-site hand-written rules (do not scale to the country); always rendering thin pages (slow and impolite); crawling translations (more pages, no new facts for our questions).
+**Costs / revisit if:** skipping translations loses facts that only exist in a translated page (rare; set `languages` per site); the weak-signal guard may under-render a host whose first five thin pages happen to be empty (revisit with more sites).
+**Basis:** recorded (crawl results and tests in this session).
+
 ### D-22: Reading tools: trafilatura, PyMuPDF and RapidOCR; heavier tools later (2026-11-15, accepted)
 **Decision:** web pages are read with trafilatura (main text as markdown, so heading paths survive) with a simple fallback; tables, dates (htmldate) and structured data (extruct) are taken from the page; PDFs with PyMuPDF (text by page, tables), run in a separate process; scanned pages and images with RapidOCR. Docling and a local vision model are not used yet.
 **Why:** all are free and install with pip on a laptop (the machine has no Tesseract and no GPU); trafilatura scored best in published extraction benchmarks and keeps headings, which later extraction needs to cite where a fact came from; RapidOCR read a test sign in under a second with 99% confidence; running PDFs in a separate process protects the crawler from malformed files.

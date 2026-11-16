@@ -227,6 +227,17 @@ def ocr_array(arr) -> tuple[str, float | None]:
     return text, round(sum(float(r[2]) for r in result) / len(result), 3)
 
 
+def is_small_image(data: bytes) -> bool:
+    """True for icons and logos (checked from the file header, without decoding the picture)."""
+    try:
+        from PIL import Image
+
+        w, h = Image.open(io.BytesIO(data)).size
+        return max(w, h) < MIN_IMAGE_SIDE or w * h < MIN_IMAGE_AREA
+    except Exception:
+        return False
+
+
 def read_image(data: bytes) -> Read:
     """OCR of a poster, sign or map; icons and logos (small images) are skipped."""
     import numpy as np
@@ -258,8 +269,8 @@ def _worker() -> None:
     print(json.dumps(asdict(read_pdf(sys.stdin.buffer.read()))))
 
 
-def read_pdf_isolated(data: bytes, timeout: float = 240.0) -> Read:
-    """read_pdf in a separate process with a time limit: a booby-trapped PDF cannot hang or crash the crawler."""
+def _run_worker(data: bytes, timeout: float) -> Read | None:
+    """The PDF reader in a separate process; None if it crashed or timed out."""
     import subprocess
     import sys
 
@@ -268,9 +279,28 @@ def read_pdf_isolated(data: bytes, timeout: float = 240.0) -> Read:
                            input=data, capture_output=True, timeout=timeout)  # fmt: skip
         if p.returncode == 0:
             return Read(**json.loads(p.stdout.decode("utf-8", "replace").strip().splitlines()[-1]))
-        return Read(kind="pdf", method="failed: pdf reader crashed")
     except (subprocess.TimeoutExpired, ValueError, TypeError):
-        return Read(kind="pdf", method="failed: pdf reader timed out")
+        pass
+    return None
+
+
+def read_pdf_isolated(data: bytes, timeout: float = 240.0) -> Read:
+    """read_pdf in a separate process with a time limit, so a booby-trapped or crashing PDF cannot take the crawler
+    down. If PyMuPDF crashes on a file (it happens), the slower pure-Python reader pypdf is tried, also isolated."""
+    r = _run_worker(data, timeout)
+    if r is not None:
+        return r
+    from . import safety
+
+    text = safety.safe_pdf_text(data)
+    if text and not text.startswith("[pdf text extraction"):
+        out = Read(
+            kind="pdf", method="pypdf (after pymupdf failed)", text=text, sections=split_sections(text)
+        )
+        out.phones, out.hours = find_phones(text), find_hours(text)
+        out.access_snippets = access_snippets(out.sections or [{"path": "", "text": text}])
+        return out
+    return Read(kind="pdf", method="failed: no pdf reader could open it")
 
 
 # ---- PDF ------------------------------------------------------------------------------------------------------------
