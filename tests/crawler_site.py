@@ -24,20 +24,76 @@ def _zip(files: dict[str, str]) -> bytes:
 
 W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 SS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
-DOCX = _zip({"word/document.xml": f'<w:document xmlns:w="{W}"><w:body><w:p><w:r><w:t>Accessible seating is available in row A.</w:t></w:r></w:p></w:body></w:document>'})
-XLSX = _zip({"xl/worksheets/sheet1.xml": f'<worksheet xmlns="{SS}"><sheetData><row><c t="inlineStr"><is><t>Lot</t></is></c><c><v>12</v></c></row><row><c t="inlineStr"><is><t>Van accessible</t></is></c><c><v>4</v></c></row></sheetData></worksheet>'})
+DOCX = _zip(
+    {
+        "word/document.xml": f'<w:document xmlns:w="{W}"><w:body><w:p><w:r><w:t>Accessible seating is available in row A.</w:t></w:r></w:p></w:body></w:document>'
+    }
+)
+XLSX = _zip(
+    {
+        "xl/worksheets/sheet1.xml": f'<worksheet xmlns="{SS}"><sheetData><row><c t="inlineStr"><is><t>Lot</t></is></c><c><v>12</v></c></row><row><c t="inlineStr"><is><t>Van accessible</t></is></c><c><v>4</v></c></row></sheetData></worksheet>'
+    }
+)
 DOCX_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 XLSX_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 SPA = (
-    "<html><head><title>App</title></head><body><div id=\"root\"></div><script>"
+    '<html><head><title>App</title></head><body><div id="root"></div><script>'
     "document.getElementById('root').innerHTML='<h1>Step-free entrance</h1><p>The wheelchair accessible entrance is on Main Street. "
-    "Accessible parking is in lot B. <a href=\"/spa-details\">More details</a></p>'</script></body></html>"
+    'Accessible parking is in lot B. <a href="/spa-details">More details</a></p>\'</script></body></html>'
 )
 ACCORDION = (
     "<html><head><title>Visit</title></head><body><button aria-expanded=\"false\" onclick=\"this.setAttribute('aria-expanded','true');"
     "document.getElementById('p').innerText='The accessible restroom is on level two next to the elevator.'\">Restrooms</button>"
     '<div id="p"></div></body></html>'
 )
+
+
+def _png(text: str, size=(900, 220)) -> bytes:
+    from PIL import Image, ImageDraw, ImageFont
+
+    img = Image.new("RGB", size, "white")
+    try:
+        font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 56)
+    except OSError:
+        font = ImageFont.load_default()
+    ImageDraw.Draw(img).text((30, size[1] // 2 - 30), text, fill="black", font=font)
+    buf = io.BytesIO()
+    img.save(buf, "PNG")
+    return buf.getvalue()
+
+
+def _scanned_pdf() -> bytes:
+    import pymupdf
+
+    doc = pymupdf.open()
+    page = doc.new_page()
+    page.insert_image(page.rect, stream=_png("Accessible restroom on level two", (1400, 400)))
+    return doc.tobytes()
+
+
+def _text_pdf() -> bytes:
+    import pymupdf
+
+    doc = pymupdf.open()
+    doc.new_page().insert_text((72, 72), "Accessible parking is available in Lot B.")
+    doc.new_page().insert_text((72, 72), "Call (513) 555-0142 for assistance.")
+    return doc.tobytes()
+
+
+RICH = b"""<html lang="en"><head><title>Visit the Museum</title><meta property="article:published_time" content="2025-03-10">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Museum","name":"City Museum","telephone":"513-555-0142",
+"address":{"@type":"PostalAddress","streetAddress":"1301 Western Ave","addressLocality":"Cincinnati","addressRegion":"OH"},
+"openingHours":"Mo-Su 10:00-17:00"}</script></head>
+<body><nav><a href=/>Home</a> <a href=/tickets>Tickets</a> Cookie settings</nav><main><h1>Visit</h1>
+<p>Plan your trip to the museum with these tips for a smooth and enjoyable visit today.</p><h2>Accessibility</h2>
+<p>The main entrance is step-free and wheelchair accessible. Accessible parking is on Lot B. Call (513) 555-0142 with questions.</p>
+<h2>Hours</h2><p>Mon-Fri 10 am to 5 pm. Sat 10 am to 6 pm.</p>
+<table><caption>Parking</caption><tr><th>Lot</th><th>Spaces</th></tr><tr><td>A</td><td>12</td></tr><tr><td>B</td><td>4 van accessible</td></tr></table>
+</main><footer>Copyright 2025</footer></body></html>"""
+POSTER = _png("Trail map: accessible loop")
+ICON = _png("x", (60, 60))
+SCAN_PDF = _scanned_pdf()
+TEXT_PDF = _text_pdf()
 PDF = b"%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n"
 ACCESS = (
     "<html><head><title>Accessibility</title></head><body><h1>Accessibility</h1>"
@@ -99,7 +155,19 @@ class Site:
                     links += [(f"/blog/{i}", f"Post {i}") for i in range(1, 31)]
                     links += [(f"/img/{i}.jpg", "pic") for i in range(1, 16)]
                     links.append(("/list/page/1", "Listing"))
-                    links += [("/spa", "App"), ("/accordion", "Visit"), ("/doc.docx", "Seating guide"), ("/sheet.xlsx", "Parking table")]
+                    links += [
+                        ("/rich", "Visit"),
+                        ("/scan.pdf", "Scanned guide"),
+                        ("/text.pdf", "Text guide"),
+                        ("/poster.png", "Trail map poster"),
+                        ("/icon.png", "icon"),
+                    ]
+                    links += [
+                        ("/spa", "App"),
+                        ("/accordion", "Visit"),
+                        ("/doc.docx", "Seating guide"),
+                        ("/sheet.xlsx", "Parking table"),
+                    ]
                     return self.send(200, page("Home", "Welcome to the museum.", links))
                 if p == "/accessibility":
                     etag = '"acc-v1"'
@@ -114,10 +182,27 @@ class Site:
                     return self.send(
                         200, page("Orphan", "An accessible restroom is on the ground floor.", [])
                     )
+                if p == "/rich":
+                    return self.send(200, RICH)
+                if p == "/scan.pdf":
+                    return self.send(200, SCAN_PDF, "application/pdf")
+                if p == "/text.pdf":
+                    return self.send(200, TEXT_PDF, "application/pdf")
+                if p == "/poster.png":
+                    return self.send(200, POSTER, "image/png")
+                if p == "/icon.png":
+                    return self.send(200, ICON, "image/png")
                 if p == "/spa":
                     return self.send(200, SPA.encode())
                 if p == "/spa-details":
-                    return self.send(200, page("Details", "Details about the entrance for wheelchair users and the accessible route.", []))
+                    return self.send(
+                        200,
+                        page(
+                            "Details",
+                            "Details about the entrance for wheelchair users and the accessible route.",
+                            [],
+                        ),
+                    )
                 if p == "/accordion":
                     return self.send(200, ACCORDION.encode())
                 if p == "/doc.docx":
