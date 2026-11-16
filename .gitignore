@@ -23,3 +23,6 @@ data/private/
 
 # Private lab notes (unpublished results)
 docs/lab_sensing/
+
+# Crawler runtime state (frontier database, queue, reports): re-creatable
+data/crawl/
