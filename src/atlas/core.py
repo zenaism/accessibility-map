@@ -150,7 +150,9 @@ def boundary(region: str):
 def area(region: str):
     """City boundary grown by the region's `buffer_km` (destinations just outside town count)."""
     km = config("regions")[region].get("buffer_km", 0)
-    b = gpd.GeoSeries([boundary(region)], crs=WGS84).to_crs(METRIC).buffer(km * 1000)
+    c = boundary(region).representative_point()
+    utm = f"EPSG:{(32600 if c.y >= 0 else 32700) + int((c.x + 180) // 6) + 1}"  # the region's own UTM zone
+    b = gpd.GeoSeries([boundary(region)], crs=WGS84).to_crs(utm).buffer(km * 1000)
     return b.to_crs(WGS84).iloc[0]
 
 

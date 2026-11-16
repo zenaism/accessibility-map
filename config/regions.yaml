@@ -10,3 +10,13 @@ oxford:
   name: Oxford, Ohio
   osm_relation: 182574   # admin_level=8, wikidata Q990940 (includes Miami University main campus)
   buffer_km: 15
+dc:
+  name: Washington, District of Columbia
+  osm_relation: 5396194
+  buffer_km: 15.0
+  # area 177.2 km2; UTM zone EPSG:32618
+dayton:
+  name: Dayton, Ohio
+  osm_relation: 182954
+  buffer_km: 20.0
+  # area 147.1 km2; UTM zone EPSG:32616
