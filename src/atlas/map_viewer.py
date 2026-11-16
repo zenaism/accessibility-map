@@ -121,22 +121,28 @@ TEMPLATE = r"""<!DOCTYPE html>
  .filters label.cb{display:flex;gap:8px;align-items:center;font-size:13.5px;color:#374151;width:100%}
  #status{font-size:12.5px;color:var(--muted);margin:6px 0 8px}
  ol#list{list-style:none;margin:0;padding:0}
- .card{padding:14px 2px;border-top:1px solid var(--line)} .card:first-child{border-top:0}
+ .card{padding:10px 2px 11px;border-top:1px solid var(--line)} .card:first-child{border-top:0}
  .card h3{font-size:15.5px;font-weight:620;margin:0;line-height:1.3;letter-spacing:-.005em} .card h3:focus{outline:2.5px solid var(--focus)}
  .meta{font-size:12.5px;color:var(--muted);margin:3px 0 0;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
  .rb{display:inline-flex;align-items:center;gap:6px;color:#374151;font-weight:550}
  .rb i{font-style:normal;width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
- .sum{margin:7px 0 8px;font-size:14px;color:#374151}
+ .sum{margin:4px 0 7px;font-size:13.5px;color:#374151}
  .keys{list-style:none;margin:8px 0 6px;padding:0;display:flex;flex-wrap:wrap;gap:4px 6px;font-size:13px}
  .keys li{display:inline-flex;align-items:center;gap:4px;padding:2px 8px 2px 4px;border-radius:999px;background:#f3f4f6;color:#1f2937}
  .keys i{font-style:normal;font-weight:700;width:16px;height:16px;border-radius:50%;display:inline-grid;place-items:center;font-size:11px;color:#fff;background:#767676}
  .keys .k-yes i{background:#0072B2} .keys .k-partly i{background:#E69F00;color:#1b1f24} .keys .k-no i{background:#D55E00}
- .actions{display:flex;gap:2px;flex-wrap:wrap;margin-left:-8px}
- .det{margin:6px 0 0;padding:10px 12px;background:var(--soft);border-radius:12px;font-size:13.5px}
+ .actions{display:flex;gap:5px;flex-wrap:wrap;margin:2px 0 0}
+ .actions .ghost,.pop-actions .ghost,.det .links .ghost{border:1px solid #cfd4da;background:#f3f4f6;padding:8px 9px;font-size:13.5px;font-weight:550}
+ .actions .report-btn svg.i{display:none}  /* four buttons must fit one row on a phone */
+ .pop-actions .report-btn svg.i{width:15px;height:15px}
+ body.pop-open .rp-fab{display:none}
+ .actions .ghost:hover,.pop-actions .ghost:hover,.det .links .ghost:hover{background:#e5e7eb;border-color:#9ca3af}
+ .pop-actions{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0}
+ .det{margin:6px 0 0;padding:8px 10px;background:var(--soft);border-radius:12px;font-size:13px}
  .det table{border-collapse:collapse;width:100%} .det th,.det td{text-align:left;vertical-align:top;padding:6px 4px;border-bottom:1px solid #e5e7eb}
  .det tr:last-child th,.det tr:last-child td{border-bottom:0} .det th{width:36%;font-weight:600} .q{color:var(--muted);font-style:italic}
  .det ul{margin:4px 0;padding-left:18px}
- .old{color:#92400e} .det .links{display:flex;gap:2px;flex-wrap:wrap;margin:8px 0 0 -8px}
+ .old{color:#92400e} .det .links{display:flex;gap:2px;flex-wrap:wrap;margin:8px 0 0}
  .pager{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px;margin:12px 0 4px}
  .pager button{font-size:1rem;min-width:38px;min-height:40px;padding:0 6px;justify-content:center}
  .pager button[aria-current=page]{background:#1b1f24;color:#fff;border-color:#1b1f24}
@@ -273,6 +279,8 @@ if (GOOGLE_ENABLED) {
   googleInfoWindow = new googleMaps.InfoWindow();
 } else {
   map = L.map('map', {zoomControl:false, keyboard:true});
+  map.on('popupopen', () => document.body.classList.add('pop-open'));   // the popup has its own Report button: hide the floating one
+  map.on('popupclose', () => document.body.classList.remove('pop-open'));
   L.control.zoom({position:'topright'}).addTo(map);
   L.tileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}',
     {maxZoom:18, maxNativeZoom:16, attribution: PHONE_EARLY.matches
@@ -541,7 +549,7 @@ function details(it){
   const issue = 'https://github.com/zenaism/accessibility-map/issues/new?title=' + encodeURIComponent('Report: ' + p.name)
     + '&body=' + encodeURIComponent(`Place: ${p.name}\nLink: ${placeUrl(it)}\n\nWhat is wrong or missing? (for example: ramp broken, restroom not accessible, new information)\n\n`);
   h += `<div class="links"><a class="btn ghost" href="places/${esc(p.region)}/${esc(p.link_id)}.html">Text-only page<span class="vh"> for ${esc(p.name)}</span></a><button type="button" class="ghost" data-a="copy">Copy link<span class="vh"> to ${esc(p.name)}</span></button>`
-    + `<a class="btn ghost" data-report-fallback href="${issue}" target="_blank" rel="noopener">Report a problem<span class="vh"> with ${esc(p.name)} (opens GitHub in a new tab)</span></a><span class="rp-slot"></span></div>`;
+    + `<a class="btn ghost" data-report-fallback href="${issue}" target="_blank" rel="noopener">Report a problem<span class="vh"> with ${esc(p.name)} (opens GitHub in a new tab)</span></a></div>`;
   return h || '<p>No further details yet.</p>';
 }
 const ACCESS = {audio_description:'audio described', asl:'ASL interpreted', sensory_friendly:'sensory-friendly'};
@@ -573,10 +581,12 @@ function card(it){
       <button type="button" class="ghost" data-a="map">Show on map<span class="vh">: ${esc(p.name)}</span></button>
       <a class="btn ghost" href="${directions(it)}" target="_blank" rel="noopener">Directions<span class="vh"> to ${esc(p.name)} in Google Maps (opens in a new tab)</span></a>
       <button type="button" class="ghost" data-a="det" aria-expanded="false" aria-controls="det-${it.i}">Details<span class="vh">: ${esc(p.name)}</span></button>
+      <span class="rp-act"></span>
     </div>
     <div class="det" id="det-${it.i}" hidden></div>`;
   li.querySelector('[data-a=map]').onclick = () => showOnMap(it);
   li.querySelector('[data-a=det]').onclick = e => toggle(it, e.currentTarget);
+  if (RATECFG) li.querySelector('.rp-act').replaceWith(reportButton({link_id:p.link_id, name:p.name, region:p.region}, 'Report', true));
   return li;
 }
 let routeLayer = null;
@@ -611,7 +621,6 @@ function toggle(it, btn, force){
     const rb = box.querySelector('[data-a=route]'); if (rb) rb.onclick = () => showRoute(it);
     const rbb = box.querySelector('[data-a=route-blind]'); if (rbb) rbb.onclick = () => showRoute(it, true);
     const slot = box.querySelector('.qr-slot'); if (slot) slot.replaceWith(quickRate(it));
-    const rp = box.querySelector('.rp-slot'); if (rp && RATECFG) rp.replaceWith(reportButton({link_id:it.p.link_id, name:it.p.name, region:it.p.region}));
     reportShow();   // swap the old GitHub link for the in-app form once the database is ready
   }
 }
@@ -784,12 +793,12 @@ function commDetails(it){
     + '</tbody></table><p class="note">From people using this map, not checked by us; kept separate from the sourced rating above.</p>';
 }
 function popupContent(it){
-  const p = it.p, el = document.createElement('div'), short = p.summary.length > 120 ? p.summary.slice(0, 110).replace(/\s+\S*$/, '') + '…' : p.summary;
+  const p = it.p, el = document.createElement('div'), short = p.summary.length > 90 ? p.summary.slice(0, 84).replace(/\s+\S*$/, '') + '…' : p.summary;
   el.innerHTML = `<h3>${esc(p.name)}</h3>${badge(p.access_rating)}<p>${esc(short)}</p><p class="comm pop-comm">${commText(it)}</p>`
-    + `<p><button type="button" class="ghost" data-a="list">Details in the list</button></p>`;
+    + `<div class="pop-actions"><button type="button" class="ghost" data-a="list">Details</button></div>`;
   el.querySelector('[data-a=list]').onclick = () => openCard(it.i);
+  if (RATECFG) el.querySelector('.pop-actions').append(reportButton({link_id:p.link_id, name:p.name, region:p.region}, 'Report', true));
   if (canRate(it)) el.append(quickRate(it));
-  if (RATECFG) el.append(reportRow(it));
   return el;
 }
 // One tap on a star saves; the optional extras below are taps too, each saved straight away (same row, updated).
