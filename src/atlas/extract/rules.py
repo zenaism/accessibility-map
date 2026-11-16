@@ -63,7 +63,9 @@ VERB = re.compile(
     r"located|available|welcome|open|closed|accessible|reserved|serves?|needs?|contact|call|visit|ask|request|bring|use)\b",
     re.I,
 )
-ACCESS_SECTION = re.compile(r"access|feature|amenit|service|facilit|visit|plan|ada\b|disab|inclusi|barrier|mobility", re.I)
+ACCESS_SECTION = re.compile(
+    r"access|feature|amenit|service|facilit|visit|plan|ada\b|disab|inclusi|barrier|mobility", re.I
+)
 
 
 def looks_like_headline(s: str) -> bool:
@@ -74,7 +76,9 @@ def looks_like_headline(s: str) -> bool:
     caps = sum(1 for w in words if w[:1].isupper())
     if len(words) >= 3 and caps / len(words) >= 0.7:
         return True  # Title Case Line, a program or event name
-    return len(words) <= 3 and not VERB.search(s)  # two or three words with no verb is a label; longer bullets are kept for the model
+    return len(words) <= 3 and not VERB.search(
+        s
+    )  # two or three words with no verb is a label; longer bullets are kept for the model
 
 
 def polarity(sentence: str, match: re.Match, positive_no: bool = False) -> str:

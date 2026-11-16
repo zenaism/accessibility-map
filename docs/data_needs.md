@@ -125,6 +125,12 @@ These cost almost nothing today and cannot be reconstructed afterwards:
 - Every extraction run: model, prompt version, output (to measure model quality and drift).
 - Ratings and feedback from the map, with consent.
 
+### History archive: running now
+`scripts/archive_loop.sh` saves weather, active weather alerts and transit alerts for every region once an hour into
+`data/history/<kind>/<region>/<YYYY-MM>.jsonl` (not committed to git: it grows; plan to publish it through a data release).
+Start it with `nohup scripts/archive_loop.sh > /dev/null 2>&1 &`; it pauses while the computer sleeps. For a permanent
+schedule add a cron line (see the script header). Web page history is kept by the crawler (every fetched version is saved).
+
 ## 5. Priorities
 
 | Phase | Data focus |

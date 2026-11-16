@@ -144,3 +144,61 @@ def test_config_files_agree_with_each_other():
     for cid, c in cats.items():
         assert set(c["attributes"]) <= set(attrs), (cid, set(c["attributes"]) - set(attrs))
     assert set(llm.text_attributes()) == set(rules_cfg)
+
+
+def test_vision_answers_are_cached_by_image_and_model(monkeypatch, tmp_path):
+    from atlas.extract import vision
+
+    monkeypatch.setattr(vision, "CACHE", tmp_path / "v.jsonl")
+    monkeypatch.setattr(vision, "_cache", None)
+    calls = []
+    monkeypatch.setattr(vision, "_prepare", lambda data: data)
+    monkeypatch.setattr(
+        vision,
+        "_ask",
+        lambda img: (
+            calls.append(1) or {"kind": "sign", "summary": "A sign", "accessibility_items": ["ramps"]}
+        ),
+    )
+    a, b = vision.describe(b"imagebytes"), vision.describe(b"imagebytes")
+    assert a == b and len(calls) == 1 and vision.describe(b"other") and len(calls) == 2
+
+
+def test_vision_failure_returns_none_not_an_error(monkeypatch):
+    from atlas.extract import vision
+
+    monkeypatch.setattr(vision, "_cache", {})
+    monkeypatch.setattr(vision, "_prepare", lambda data: data)
+
+    def boom(img):
+        raise vision.requests.ConnectionError("down")
+
+    monkeypatch.setattr(vision, "_ask", boom)
+    assert vision.describe(b"anything") is None
+
+
+def test_images_with_little_ocr_text_get_a_description_within_budget(monkeypatch, tmp_path):
+    import sys
+
+    from atlas.crawler import docs
+    from atlas.extract import vision
+
+    sys.path.insert(0, str(llm.ROOT))
+    from tests.crawler_site import POSTER
+
+    f = tmp_path / "poster.png"
+    f.write_bytes(POSTER)
+    monkeypatch.setattr(
+        vision,
+        "describe",
+        lambda data: {
+            "kind": "sign",
+            "summary": "A trail map sign",
+            "accessibility_items": ["accessible loop"],
+        },
+    )
+    left = [1]
+    first = docs.read_file(f, "image/png", "http://x/poster.png", [5], left)
+    assert first.method == "ocr+vision" and first.description["kind"] == "sign" and left == [0]
+    second = docs.read_file(f, "image/png", "http://x/poster.png", [5], left)  # budget used up
+    assert second.method == "ocr" and second.description == {}

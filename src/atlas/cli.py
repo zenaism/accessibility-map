@@ -62,6 +62,7 @@ def main() -> None:
             "region",
             "extract",
             "discover",
+            "archive",
         ],
     )
     ap.add_argument("source", nargs="?", default="all")
@@ -91,6 +92,18 @@ def main() -> None:
         from .inventory import write
 
         print(write())
+        return
+    if a.command == "archive":
+        from . import history
+
+        kinds = [a.source] if a.source in history.KINDS else list(history.KINDS)
+        for r in regions:
+            for k in kinds:
+                try:
+                    out = history.KINDS[k](r)
+                    print(f"[{r}] {k}: archived", len(out) if isinstance(out, list) else "1 record")
+                except Exception as exc:
+                    print(f"[{r}] {k}: failed ({type(exc).__name__}: {exc})")
         return
     if a.command == "discover":
         from . import discovery

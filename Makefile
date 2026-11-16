@@ -32,6 +32,9 @@ map:              ## GeoJSON per region, the two maps, text page per place, revi
 inventory:        ## per-source summary -> docs/source_inventory.md + data/source_inventory.csv
 	$(PY) -m atlas.cli inventory
 
+archive:          ## one history snapshot (weather, weather alerts, transit alerts) for every region -> data/history/
+	$(PY) -m atlas.cli archive all --region all
+
 cards:            ## dataset cards + trust rating per source -> data/cards/
 	$(PY) -m atlas.cli cards
 
@@ -53,4 +56,4 @@ test:
 lint:
 	.venv/bin/ruff check src tests
 
-.PHONY: setup data report cards candidates dictionary dem equity extract map inventory figure test lint refresh kb eval
+.PHONY: setup data report archive cards candidates dictionary dem equity extract map inventory figure test lint refresh kb eval
