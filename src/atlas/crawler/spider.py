@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 
 import scrapy
 from lxml import etree
-from scrapy.exceptions import IgnoreRequest
+from scrapy.exceptions import CloseSpider, IgnoreRequest
 
 from ..connectors.web import _clean_html
 from . import archive, relevance, urls
@@ -56,6 +56,13 @@ class AtlasSpider(scrapy.Spider):
         self.max_depth = scope.get("depth", 4)
         budget = spec.get("budget", {})
         self.max_bytes = budget.get("megabytes", 500) * 1_000_000
+        raw = budget.get("pages", 300)  # pages and documents; images have their own budget
+        # "auto": start small, then grow with the site's own sitemap (about 1.3 x its URLs + 50), up to auto_max
+        self.auto, self.auto_max, self.sitemap_total = raw == "auto", budget.get("auto_max", 500), 0
+        self.max_pages = budget.get("auto_min", 80) if self.auto else raw
+        self.max_images = budget.get("images", 80)
+        self.pages_done = self.images_done = self.images_queued = 0
+        self.family = {}  # (section, path depth) -> [relevant pages, pages]: which parts of a site hold what we want
         self.per_section = budget.get("per_section", 10**9)
         self.per_pattern = budget.get("per_pattern", 40)
         self.discover = {"sitemaps": True, "feeds": True, "probe_paths": True} | spec.get("discover", {})
@@ -110,7 +117,7 @@ class AtlasSpider(scrapy.Spider):
     ) -> scrapy.Request:
         return scrapy.Request(
             url, callback=callback or self.parse_page, errback=self.on_error, priority=priority,
-            meta={"depth": depth, "score": score, "via": via, "handle_httpstatus_all": True},
+            meta={"atlas_depth": depth, "score": score, "via": via, "handle_httpstatus_all": True},
         )  # fmt: skip
 
     def parse_robots(self, response):
@@ -159,6 +166,9 @@ class AtlasSpider(scrapy.Spider):
         except Exception:  # not a sitemap (soft 404 page)
             self.frontier.update(url, state="skipped", reason="not a sitemap")
             return
+        if sm_type == "urlset" and self.auto:
+            self.sitemap_total += len(sm_entries)
+            self.max_pages = min(self.auto_max, max(self.max_pages, int(1.3 * self.sitemap_total) + 50))
         for entry in sm_entries:
             loc = urls.normalize(entry.get("loc", ""), url)
             if not loc:
@@ -176,7 +186,7 @@ class AtlasSpider(scrapy.Spider):
     def parse_page(self, response):
         url = response.request.url
         meta = response.meta
-        depth = meta.get("depth", 0)
+        depth = meta.get("atlas_depth", 0)
         status = response.status
         if status == 304:
             self.frontier.update(url, state="unchanged", status=304, last_fetched=self._now())
@@ -202,9 +212,16 @@ class AtlasSpider(scrapy.Spider):
         )  # fmt: skip
         self.fetched += 1
         self.bytes_total += len(response.body)
+        if urls.kind(url) == "image":
+            self.images_done += 1
+        else:
+            self.pages_done += 1
         if self.bytes_total > self.max_bytes:
             self.stop("byte budget reached")
-            return
+        elif self.pages_done >= self.max_pages:
+            self.stop("page budget reached")
+        if self.stopped_reason:
+            raise CloseSpider(self.stopped_reason)  # really stop: the queue is not drained
         if not ctype.startswith(HTML):
             self.recent.append(
                 1.0 if relevance.score_url(url) > 0.2 else 0.0
@@ -214,14 +231,21 @@ class AtlasSpider(scrapy.Spider):
         page_score = max(relevance.score_text(text), meta.get("score", 0.0) * 0.5)
         self.frontier.update(url, score=round(page_score, 3))
         self.recent.append(page_score)
+        self.learn(url, page_score >= 0.1)
         self.check_adaptive_stop()
+        if self.stopped_reason:
+            raise CloseSpider(self.stopped_reason)
         if depth >= self.max_depth:
             return
         anchors = {}
         for a in response.css("a[href]"):
             anchors.setdefault(a.attrib["href"], " ".join(a.css("::text").getall()).strip())
         for href in dict.fromkeys(links):
-            yield from self.consider(href, anchors.get(href, ""), page_score, depth + 1, url)
+            anchor = anchors.get(href, "")
+            # pagination and directory links stay at the same depth: page 5 of a listing is not "five clicks deep"
+            yield from self.consider(
+                href, anchor, page_score, depth if relevance.is_listing(href, anchor) else depth + 1, url
+            )
         for sel in (
             "iframe::attr(src)",
             "link[rel=next]::attr(href)",
@@ -253,6 +277,8 @@ class AtlasSpider(scrapy.Spider):
         k = urls.kind(u)
         if k == "skip":
             return skip("file type not wanted")
+        if k == "image" and self.images_queued >= self.max_images:
+            return skip("image budget")
         if k == "image" and self.assets == "none":
             return skip("images not wanted")
         if k == "image" and self.assets == "maps" and not relevance.score_url(u, anchor) > 0.2:
@@ -264,12 +290,32 @@ class AtlasSpider(scrapy.Spider):
         if self.section_count[row["section"]] >= self.per_section:
             return skip("section budget")
         score = relevance.score_url(u, anchor, parent_score)
+        score = self.adjust(u, score, anchor, via, k)
         explore = hash(u) % 100 < self.explore * 100
         if score < 0.05 and not explore and via == "link" and depth > 1:
             return skip("low relevance")
         self.section_count[row["section"]] += 1
+        self.images_queued += k == "image"
         self.frontier.add(u, score=score, **row)
         yield self._req(u, depth, score, relevance.priority(score), via=via)
+
+    def adjust(self, url: str, score: float, anchor: str, via: str, k: str) -> float:
+        """Signals beyond the words: the site's own sitemap, pagination, and what similar pages turned out to hold."""
+        if k == "image":
+            return 0.3  # pictures interleave with pages (they have their own budget), behind sitemap pages
+        if via == "sitemap":
+            score = max(score, 0.6)  # the site itself lists this page: worth fetching, ahead of guessed links
+        if via == "embedded" or relevance.is_listing(url, anchor):
+            score = max(score, 0.4)  # listing and pagination pages lead to the entries
+        seen = self.family.get(urls.family_key(url))
+        if seen and seen[1] >= 2:
+            score = min(1.0, score + 0.4 * seen[0] / seen[1])  # sibling pages were relevant: so is this one
+        return round(score, 3)
+
+    def learn(self, url: str, relevant: bool):
+        f = self.family.setdefault(urls.family_key(url), [0, 0])
+        f[0] += int(relevant)
+        f[1] += 1
 
     def check_adaptive_stop(self):
         a = self.adaptive

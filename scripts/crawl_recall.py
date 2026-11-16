@@ -36,7 +36,7 @@ spec = {
     "author_type": hand_spec.get("author_type", "official"),
     "seeds": seeds,
     "scope": {"hosts": sorted(hosts), "depth": a.depth},
-    "budget": {"pages": a.pages, "megabytes": 200, "per_pattern": 25},
+    "budget": {"pages": "auto", "auto_max": a.pages, "images": 30, "megabytes": 200, "per_pattern": 25},
     "assets": "all",
     "explore_share": 0.1,
 }

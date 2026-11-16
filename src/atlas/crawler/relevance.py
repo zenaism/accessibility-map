@@ -58,5 +58,16 @@ def score_text(text: str) -> float:
     return round(min(1.0, _hits(text) * 1000 / words / 6), 3)
 
 
+LISTING = re.compile(
+    r"/(page|p)/\d+|[?&]page=\d+|/category/|/directory|/listings?(/|$)|/browse|/all(/|$)", re.I
+)
+LISTING_WORDS = ("next", "older", "more", "load more", "view all", "see all")
+
+
+def is_listing(url: str, anchor: str = "") -> bool:
+    """Directory, category and pagination pages: they are the way to the individual entries."""
+    return bool(LISTING.search(url)) or anchor.strip().lower() in LISTING_WORDS
+
+
 def priority(score: float, boost: int = 0) -> int:
     return int(score * 100) + boost

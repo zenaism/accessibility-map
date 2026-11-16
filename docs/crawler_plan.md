@@ -1,6 +1,6 @@
 # Web crawler: research and implementation plan
 
-**Goal:** a crawler that finds and keeps every page, PDF and image we might need now or later, from any website, politely, for $0, and can prove how complete it was. Status: **plan for review, nothing built yet.** Written 2026-11-15. Part of [`national_data_plan.md`](national_data_plan.md) section 3.4 (fetching) and the completeness gates in [`architecture.md`](architecture.md) 9 and 10. Reasons are logged in [`decisions.md`](decisions.md) (D-20).
+**Goal:** a crawler that finds and keeps every page, PDF and image we might need now or later, from any website, politely, for $0, and can prove how complete it was. Status: **phase C1 built and tested (2026-11-15)**: core crawler, 16 tests against a local trap website, real-site recall test passed at 91.1% (target 90%). Phases C2 to C7 are still plans. Written 2026-11-15. Part of [`national_data_plan.md`](national_data_plan.md) section 3.4 (fetching) and the completeness gates in [`architecture.md`](architecture.md) 9 and 10. Reasons are logged in [`decisions.md`](decisions.md) (D-20).
 
 **Confidence labels.** *Checked* = confirmed in a web search on 2026-11-15, with a link in section 14. *Unchecked* = general knowledge or vendor claims; verify before relying on them. Most tool comparisons online come from vendors, so treat their numbers as directional.
 

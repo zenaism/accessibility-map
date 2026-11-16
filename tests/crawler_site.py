@@ -60,7 +60,9 @@ class Site:
                     xml = (
                         '<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
                         f"<url><loc>{base}/hidden-orphan</loc><lastmod>2026-01-01</lastmod></url>"
-                        f"<url><loc>{base}/visit/parking</loc></url></urlset>"
+                        f"<url><loc>{base}/visit/parking</loc></url>"
+                        + "".join(f"<url><loc>{base}/dir/place-{i}</loc></url>" for i in range(1, 7))
+                        + "</urlset>"
                     )
                     return self.send(200, xml.encode(), "application/xml")
                 if p == "/":
@@ -68,6 +70,8 @@ class Site:
                              ("/old", "Old"), ("/missing", "Missing"), ("/guide.pdf", "Accessibility guide"), ("/flaky", "Flaky"),
                              ("/private/secret", "Secret"), ("/calendar/2030/01/01", "Calendar")]  # fmt: skip
                     links += [(f"/blog/{i}", f"Post {i}") for i in range(1, 31)]
+                    links += [(f"/img/{i}.jpg", "pic") for i in range(1, 16)]
+                    links.append(("/list/page/1", "Listing"))
                     return self.send(200, page("Home", "Welcome to the museum.", links))
                 if p == "/accessibility":
                     etag = '"acc-v1"'
@@ -82,6 +86,14 @@ class Site:
                     return self.send(
                         200, page("Orphan", "An accessible restroom is on the ground floor.", [])
                     )
+                if p.startswith("/list/page/"):
+                    n = int(p.split("/")[-1])
+                    nxt = [(f"/list/page/{n + 1}", "Next")] if n < 8 else []
+                    return self.send(200, page(f"Listing {n}", "Entries.", nxt))
+                if p.startswith("/img/"):
+                    return self.send(200, b"\xff\xd8\xff\xe0fakejpeg", "image/jpeg")
+                if p.startswith("/dir/place-"):
+                    return self.send(200, page("Place", "A cozy place with good food.", []))
                 if p == "/about":
                     return self.send(200, page("About", "About the museum.", []))
                 if p == "/old":
