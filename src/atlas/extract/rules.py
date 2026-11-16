@@ -42,7 +42,8 @@ def rules() -> dict[str, dict]:
     raw = yaml.safe_load((ROOT / "config" / "fact_rules.yaml").read_text())
     return {
         a: {
-            "re": re.compile("|".join(f"(?:{p})" for p in r["any"]), re.I),
+            # a match may not start inside a longer word ("dis-closure" is not a closure)
+            "re": re.compile("(?<![A-Za-z])(?:" + "|".join(f"(?:{p})" for p in r["any"]) + ")", re.I),
             "positive_no": bool(r.get("positive_no")),
         }
         for a, r in raw.items()
