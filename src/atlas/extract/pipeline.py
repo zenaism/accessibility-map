@@ -38,7 +38,8 @@ MAX_DISCOVER = 20  # sentences per document sent to the model to look for facts 
 
 def _row(d, source, region, c_attr, value, detail, quote, section, trigger, method, model, confidence):
     return {
-        "doc_id": d.doc_id, "source": source, "region": region, "url": d.url, "place": (d.title or "").strip(),
+        "doc_id": d.doc_id, "source": source, "region": region, "url": d.url, "place": (getattr(d, "place_name", None) or d.title or "").strip(),
+        "place_id": getattr(d, "place_id", None),
         "section": section, "attribute": c_attr, "value": value, "detail": detail, "evidence_quote": quote,
         "trigger": trigger, "method": method, "extractor": VERSION, "model": model,
         "prompt_version": llm.PROMPT_VERSION if model else None, "confidence": confidence, "extracted_at": now(),

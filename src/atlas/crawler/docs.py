@@ -10,7 +10,7 @@ import pandas as pd
 
 from ..connectors.web import _clean_html
 from ..core import out_dir
-from . import archive, office, read
+from . import archive, office, read, urls
 from .frontier import Frontier
 
 # which saved file to read when several share one hash prefix (the page, its rendered copy, its screenshot)
@@ -99,6 +99,9 @@ def build(source: str, region: str, spec: dict, frontier: Frontier) -> pd.DataFr
                 method=f"failed: {type(e).__name__}",
             )
         shot = path.with_name(f"{r['content_sha'][:12]}.screenshot.png")
+        seed_place = spec.get("seed_places", {}).get(
+            urls.host_key(r["url"]), {}
+        )  # the place this website belongs to
         docs.append(
             {
                 "doc_id": f"{source}:{r['content_sha'][:12]}",
@@ -119,6 +122,9 @@ def build(source: str, region: str, spec: dict, frontier: Frontier) -> pd.DataFr
                 "content_sha": r["content_sha"],
                 "crawl_id": r["crawl_id"],
                 "rendered": bool(r["rendered"]),
+                "place_id": seed_place.get("place_id"),
+                "place_name": seed_place.get("name"),
+                "place_category": seed_place.get("category"),
             }
         )
     df = pd.DataFrame(docs)
