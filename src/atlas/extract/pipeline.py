@@ -92,7 +92,9 @@ def extract_docs(docs: pd.DataFrame, source: str, region: str, use_llm: bool = F
         df["quote_verified"] = [
             verify_quote(q, t)
             for q, t in zip(
-                df.evidence_quote, df.doc_id.map(dict(zip(docs.doc_id, docs.text.fillna(""), strict=True))), strict=True
+                df.evidence_quote,
+                df.doc_id.map(dict(zip(docs.doc_id, docs.text.fillna(""), strict=True))),
+                strict=True,
             )
         ]
         df = df.drop_duplicates(["doc_id", "attribute", "evidence_quote"])

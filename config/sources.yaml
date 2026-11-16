@@ -9,7 +9,7 @@
 
 osm:
   type: overpass
-  regions: [cincinnati, oxford]
+  regions: [cincinnati, oxford, dc, dayton]
   license: ODbL-1.0 (c) OpenStreetMap contributors
 
 # ---- Cincinnati / Hamilton County (CAGIS) --------------------------------------
@@ -181,13 +181,13 @@ reddit:
 # ---- Destinations (places, venues, trails, events) -----------------------------
 overture_places:
   type: overture
-  regions: [cincinnati, oxford]
+  regions: [cincinnati, oxford, dc, dayton]
   release: 2026-10-21.0
   license: CDLA-Permissive-2.0 / Apache-2.0 / ODbL by upstream dataset (see `datasets` column)
 
 osm_destinations:
   type: osm_destinations
-  regions: [cincinnati, oxford]
+  regions: [cincinnati, oxford, dc, dayton]
   license: ODbL-1.0 (c) OpenStreetMap contributors
 
 # ---- Websites (raw snapshot + cleaned text; LLM extraction reads the .docs files) ----
@@ -450,7 +450,7 @@ web_miami_maps:             # Miami parking / accessible entrance maps (posters 
 
 osm_entrances:              # entrances with wheelchair tags, grouped by building (Miami campus is well mapped)
   type: osm_entrances
-  regions: [cincinnati, oxford]
+  regions: [cincinnati, oxford, dc, dayton]
   license: ODbL-1.0 (c) OpenStreetMap contributors
 
 web_access_performances:    # dated audio-described / ASL / sensory-friendly / touch-tour events

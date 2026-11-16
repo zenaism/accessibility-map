@@ -1,0 +1,5 @@
+# Feeds archived by `atlas archive` (src/atlas/history.py). Only free feeds that need no key.
+transit_alerts:
+  cincinnati_metro:        # SORTA / Cincinnati Metro GTFS-Realtime service alerts (detours, stop and elevator closures)
+    regions: [cincinnati]
+    url: https://tmgtfsprd.sorttrpcloud.com/TMGTFSRealTimeWebService/alert/alerts.pb

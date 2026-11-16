@@ -54,12 +54,13 @@ class Read:
     pages: int = 0
     ocr_pages: int = 0
     ocr_confidence: float | None = None
+    description: dict = field(default_factory=dict)  # what a vision model saw (maps, posters, signs)
 
     def row(self) -> dict:
         """Flat dict for the documents table (nested parts as JSON text)."""
         d = {k: getattr(self, k) for k in (
             "title", "text", "method", "published_at", "updated_at", "language", "pages", "ocr_pages", "ocr_confidence")}  # fmt: skip
-        for k in ("sections", "tables", "structured", "phones", "hours", "access_snippets"):
+        for k in ("sections", "tables", "structured", "phones", "hours", "access_snippets", "description"):
             d[k] = json.dumps(getattr(self, k), ensure_ascii=False)
         return d
 

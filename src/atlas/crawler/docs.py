@@ -14,6 +14,7 @@ from . import archive, office, read
 from .frontier import Frontier
 
 # which saved file to read when several share one hash prefix (the page, its rendered copy, its screenshot)
+VISION_BELOW_CHARS = 60  # an image with less OCR text than this is described by the vision model
 PREFERENCE = (".rendered.html", ".html", ".pdf", ".docx", ".xlsx", ".pptx", ".csv", ".ics", ".json")
 OFFICE = {
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
@@ -35,7 +36,9 @@ def pick_file(source: str, sha: str) -> Path | None:
     return files[0] if files else None
 
 
-def read_file(path: Path, ctype: str, url: str, ocr_left: list[int]) -> read.Read:
+def read_file(
+    path: Path, ctype: str, url: str, ocr_left: list[int], vision_left: list[int] | None = None
+) -> read.Read:
     """Read one saved file into text and structure. `ocr_left` is a one-item budget of images still allowed to be OCR'd."""
     data = path.read_bytes()
     if path.name.endswith((".html", ".htm")):
@@ -54,6 +57,19 @@ def read_file(path: Path, ctype: str, url: str, ocr_left: list[int]) -> read.Rea
             return read.Read(kind="image", method="skipped: ocr budget")
         r = read.read_image(data)
         ocr_left[0] -= r.ocr_pages
+        # little text found: ask the vision model what the picture shows (map, sign, symbols), within a small budget
+        if (
+            vision_left
+            and vision_left[0] > 0
+            and r.method == "ocr"
+            and len(r.text.strip()) < VISION_BELOW_CHARS
+        ):
+            from ..extract import vision
+
+            d = vision.describe(data)
+            if d:
+                r.description, r.method = d, "ocr+vision"
+                vision_left[0] -= 1
         return r
     if kind in ("doc", "xls", "ppt"):
         return read.Read(
@@ -67,6 +83,7 @@ def read_file(path: Path, ctype: str, url: str, ocr_left: list[int]) -> read.Rea
 def build(source: str, region: str, spec: dict, frontier: Frontier) -> pd.DataFrame:
     docs = []
     ocr_left = [spec.get("budget", {}).get("ocr_images", 60)]
+    vision_left = [spec.get("budget", {}).get("vision_images", 0)]  # off unless the crawl spec asks for it
     for r in frontier.rows("fetched"):
         if not r["content_sha"]:
             continue
@@ -74,7 +91,7 @@ def build(source: str, region: str, spec: dict, frontier: Frontier) -> pd.DataFr
         if path is None:
             continue
         try:
-            rd = read_file(path, r["content_type"] or "", r["final_url"] or r["url"], ocr_left)
+            rd = read_file(path, r["content_type"] or "", r["final_url"] or r["url"], ocr_left, vision_left)
         except Exception as e:  # one unreadable file must never stop the whole table
             rd = read.Read(
                 kind=path.suffix.lstrip(".") or "file",

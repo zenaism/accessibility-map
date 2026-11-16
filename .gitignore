@@ -29,3 +29,6 @@ data/crawl/
 
 # Cached model answers (re-creatable, keyed by model + prompt version + text)
 data/cache/
+
+# History archives (weather, alerts): kept locally, published through a data release, not git
+data/history/
