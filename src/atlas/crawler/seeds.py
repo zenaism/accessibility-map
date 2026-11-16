@@ -92,5 +92,6 @@ def crawl_spec(region: str, found: list[dict], per_host: int = 8, depth: int = 2
         "discover": {"sitemaps": True, "feeds": False, "probe_paths": True},
         "render": "auto",
         "explore_share": 0.0,
+        "host_patience": 5,  # give up on a site after five pages with no accessibility words (most small sites have none)
         "seed_places": {p["host"]: {k: p[k] for k in ("place_id", "name", "category")} for p in found},
     }

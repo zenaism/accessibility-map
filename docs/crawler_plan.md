@@ -190,6 +190,9 @@ flowchart LR
 - **Adaptive stop:** when many recent pages added no new facts, stop the site and record "stopped by yield". Sites with high yield get more budget.
 - **Learning from results:** after each crawl, count which URL patterns produced facts and update the weights (a plain table, no heavy model).
 
+### 6.6b What the place-driven pilots showed (2026-11-16)
+Two pilots of 40 places each on Oxford (restaurants and bars; campuses, lodging, parks, health) with a budget of 8 to 10 pages per site: 21 and 23 sites were readable, 313 and 306 pages were fetched, and only **2 and 3 sites had any accessibility statement** (18 and 11 candidate facts, many of them noise). Small local sites mostly publish nothing about accessibility, so the right answer there is usually "unknown" and the right source is a crowd or structured one. Consequences built in: a site with no accessibility words on its first five pages is dropped (`host_patience`), over-budget sites are counted instead of recorded, and place-driven crawling should be aimed first at large venues and institutions (museums, universities, hospitals, theatres, transit agencies, parks), which do publish.
+
 ### 6.7 Duplicates, canonical URLs and traps (R4, R7)
 - **Normalize URLs:** lowercase host, drop fragments, remove tracking parameters (`utm_*`, `fbclid`, `gclid`), sort parameters, drop `index.html`, respect `<link rel=canonical>`, resolve redirects, treat `http` and `https`, `www` and bare as one when the site does.
 - **Exact duplicates:** same content hash. **Near-duplicates:** SimHash or MinHash on the text (for example with `datasketch`), to skip print pages, language copies without new facts, and template-only differences.
