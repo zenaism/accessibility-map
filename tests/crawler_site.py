@@ -111,6 +111,7 @@ class Site:
     def __init__(self):
         self.log: list[tuple[str, float, dict]] = []
         self.flaky_hits = 0
+        self.terms: str | None = None  # text of /terms-of-use, if the site has one
         self.lock = threading.Lock()
         site = self
 
@@ -148,6 +149,11 @@ class Site:
                         + "</urlset>"
                     )
                     return self.send(200, xml.encode(), "application/xml")
+                if p == "/terms-of-use" and site.terms:
+                    return self.send(
+                        200,
+                        f"<html><title>Terms</title><body><h1>Terms of use</h1><p>{site.terms}</p></body></html>".encode(),
+                    )
                 if p == "/":
                     links = [("/accessibility", "Accessibility"), ("/about", "About"), ("/about?utm_source=news", "About again"),
                              ("/old", "Old"), ("/missing", "Missing"), ("/guide.pdf", "Accessibility guide"), ("/flaky", "Flaky"),
@@ -191,7 +197,9 @@ class Site:
                         200, page("Orphan", "An accessible restroom is on the ground floor.", [])
                     )
                 if p.startswith("/dup/"):
-                    return self.send(200, TEXT_PDF + b"\n% fixture for the duplicate test\n", "application/pdf")
+                    return self.send(
+                        200, TEXT_PDF + b"\n% fixture for the duplicate test\n", "application/pdf"
+                    )
                 if p == "/old.doc":
                     return self.send(200, b"\xd0\xcf\x11\xe0 legacy word", "application/msword")
                 if p.startswith("/icons/"):

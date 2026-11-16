@@ -148,7 +148,8 @@ function openReport(ctx, opener){
     + `<input type="text" id="rp-contact" maxlength="200" autocomplete="off" aria-describedby="rp-contact-h"></div>`
     + `<div class="rp-hp" aria-hidden="true"><label>Website<input type="text" id="rp-web" tabindex="-1" autocomplete="off"></label></div>`
     + `<div class="rp-actions"><button type="submit" class="primary" id="rp-send">Send report</button><button type="button" data-x>Cancel</button></div>`
-    + `<p class="priv" id="rp-status" role="status" aria-live="polite">Reports go to the accessibility team. We do not store your name or IP address.</p></form></div>`;
+    + `<p class="priv" id="rp-status" role="status" aria-live="polite">Reports go to the accessibility team. We do not store your name or IP address.</p>`
+    + `<details class="priv"><summary>How we use your report</summary><p>We use it only to find and fix accessibility problems and to improve this map. Only the accessibility team and the researchers can read it. We keep reports for up to 24 months, and a photo or contact detail is never published. You can delete your report right after sending it.</p></details></form></div>`;
   const $ = id => dlg.querySelector('#' + id), form = dlg.querySelector('form'), text = $('rp-text'), contact = $('rp-contact');
   text.value = draft.t || ''; contact.value = draft.c || '';
   const kindNow = () => (form.querySelector('input[name=kind]:checked') || {}).value || '';
@@ -210,9 +211,14 @@ function openReport(ctx, opener){
       dlg.querySelector('.rp-body').innerHTML = `<button type="button" class="rp-x" data-x aria-label="Close">×</button><div class="rp-ok">`
         + `<h2 id="rp-title" tabindex="-1">Thank you. Your report was sent.</h2>`
         + `<p>The accessibility team will read it${ctx ? ' and check <b>' + place + '</b>' : ''}.</p>`
-        + `<p>Your reference code: <span class="rp-ref">${esc(ref)}</span></p>`
-        + `<div class="rp-actions"><button type="button" class="primary" data-x>Close</button><button type="button" data-again>Report another problem</button></div></div>`;
+        + `<p>Your reference code: <span class="rp-ref">${esc(ref)}</span></p><p id="rp-del-msg" class="priv" role="status" aria-live="polite"></p>`
+        + `<div class="rp-actions"><button type="button" class="primary" data-x>Close</button><button type="button" data-again>Report another problem</button><button type="button" data-del>Delete this report</button></div></div>`;
       dlg.querySelectorAll('[data-x]').forEach(b => b.onclick = closeIt);
+      dlg.querySelector('[data-del]').onclick = async ev => {
+        const b = ev.currentTarget; b.disabled = true;
+        try { await deleteReport(S.id); dlg.querySelector('#rp-del-msg').textContent = 'Your report was deleted.'; b.hidden = true; }
+        catch (e) { b.disabled = false; dlg.querySelector('#rp-del-msg').textContent = 'It could not be deleted just now. Please try again.'; }
+      };
       dlg.querySelector('[data-again]').onclick = () => { closeIt(); setTimeout(() => openReport(ctx, opener), 0); };
       dlg.querySelector('#rp-title').focus();
     } catch (err){
@@ -222,6 +228,12 @@ function openReport(ctx, opener){
   });
   dlg.showModal();
   $('rp-title').focus();
+}
+async function deleteReport(id){
+  const r = await fetch(RATECFG.url + '/rest/v1/rpc/delete_problem_report',
+    {method:'POST', headers:apiHeaders({'Content-Type':'application/json'}), body:JSON.stringify({p_report_id:id, p_device_id:DEVICE})});
+  if (!r.ok) throw new Error('delete failed');
+  return await r.json();
 }
 async function sendReport(ctx, v){
   const body = {p_report_id:v.id, p_device_id:DEVICE, p_category:v.kind, p_description:v.text,

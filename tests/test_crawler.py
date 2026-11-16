@@ -165,7 +165,9 @@ def test_stop_is_real_the_queue_is_not_drained(tmp_path):
     with Site() as site:
         rep = crawl(tmp_path, site, spec={"budget": {"pages": 5, "megabytes": 50}})
         pages = [p for p in site.paths() if not p.startswith(("/img/", "/robots", "/sitemap"))]
-        assert len(pages) <= 15  # budget of 5 plus the (at most 8) requests already handed to the downloader
+        assert (
+            len(pages) <= 22
+        )  # budget of 5, six terms-page probes and the (at most 8) requests already handed to the downloader
         assert len(pages) < 40  # the site has far more pages: the queue was not drained
         assert rep["ended"] == "page budget reached" and rep["unfinished_queued"] > 0
 
@@ -303,3 +305,43 @@ def test_a_site_with_nothing_relevant_is_dropped_after_a_few_pages(tmp_path):
         crawl(tmp_path, site, name="patient", spec=base)
         full = {p for p in site.paths() if p.startswith("/list/page/")}
     assert len(full) == 8 and len(short) < len(full)  # the impatient crawl gave up on the empty site
+
+
+def test_terms_that_forbid_bots_stop_the_crawl_of_that_site(tmp_path):
+    with Site() as site:
+        site.terms = "You may not use any robot, spider, scraper or other automated means to access the Site without our written permission."
+        rep = crawl(tmp_path, site, name="tos", delay="0.2")
+        assert site.url.split("//")[1] in "".join(rep["tos_restricted"]) or rep["tos_restricted"]
+        assert rep["by_state"].get("fetched", 0) < 15  # almost nothing was kept
+    with Site() as site:
+        site.terms = "You may not use any robot, spider, scraper or other automated means to access the Site."
+        rep = crawl(tmp_path, site, name="tos_ok", spec={"tos_allow": ["127.0.0.1"]})
+        assert (
+            not rep["tos_restricted"] and rep["by_state"]["fetched"] > 15
+        )  # permission on file: crawled normally
+    with Site() as site:
+        site.terms = "Please be kind. Content is copyright the museum."
+        assert not crawl(tmp_path, site, name="tos_none")["tos_restricted"]
+
+
+def test_terms_wording_detection():
+    from atlas.crawler import tos
+
+    assert tos.forbids_bots("Users agree not to scrape or harvest data from this website by automated means.")
+    assert tos.forbids_bots("Automated access, including crawlers and bots, is prohibited.")
+    assert not tos.forbids_bots("We use cookies. Visit our accessibility page for the elevator list.")
+    assert not tos.forbids_bots("You may not circumvent robots.txt. Search engines may index this page.")
+    assert tos.is_terms_url("https://x.org/legal/terms-of-use") and not tos.is_terms_url(
+        "https://x.org/visit/parking"
+    )
+
+
+def test_personal_data_is_removed_but_role_contacts_stay():
+    from atlas.crawler import privacy
+
+    t = "Contact jane.doe@city.gov or accessibility@city.gov. Cell: (937) 555-0101. Main office (937) 555-0100."
+    out = privacy.scrub(t)
+    assert "jane.doe" not in out and "555-0101" not in out
+    assert "accessibility@city.gov" in out and "555-0100" in out
+    row = privacy.scrub_row({"text": t, "sections": '[{"text": "mail bob@x.org"}]', "title": "t"})
+    assert "bob@x.org" not in row["sections"] and "removed" in row["sections"]

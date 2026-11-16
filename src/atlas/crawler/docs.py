@@ -10,7 +10,7 @@ import pandas as pd
 
 from ..connectors.web import _clean_html
 from ..core import out_dir
-from . import archive, office, read, urls
+from . import archive, office, privacy, read, urls
 from .frontier import Frontier
 
 # which saved file to read when several share one hash prefix (the page, its rendered copy, its screenshot)
@@ -109,7 +109,7 @@ def build(source: str, region: str, spec: dict, frontier: Frontier) -> pd.DataFr
                 "url": r["url"],
                 "canonical_url": r["final_url"] or r["url"],
                 "screenshot": str(shot) if shot.exists() else None,
-                **rd.row(),
+                **privacy.scrub_row(rd.row()),
                 "content_type": rd.kind,
                 "raw_file": str(path),
                 "retrieved_at": r["last_fetched"],

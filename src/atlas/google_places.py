@@ -91,11 +91,7 @@ def saved_google_place_details(place_ids: dict[str, str]) -> dict[str, dict]:
     if PRIVATE_DETAILS_FILE.exists():
         records = json.loads(PRIVATE_DETAILS_FILE.read_text()).get("places", {})
         for link_id, detail in records.items():
-            if (
-                link_id in place_ids
-                and isinstance(detail, dict)
-                and detail.get("id") == place_ids[link_id]
-            ):
+            if link_id in place_ids and isinstance(detail, dict) and detail.get("id") == place_ids[link_id]:
                 details[link_id] = detail
     if LEGACY_DETAILS_FILE.exists():
         records = json.loads(LEGACY_DETAILS_FILE.read_text()).get("places", {})
@@ -142,9 +138,7 @@ def place_match_rows(data: dict, place_ids: dict[str, str]) -> list[dict[str, st
                     "layer": properties.get("layer", ""),
                     "access_rating": properties.get("access_rating", ""),
                     "google_place_id": place_id,
-                    "atlas_feature_json": json.dumps(
-                        feature, ensure_ascii=False, separators=(",", ":")
-                    ),
+                    "atlas_feature_json": json.dumps(feature, ensure_ascii=False, separators=(",", ":")),
                 }
             )
     return rows

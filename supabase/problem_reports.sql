@@ -80,6 +80,29 @@ end $$;
 revoke all on function public.submit_problem_report from public;
 grant execute on function public.submit_problem_report to anon, authenticated;
 
+-- Delete my report: the browser that sent it knows both ids, nobody else does (the visitor sees only the short code).
+create or replace function public.delete_problem_report(p_report_id uuid, p_device_id uuid) returns boolean
+language plpgsql security definer set search_path = public as $$
+declare n int;
+begin
+  delete from problem_reports where id = p_report_id and device_id = p_device_id;
+  get diagnostics n = row_count;
+  return n > 0;
+end $$;
+revoke all on function public.delete_problem_report from public;
+grant execute on function public.delete_problem_report to anon, authenticated;
+
+-- Retention: reports are kept for 24 months. Run now and then (SQL editor), or schedule it with pg_cron.
+create or replace function public.purge_old_reports(p_months int default 24) returns int
+language plpgsql security definer set search_path = public as $$
+declare n int;
+begin
+  delete from problem_reports where created_at < now() - make_interval(months => p_months);
+  get diagnostics n = row_count;
+  return n;
+end $$;
+revoke all on function public.purge_old_reports from public, anon, authenticated;
+
 -- The page asks this before showing the button, so nobody sees a form that cannot save.
 create or replace function public.report_ping() returns text
 language sql stable as $$ select 'ok'::text $$;

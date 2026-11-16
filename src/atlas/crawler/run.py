@@ -117,7 +117,12 @@ def main(argv: list[str] | None = None) -> int:
     frontier = Frontier(frontier_path)
     rep = report_mod.build(frontier, getattr(spider, "close_reason", ""), spider.stopped_reason)
     rep.update(source=a.source, region=region, crawl_id=crawl_id)
+    rep["tos_restricted"] = (
+        spider.restricted
+    )  # sites whose terms forbid bots: ask for permission before any crawl of them
     report_mod.write(base / "report.json", rep)
+    if spider.restricted:
+        log.warning("[%s] terms forbid automated access: %s", a.source, ", ".join(spider.restricted))
     df = docs_mod.build(a.source, region, spec, frontier)
     log.info("[%s] %s: %d urls, %d fetched, %d documents, ended: %s", region, a.source, rep["total_urls"],
              rep["by_state"].get("fetched", 0), len(df), rep["ended"])  # fmt: skip

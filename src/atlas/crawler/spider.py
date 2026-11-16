@@ -18,7 +18,7 @@ from scrapy import Selector, signals
 from scrapy.exceptions import CloseSpider, IgnoreRequest
 
 from ..connectors.web import _clean_html
-from . import archive, read, relevance, urls
+from . import archive, read, relevance, tos, urls
 from .frontier import Frontier
 from .render import Renderer, render_signal
 
@@ -65,6 +65,11 @@ class AtlasSpider(scrapy.Spider):
             "host_patience", 0
         )  # drop a site after this many pages with nothing relevant (0 = never)
         self.host_hits, self.host_misses = Counter(), Counter()
+        self.tos_check = spec.get("tos_check", True)
+        self.tos_allow = set(spec.get("tos_allow", []))  # sites the lab has permission for
+        self.restricted = {
+            h: "listed in the spec (tos_restricted)" for h in spec.get("tos_restricted", [])
+        }  # host -> why
         self.over_budget = Counter()  # URLs not queued because their site used up its page budget
         self.languages = set(scope.get("languages", ["en"]))
         self.render_stats: dict[str, list[int]] = {}  # host -> [renders tried, renders that added text]
@@ -137,13 +142,16 @@ class AtlasSpider(scrapy.Spider):
                     origin + "/robots.txt", callback=self.parse_robots, errback=self.on_probe_error,
                     meta={"robots_probe": True, "dont_obey_robotstxt": True, "origin": origin, "handle_httpstatus_all": True}, dont_filter=True, priority=1000,
                 )  # fmt: skip
+            # the terms pages are always asked for (before the rest, priority 1000): their wording decides whether we may crawl
+            probes = [(p, 1000) for p in tos.TERMS_PATHS] if self.tos_check else []
             if self.discover["probe_paths"]:
-                for path in relevance.PROBE_PATHS:
-                    u = urls.normalize(origin + path)
-                    if u and self.frontier.add(
-                        u, host=urls.host_key(u), depth=1, via="probe", score=0.5, section=urls.section(u)
-                    ):
-                        yield self._req(u, 1, 0.5, 40, via="probe")
+                probes += [(p, 40) for p in relevance.PROBE_PATHS]
+            for path, prio in probes:
+                u = urls.normalize(origin + path)
+                if u and self.frontier.add(
+                    u, host=urls.host_key(u), depth=1, via="probe", score=0.5, section=urls.section(u)
+                ):
+                    yield self._req(u, 1, 0.5, prio, via="probe")
 
     def _req(
         self, url: str, depth: int, score: float, priority: int, callback=None, via: str = "link"
@@ -223,6 +231,9 @@ class AtlasSpider(scrapy.Spider):
         meta = response.meta
         depth = meta.get("atlas_depth", 0)
         status = response.status
+        if urls.host_key(url) in self.restricted and not tos.is_terms_url(url):
+            self.frontier.update(url, state="skipped", reason="terms forbid automated access")
+            return  # a site that forbids bots: nothing it sent is kept, including files already on their way
         if status == 304:
             self.frontier.update(url, state="unchanged", status=304, last_fetched=self._now())
             return
@@ -271,6 +282,20 @@ class AtlasSpider(scrapy.Spider):
             )  # a document: judged by its address
             return
         title, text, links = _clean_html(response.body, response.url)
+        host0 = urls.host_key(url)
+        if (
+            self.tos_check
+            and host0 not in self.tos_allow
+            and host0 not in self.restricted
+            and tos.is_terms_url(url)
+        ):
+            sentence = tos.forbids_bots(text)
+            if sentence:
+                self.restricted[host0] = f"{url}: {sentence[:300]}"
+                self.logger.warning("terms forbid automated access on %s; no more pages from it", host0)
+        if host0 in self.restricted:
+            self.frontier.update(url, state="skipped", reason="terms forbid automated access")
+            return  # nothing from this page is kept
         sel = response  # where to look for links: the plain page, or the rendered page below
         host = urls.host_key(url)
         plain_len = len(text.strip())
@@ -311,7 +336,9 @@ class AtlasSpider(scrapy.Spider):
         self.frontier.update(url, score=round(page_score, 3))
         self.recent.append(page_score)
         self.learn(url, page_score >= 0.1)
-        self.site_patience(urls.host_key(url), relevance.score_text(text) >= 0.05)  # what the page says, not how its address looks
+        self.site_patience(
+            urls.host_key(url), relevance.score_text(text) >= 0.05
+        )  # what the page says, not how its address looks
         self.check_adaptive_stop()
         if self.stopped_reason:
             raise CloseSpider(self.stopped_reason)
@@ -375,6 +402,8 @@ class AtlasSpider(scrapy.Spider):
             )  # the same page in another language: no new facts, and it eats the budget
         if (reason := urls.trap_reason(u, strict=k == "page")) and via != "sitemap":
             return skip(f"trap guard: {reason}")
+        if row["host"] in self.restricted:
+            return skip("terms forbid automated access")
         if self.host_count[row["host"]] >= self.per_host:
             self.over_budget[row["host"]] += (
                 1  # counted, not recorded: a huge sitemap must not flood the frontier
