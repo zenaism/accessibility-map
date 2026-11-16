@@ -64,6 +64,26 @@ expected_refresh_days:
   reddit: 30
 default_refresh_days: 180
 
+# How fast a fact goes stale: its confidence halves after this many days (decision D-27, a proposal to tune with data).
+# A closure notice is useless in weeks; a ramp stays true until the building is rebuilt.
+half_life_days:
+  temporary: 14        # closures, notices, outages, alerts, events
+  operational: 365     # programs, loans, hours, fees, policies, contacts, interpreters, captions
+  physical: 3650       # entrances, ramps, elevators, restrooms, surfaces, slopes (change when rebuilt)
+  default: 1095
+attribute_class:
+  temporary: [notice, closure_start_end, closure_reason, detour_info, elevator_status, event_start_end]
+  operational: [wheelchair_loan, scooter_or_ecv, companion_admission, accessibility_contact, mobility_device_policy,
+                sensory_friendly, asl_interpretation, captioning, audio_description, assistive_listening, quiet_room,
+                service_animals, large_print, braille, accessibility_map, mobility_service, all_terrain_chair,
+                adaptive_recreation, restroom_hours, restroom_fee, parking_cost, program_eligibility, equipment_loan_program,
+                paratransit_rules, reporting_channel, service_eligibility, wheelchair_seat_booking, event_cost,
+                event_registration, transit_access, drop_off]
+  physical: [entrance_step_free, automatic_door, elevator, accessible_route_inside, ramp_steep, restroom_accessible,
+             restroom_family, adult_changing_table, accessible_parking, accessible_seating, seating_rest, tactile,
+             trail_surface, trail_width, trail_grade, trail_length, trail_loop, trail_cross_slope, accessible_lodging,
+             curb_ramp_condition, driveway_condition, bus_stop_condition, aps_pushbutton]
+
 # Fact confidence (docs/system_overview.md 4.2)
 fact:
   corroboration_bonus: 0.15      # per independent agreeing source, up to max_corroborations
