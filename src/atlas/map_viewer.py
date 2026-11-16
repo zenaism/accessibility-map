@@ -14,6 +14,8 @@ import json
 import yaml
 
 from .core import ROOT
+from .report_ui import CSS as REPORT_CSS
+from .report_ui import JS as REPORT_JS
 
 RATINGS = {  # value -> (label, colour, symbol, glyph colour on the disc)
     "accessible": ("Accessible", "#0072B2", "✓", "#ffffff"),
@@ -203,6 +205,7 @@ TEMPLATE = r"""<!DOCTYPE html>
  .leaflet-popup-content .qr{border:0;padding:8px 0 0;margin-top:8px;border-top:1px solid var(--line);border-radius:0}
  .route{margin:.2rem 0 .6rem;padding-left:1.3rem} .route li{margin:.15rem 0}
  .note{font-size:.8rem;color:#555;margin:.2rem 0 .6rem} .side-body h4{margin:.8rem 0 .3rem;font-size:.95rem}
+__REPORT_CSS__
 </style></head><body>
 <a class="skip" href="#list-h">Skip to the list of places</a>
 <header>
@@ -232,6 +235,7 @@ TEMPLATE = r"""<!DOCTYPE html>
    <p id="status" role="status" aria-live="polite"></p>
    <ol id="list"></ol>
    <nav id="pager" class="pager" aria-label="Pages of places" hidden></nav>
+   <p class="rp-row" id="rp-map"></p>
   </div>
  </section>
  <section class="mapwrap" aria-label="Map. Visual companion: every place on the map is also in the list.">
@@ -537,7 +541,7 @@ function details(it){
   const issue = 'https://github.com/zenaism/accessibility-map/issues/new?title=' + encodeURIComponent('Report: ' + p.name)
     + '&body=' + encodeURIComponent(`Place: ${p.name}\nLink: ${placeUrl(it)}\n\nWhat is wrong or missing? (for example: ramp broken, restroom not accessible, new information)\n\n`);
   h += `<div class="links"><a class="btn ghost" href="places/${esc(p.region)}/${esc(p.link_id)}.html">Text-only page<span class="vh"> for ${esc(p.name)}</span></a><button type="button" class="ghost" data-a="copy">Copy link<span class="vh"> to ${esc(p.name)}</span></button>`
-    + `<a class="btn ghost" href="${issue}" target="_blank" rel="noopener">Report a problem<span class="vh"> with ${esc(p.name)} (opens GitHub in a new tab)</span></a></div>`;
+    + `<a class="btn ghost" data-report-fallback href="${issue}" target="_blank" rel="noopener">Report a problem<span class="vh"> with ${esc(p.name)} (opens GitHub in a new tab)</span></a><span class="rp-slot"></span></div>`;
   return h || '<p>No further details yet.</p>';
 }
 const ACCESS = {audio_description:'audio described', asl:'ASL interpreted', sensory_friendly:'sensory-friendly'};
@@ -607,6 +611,8 @@ function toggle(it, btn, force){
     const rb = box.querySelector('[data-a=route]'); if (rb) rb.onclick = () => showRoute(it);
     const rbb = box.querySelector('[data-a=route-blind]'); if (rbb) rbb.onclick = () => showRoute(it, true);
     const slot = box.querySelector('.qr-slot'); if (slot) slot.replaceWith(quickRate(it));
+    const rp = box.querySelector('.rp-slot'); if (rp && RATECFG) rp.replaceWith(reportButton({link_id:it.p.link_id, name:it.p.name, region:it.p.region}));
+    reportShow();   // swap the old GitHub link for the in-app form once the database is ready
   }
 }
 // the map shows the same places as the list (filters and search apply to both)
@@ -783,6 +789,7 @@ function popupContent(it){
     + `<p><button type="button" class="ghost" data-a="list">Details in the list</button></p>`;
   el.querySelector('[data-a=list]').onclick = () => openCard(it.i);
   if (canRate(it)) el.append(quickRate(it));
+  if (RATECFG) el.append(reportRow(it));
   return el;
 }
 // One tap on a star saves; the optional extras below are taps too, each saved straight away (same row, updated).
@@ -869,6 +876,7 @@ async function loadCommunity(linkId){
   } catch (e) { /* offline or blocked: the map works without visitor ratings */ }
 }
 loadCommunity();
+__REPORT_JS__
 // ---------- legend ----------
 document.getElementById('legend-body').innerHTML = '<ul>'
   + Object.entries(RATINGS).map(([k, r]) => `<li>${badge(k)}<span>${HELP[k]}</span></li>`).join('') + '</ul><ul>'
@@ -900,6 +908,8 @@ def render(
         .replace("__HELP__", json.dumps(RATING_HELP))
         .replace("__ICONS__", json.dumps(ICONS))
         .replace("__RATECFG__", json.dumps(ratings_config()))
+        .replace("__REPORT_CSS__", REPORT_CSS)
+        .replace("__REPORT_JS__", REPORT_JS)
     )
 
 

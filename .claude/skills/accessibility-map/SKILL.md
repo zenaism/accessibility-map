@@ -20,6 +20,7 @@ A multimodal data-fusion layer and assistant for wheelchair users, started for C
 - `config/categories.yaml`: every question category and how to fetch it (docs/categories.md is generated: `python scripts/make_categories_doc.py`). Add or change categories there.
 - Source tracker: `docs/source_inventory.md` and `data/source_inventory.csv` refresh automatically after every `atlas fetch`; `data/ledger/fetch_log.jsonl` is the append-only fetch history. Do not edit them by hand.
 - Phase 0 tools: `make cards` (dataset cards + trust rating in `data/cards/`), `make candidates` (rate discovered sources in `data/candidates/`), `make dictionary` (data dictionary + category list); code in `src/atlas/{schema,trust,cards,candidates}.py`, settings in `config/trust.yaml`. Schema v2 is produced by `schema.upgrade()`; connectors still write v1.
+- Problem reports: `src/atlas/report_ui.py` (form), `supabase/problem_reports.sql`, `scripts/export_reports.py`, `docs/problem_reports.md`. After changing the page template run `python scripts/rerender_maps.py` (re-renders the three map pages without rebuilding data); `make map` rebuilds all data and can change hundreds of files.
 - `SOURCES.md`: status of each source (collected, next, idea). `config/sources.yaml` and `config/regions.yaml`: the registry the pipeline reads.
 - `src/atlas/`: connectors, export, map, assistant (DuckDB knowledge base in `assistant/kb.py`). Commands: `make map`, `make kb`, `make inventory`, `make test`.
 
