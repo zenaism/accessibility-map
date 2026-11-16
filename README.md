@@ -2,7 +2,7 @@
 
 # Accessibility Map
 
-**Wheelchair and blind / low-vision access information for places across the US: collected, sourced, and mapped. Coverage so far: Cincinnati and Oxford, Ohio.**
+**Wheelchair and blind / low-vision access information for places across the US: collected, sourced, rated and mapped. Maps so far: Cincinnati and Oxford, Ohio; data collection also running for Washington DC, Dayton and Baltimore.**
 A Miami University research project.
 
 **Maps:** [Cincinnati](https://zenaism.github.io/accessibility-map/data/map/cincinnati.html) · [Oxford](https://zenaism.github.io/accessibility-map/data/map/oxford.html)
@@ -54,7 +54,15 @@ make extract     # turn saved pages into facts, trails and events
 make map         # build data/map; includes Google Places when configured
 make inventory   # refresh docs/source_inventory.md
 make test
+make cards        # dataset cards and trust rating per source -> data/cards/
+make archive      # one weather / alerts / transit snapshot per region (scripts/archive_loop.sh does it hourly)
+python -m atlas.cli region search "Dayton, Ohio"      # find and pin a new region
+python -m atlas.cli discover --region dayton          # find structured sources for it automatically
+python -m atlas.crawler.run <source> --spec-file config/crawl/<site>.json --region <r>   # crawl a website
+python -m atlas.cli extract <source> --region <r> [--llm]   # turn crawled text into quoted facts
 ```
+
+Start with [`docs/system_overview.md`](docs/system_overview.md) (how it works, pros and cons) and [`docs/README.md`](docs/README.md) (index of all docs).
 
 Downloaded and processed data stay on your computer (`data/raw`, `data/processed`); the map files, extracted facts and posters are in git.
 To show Google Places details in those same maps, configure `GOOGLE_MAPS_BROWSER_API_KEY` in `.env`
