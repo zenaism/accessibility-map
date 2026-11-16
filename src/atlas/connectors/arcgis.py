@@ -7,6 +7,7 @@ chunking works on old MapServers that do not support resultOffset pagination.
 from __future__ import annotations
 
 import json
+import re
 
 import geopandas as gpd
 import pandas as pd
@@ -20,6 +21,17 @@ def _query(url: str, **params) -> dict:
     if "error" in d:
         raise RuntimeError(f"{url}: {d['error']}")
     return d
+
+
+def _read_geojson(raw: bytes) -> gpd.GeoDataFrame | None:
+    """GeoJSON from an ArcGIS server. Some servers send control characters or NaN in text fields, which strict
+    readers refuse; try the fast reader first, then a tolerant parse."""
+    try:
+        return gpd.read_file(raw.decode())
+    except Exception:
+        text = re.sub(r"(?<![\w\"])NaN(?![\w\"])", "null", raw.decode("utf-8", "replace"))
+        feats = json.loads(text, strict=False).get("features") or []
+        return gpd.GeoDataFrame.from_features(feats, crs=WGS84) if feats else None
 
 
 def features(url: str, where: str, fields: list[str] | None, region: str) -> gpd.GeoDataFrame:
@@ -49,7 +61,7 @@ def features(url: str, where: str, fields: list[str] | None, region: str) -> gpd
                 "outSR": 4326,
             },
         )
-        g = gpd.read_file(gj.decode()) if gj.strip() else None
+        g = _read_geojson(gj) if gj.strip() else None
         if g is not None and not g.empty:
             frames.append(g)
     if not frames:

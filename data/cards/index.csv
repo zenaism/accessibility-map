@@ -12,6 +12,11 @@ oxford.slope_3dep,slope,True,3872,7744,USGS 3DEP (public domain),2026-11-07,8.0,
 cincinnati.slope_3dep_local,slope,True,20062,40124,USGS 3DEP (public domain),2026-11-07,8.0,95.3,A,
 oxford.slope_3dep_local,slope,True,3872,7744,USGS 3DEP (public domain),2026-11-07,8.0,95.3,A,
 cincinnati.slope_cagis,slope,False,0,0,CAGIS public data; confirm redistribution terms,,,0.0,D,not collected yet
+dc.dc_ada_curb_ramps,arcgis,True,34572,34572,"DC Open Data (DDOT ADA transition plan inventory, captured 2016), CC BY 4.0",2026-11-16,0.0,96.9,A,
+dc.dc_ada_driveways,arcgis,True,27901,27901,"DC Open Data (DDOT ADA transition plan inventory, captured 2016), CC BY 4.0",2026-11-16,0.0,96.8,A,
+dc.dc_ada_audible_signals,arcgis,True,7743,7743,"DC Open Data (DDOT ADA transition plan inventory, captured 2016), CC BY 4.0",2026-11-16,0.0,96.9,A,
+dc.dc_ada_barriers,arcgis,True,12826,12826,"DC Open Data (DDOT ADA transition plan inventory, captured 2016), CC BY 4.0",2026-11-16,0.0,96.8,A,
+dc.dc_ada_bus_stops,arcgis,True,3244,3244,"DC Open Data (DDOT ADA transition plan inventory, captured 2016), CC BY 4.0",2026-11-16,0.0,96.8,A,
 cincinnati.reddit,reddit,False,0,0,"Reddit Data API terms; store ids + hashed authors only, do not redistribute text",,,0.0,D,not collected yet
 oxford.reddit,reddit,False,0,0,"Reddit Data API terms; store ids + hashed authors only, do not redistribute text",,,0.0,D,not collected yet
 cincinnati.overture_places,overture,True,92859,0,CDLA-Permissive-2.0 / Apache-2.0 / ODbL by upstream dataset (see `datasets` column),2026-11-12,3.0,80.0,A,

@@ -1,0 +1,64 @@
+{
+  "schema": "atlas.dataset_card/1",
+  "id": "dc.dc_ada_bus_stops",
+  "source": "dc_ada_bus_stops",
+  "region": "dc",
+  "title": "dc ada bus stops",
+  "connector": "arcgis",
+  "publisher": "maps2.dcgis.dc.gov",
+  "url": "https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Transportation_ADA_WebMercator/MapServer/2",
+  "licence": "DC Open Data (DDOT ADA transition plan inventory, captured 2016), CC BY 4.0",
+  "collected": true,
+  "entities": 3244,
+  "observations": 3244,
+  "documents": 0,
+  "events": 0,
+  "attributes": {
+    "bus_stop_condition": 3244
+  },
+  "null_rates": {
+    "value": 0.0089,
+    "attribute": 0.0,
+    "lat": 0.0,
+    "lon": 0.0,
+    "observed_at": 0.0
+  },
+  "duplicates_share": 0.0,
+  "bbox": [
+    -77.11213,
+    38.8158,
+    -76.91081,
+    38.99169
+  ],
+  "observed_range": [
+    "2024-06-27",
+    "2024-06-27"
+  ],
+  "last_retrieved": "2026-11-16",
+  "failed_fetches": 0,
+  "robots_skipped": 0,
+  "pages_fetched": 0,
+  "age_days": 0,
+  "refresh_days": 365,
+  "trust": {
+    "score": 96.8,
+    "tier": "A",
+    "components": {
+      "authority": 0.9,
+      "provenance": 1.0,
+      "freshness": 1.0,
+      "completeness": 1.0,
+      "quality": 0.998,
+      "agreement": null,
+      "track_record": null
+    },
+    "used": [
+      "authority",
+      "provenance",
+      "freshness",
+      "completeness",
+      "quality"
+    ]
+  },
+  "known_issues": []
+}

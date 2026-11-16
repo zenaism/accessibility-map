@@ -14,6 +14,15 @@ import re
 SUPPORTS, LIMITED, BARRIER, UNKNOWN = "supports", "limited", "barrier", "unknown"
 
 _TABLES: dict[str, dict[str, str]] = {
+    # ADA inventory condition ratings (DC DDOT assessment): non-compliant or missing is a barrier
+    "condition": {"good": SUPPORTS, "fair": LIMITED, "non-compliant": BARRIER, "missing": BARRIER},
+    # audible pedestrian signal push buttons (DC): only the current type is accessible
+    "aps": {
+        "type c : compliant version with vibro-tactile and arrow": SUPPORTS,
+        "type c: compliant version with vibro-tactile and arrow": SUPPORTS,
+        "type b: 3-inch button (non-compliant)": LIMITED,
+        "type a : old version (non-compliant)": BARRIER,
+    },
     "yesno": {
         "yes": SUPPORTS,
         "designated": SUPPORTS,
@@ -88,6 +97,10 @@ _TABLES: dict[str, dict[str, str]] = {
 }
 
 _ATTRIBUTE_TABLE = {
+    "curb_ramp_condition": "condition",
+    "driveway_condition": "condition",
+    "bus_stop_condition": "condition",
+    "aps_pushbutton": "aps",
     "wheelchair": "yesno",
     "toilets:wheelchair": "yesno",
     "entrance:wheelchair": "yesno",

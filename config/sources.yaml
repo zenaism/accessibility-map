@@ -111,6 +111,57 @@ slope_cagis:          # second DEM for Cincinnati -> DEM agreement analysis
   step_m: 10
   license: CAGIS public data; confirm redistribution terms
 
+# ---- Washington, DC (DDOT ADA transition plan inventory, open data) ----------------------------------
+dc_ada_curb_ramps:
+  type: arcgis
+  regions: [dc]
+  url: https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Transportation_ADA_WebMercator/MapServer/3
+  where: "1=1"
+  fields: [OBJECTID, CONDITION, STATUS, YEAR_INSPECTED, ESTIMATED_YEAR_OF_IMPROVEMENT, LAST_EDITED_DATE]
+  entity: curb_ramp
+  observe: {attribute: curb_ramp_condition, value_field: CONDITION}
+  license: "DC Open Data (DDOT ADA transition plan inventory, captured 2016), CC BY 4.0"
+
+dc_ada_driveways:
+  type: arcgis
+  regions: [dc]
+  url: https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Transportation_ADA_WebMercator/MapServer/4
+  where: "1=1"
+  fields: [OBJECTID, CONDITION, STATUS, YEAR_INSPECTED, LAST_EDITED_DATE]
+  entity: path_segment
+  observe: {attribute: driveway_condition, value_field: CONDITION}
+  license: "DC Open Data (DDOT ADA transition plan inventory, captured 2016), CC BY 4.0"
+
+dc_ada_audible_signals:
+  type: arcgis
+  regions: [dc]
+  url: https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Transportation_ADA_WebMercator/MapServer/0
+  where: "1=1"
+  fields: [OBJECTID, PUSHBUTTON_TYPE, STATUS, YEAR_INSPECTED, LAST_EDITED_DATE]
+  entity: crossing
+  observe: {attribute: aps_pushbutton, value_field: PUSHBUTTON_TYPE}
+  license: "DC Open Data (DDOT ADA transition plan inventory, captured 2016), CC BY 4.0"
+
+dc_ada_barriers:
+  type: arcgis
+  regions: [dc]
+  url: https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Transportation_ADA_WebMercator/MapServer/1
+  where: "1=1"
+  fields: [OBJECTID, ASSET_TYPE, STATUS, YEAR_INSPECTED, LAST_EDITED_DATE]
+  entity: barrier
+  observe: {attribute: public_row_barrier, value_field: ASSET_TYPE, signal: barrier}
+  license: "DC Open Data (DDOT ADA transition plan inventory, captured 2016), CC BY 4.0"
+
+dc_ada_bus_stops:
+  type: arcgis
+  regions: [dc]
+  url: https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Transportation_ADA_WebMercator/MapServer/2
+  where: "1=1"
+  fields: [OBJECTID, CONDITION, NOTES, STATUS, YEAR_INSPECTED, LAST_EDITED_DATE]
+  entity: transit_stop
+  observe: {attribute: bus_stop_condition, value_field: CONDITION}
+  license: "DC Open Data (DDOT ADA transition plan inventory, captured 2016), CC BY 4.0"
+
 # ---- Text (needs credentials; not part of `fetch all`) -----------------------------
 reddit:
   type: reddit
