@@ -127,7 +127,7 @@ These show the automated discovery would find real, usable sources in each place
 - Project Sidewalk has a DC deployment (crowd labels).
 
 **Maryland**
-- *MDOT SHA Pedestrian Facilities* ArcGIS service: sidewalk ramps (points), sidewalks (lines), driveway crossings, median treatments, bus stops, vertical elevations along state-maintained roads. Maintained by the Office of Highway Development; no licence is stated in the item info, so ask GIS@mdot.maryland.gov. [service](https://maps.roads.maryland.gov/arcgis/rest/services/OHD_ADA/PedestrianFacilities_Maryland_MDOTSHA/MapServer)
+- **Correction 2026-11-16: the MDOT SHA service below now requires an access token (HTTP 499), so it is not openly fetchable; email the MDOT SHA GIS team (GIS@mdot.maryland.gov) or look for the same data on Maryland iMAP.** *MDOT SHA Pedestrian Facilities* ArcGIS service: sidewalk ramps (points), sidewalks (lines), driveway crossings, median treatments, bus stops, vertical elevations along state-maintained roads. Maintained by the Office of Highway Development; no licence is stated in the item info, so ask GIS@mdot.maryland.gov. [service](https://maps.roads.maryland.gov/arcgis/rest/services/OHD_ADA/PedestrianFacilities_Maryland_MDOTSHA/MapServer)
 - *Maryland Sidewalk Data Collaboration* (MDOT-led, with One Maryland One Centerline): a statewide sidewalk data effort worth contacting. [presentation](https://baltometro.org/sites/default/files/bmc_documents/committee/presentations/bpag/BPAG250716_OMOC-Sidewalk-Data-Collaboration.pdf)
 - *Baltimore County* publishes a pedestrian curb ramps layer with an ADA compliance attribute.
 - *OpenSidewalks/TDEI* has Baltimore County and Montgomery County data (see A).

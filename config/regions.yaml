@@ -20,3 +20,8 @@ dayton:
   osm_relation: 182954
   buffer_km: 20.0
   # area 147.1 km2; UTM zone EPSG:32616
+baltimore:
+  name: Baltimore, Maryland
+  osm_relation: 133345
+  buffer_km: 15.0
+  # area 238.1 km2; UTM zone EPSG:32618
