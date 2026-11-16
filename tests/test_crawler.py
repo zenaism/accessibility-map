@@ -145,3 +145,40 @@ def test_crawl_resumes_without_refetching(tmp_path):
             max(n for p, n in total.items() if p != "/flaky") == 1
         )  # /flaky is two requests by design: 429, then retry
         assert len(total) > len(part)
+
+
+def test_pages_the_sitemap_lists_are_fetched_even_with_no_keywords(tmp_path):
+    with Site() as site:
+        crawl(tmp_path, site, spec={"budget": {"pages": 12, "megabytes": 50}})
+        fetched = {p for p in site.paths() if p.startswith("/dir/place-")}
+        assert len(fetched) == 6  # all six directory pages, ahead of the 30 blog posts
+
+
+def test_stop_is_real_the_queue_is_not_drained(tmp_path):
+    with Site() as site:
+        rep = crawl(tmp_path, site, spec={"budget": {"pages": 5, "megabytes": 50}})
+        pages = [p for p in site.paths() if not p.startswith(("/img/", "/robots", "/sitemap"))]
+        assert len(pages) <= 15  # budget of 5 plus the (at most 8) requests already handed to the downloader
+        assert len(pages) < 40  # the site has far more pages: the queue was not drained
+        assert rep["ended"] == "page budget reached" and rep["unfinished_queued"] > 0
+
+
+def test_images_have_their_own_budget(tmp_path):
+    with Site() as site:
+        crawl(tmp_path, site, spec={"budget": {"pages": 40, "images": 3, "megabytes": 50}})
+        images = [p for p in site.paths() if p.startswith("/img/")]
+        assert 0 < len(images) <= 3
+        assert "/accessibility" in site.paths() and "/hidden-orphan" in site.paths()
+
+
+def test_pagination_does_not_count_toward_depth(tmp_path):
+    with Site() as site:
+        crawl(tmp_path, site, spec={"scope": {"depth": 3}})
+        assert "/list/page/8" in site.paths()  # eight pages deep, but each is just the next page of one listing
+
+
+def test_auto_budget_grows_with_the_sitemap(tmp_path):
+    with Site() as site:
+        rep = crawl(tmp_path, site, spec={"budget": {"pages": "auto", "auto_min": 3, "auto_max": 100, "megabytes": 50}})
+        assert len([p for p in site.paths() if p.startswith("/dir/place-")]) == 6  # the sitemap listed them: budget grew
+        assert rep["by_state"].get("fetched", 0) > 3

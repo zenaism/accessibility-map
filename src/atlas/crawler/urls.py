@@ -77,6 +77,12 @@ def section(url: str) -> str:
     return seg[0].lower() if seg else ""
 
 
+def family_key(url: str) -> str:
+    """First folder and path depth: pages of one kind on a site (all /restaurant/<name>/ pages) share a family."""
+    segs = [s for s in urlsplit(url).path.split("/") if s]
+    return f"{host_key(url)}/{segs[0].lower() if segs else ''}/{len(segs)}"
+
+
 def pattern_key(url: str) -> str:
     """The URL with digits and query values blanked: URLs that differ only in a number or id share a key."""
     p = urlsplit(url)

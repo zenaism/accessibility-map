@@ -49,7 +49,11 @@ def settings(spec: dict, jobdir: str, frontier: str, delay: float, allow_private
         "DOWNLOAD_MAXSIZE": 50 * 1024 * 1024,
         "REDIRECT_MAX_TIMES": 5,
         "DEPTH_LIMIT": 0,
-        "CLOSESPIDER_PAGECOUNT": budget.get("pages", 300),
+        "CLOSESPIDER_PAGECOUNT": (
+            budget.get("auto_max", 500) if budget.get("pages") == "auto" else budget.get("pages", 300)
+        )
+        + budget.get("images", 80)
+        + 100,  # hard safety cap
         "JOBDIR": jobdir,
         "LOG_LEVEL": "INFO",
         "ATLAS_FRONTIER": frontier,
@@ -78,7 +82,7 @@ def main(argv: list[str] | None = None) -> int:
     spec = json.loads(Path(a.spec_file).read_text()) if a.spec_file else config("sources")[a.source]
     region = a.region or spec["regions"][0]
     if a.max_pages:
-        spec.setdefault("budget", {})["pages"] = a.max_pages
+        spec.setdefault("budget", {})["pages"] = a.max_pages  # a fixed number overrides "auto"
     base = CRAWL / a.source
     jobdir = base / "jobdir"
     if a.fresh and jobdir.exists():
