@@ -214,7 +214,13 @@ Our position: we accept a harder build to get trustworthy, explainable answers. 
 | Trust engine (source and fact rating): scores, tiers, caps, fact confidence | ✅ built, version 0 (`trust.py`, `config/trust.yaml`); agreement and track record not measurable yet |
 | Completeness checks and gap queue | 🔵 planned |
 | Multimodal extraction with local models | 🔵 planned (partly done by hand for posters) |
-| Entity matching and fusion | 🔵 partly (place matching exists) |
+| Region resolver (boundary check, pinned relations); DC, Dayton and Baltimore added | ✅ built (`regions.py`) |
+| Automatic discovery of structured sources (ArcGIS Online, Data.gov) | ✅ built, version 0 (`discovery.py`; Socrata and website discovery still planned) |
+| Fact extraction (rules + local model, quote-checked, versioned) | ✅ built, version 0 (`extract/`); vision step for maps and posters ✅ version 0 |
+| Cross-source agreement (corroboration vs coverage) | ✅ first measurement for DC (`fusion.py`); Cincinnati and more pairs planned |
+| History archives (weather, weather alerts, transit alerts) | ✅ running hourly (`history.py`) |
+| "Report a problem" with photo | ✅ built; turns on after the SQL is run (`docs/problem_reports.md`) |
+| Entity matching of text facts to places | 🔵 planned (place matching for map exists) |
 | Dataset cards for every source and region; schema v2 with history; raw-fetch manifest; candidate-source table | ✅ built, version 0 (`make cards`, `make candidates`); release packaging still planned |
 | Agent loop with a local model | 🔵 planned |
 | Maryland, DC, Dayton data | 🔵 planned; first sources identified in `source_types.md` |

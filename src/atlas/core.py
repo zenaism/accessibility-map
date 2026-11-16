@@ -180,6 +180,8 @@ def save(region: str, source: str, entities: gpd.GeoDataFrame | None, obs: pd.Da
     d = out_dir(region)
     if entities is not None and not entities.empty:
         entities.to_parquet(d / f"{source}.entities.parquet")
+    if "attribute" not in obs:  # a source that found nothing still leaves a readable, empty table
+        obs = pd.DataFrame({c: pd.Series(dtype="object") for c in OBS_COLUMNS})
     obs.to_parquet(d / f"{source}.obs.parquet", index=False)
     log.info(
         "[%s] %s: %d entities, %d observations",
