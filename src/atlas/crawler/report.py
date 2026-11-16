@@ -11,7 +11,9 @@ from .frontier import Frontier
 def build(frontier: Frontier, close_reason: str = "", stopped: str | None = None) -> dict:
     counts = frontier.counts()
     rows = frontier.rows()
-    sitemap_rows = [r for r in rows if r["via"] == "sitemap"]
+    # pages skipped on purpose (other languages, off-site, unwanted types) are not "missed": leave them out of the coverage
+    sitemap_rows = [r for r in rows if r["via"] == "sitemap" and r["state"] != "skipped"]
+    sitemap_listed = sum(1 for r in rows if r["via"] == "sitemap")
     in_sm = len(sitemap_rows)
     got = sum(1 for r in sitemap_rows if r["state"] in ("fetched", "unchanged"))
     unfinished = counts.get("queued", 0)
@@ -22,7 +24,12 @@ def build(frontier: Frontier, close_reason: str = "", stopped: str | None = None
         "skipped_reasons": dict(frontier.reasons("skipped")),
         "failed_reasons": dict(frontier.reasons("failed")),
         "blocked_reasons": dict(frontier.reasons("blocked")),
-        "sitemap": {"urls": in_sm, "fetched": got, "coverage": round(got / in_sm, 3) if in_sm else None},
+        "sitemap": {
+            "urls": sitemap_listed,
+            "wanted": in_sm,
+            "fetched": got,
+            "coverage": round(got / in_sm, 3) if in_sm else None,
+        },
         "discovered_via": {
             v: sum(1 for r in rows if r["via"] == v) for v in sorted({r["via"] for r in rows if r["via"]})
         },

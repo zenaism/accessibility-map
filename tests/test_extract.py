@@ -202,3 +202,16 @@ def test_images_with_little_ocr_text_get_a_description_within_budget(monkeypatch
     assert first.method == "ocr+vision" and first.description["kind"] == "sign" and left == [0]
     second = docs.read_file(f, "image/png", "http://x/poster.png", [5], left)  # budget used up
     assert second.method == "ocr" and second.description == {}
+
+
+def test_questions_and_other_languages_are_not_facts():
+    assert rules.find("Is there tactile signage identifying the rest rooms in the building?") == []
+    assert (
+        rules.find(
+            "Pagkatapos dumaan sa ADA faregate, gumawa ng isang malawak na kaliwang U-Turn sa elevator na kumokonekta."
+        )
+        == []
+    )
+    assert rules.is_english("The main entrance is step-free and the elevator is on the left.")
+    assert not rules.is_english("Continúe hasta el final del vestíbulo del ascensor para llamar al ascensor.")
+    assert ("elevator", "yes") in vals("The elevator is located to the left of the visitor services desk.")
