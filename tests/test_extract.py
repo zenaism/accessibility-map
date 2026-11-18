@@ -253,3 +253,23 @@ def test_facts_are_tied_to_a_place_only_when_the_title_names_it():
         and out.loc[0, "entity_id"] == "overture:9"
         and pd.isna(out.loc[1, "entity_id"])
     )
+
+
+def test_new_patterns_and_no_match_on_guidelines():
+    assert ("entrance_step_free", "yes") in vals(
+        "The CAC's entrance is located at street level, in the middle of the building."
+    )
+    assert ("wheelchair_loan", "yes") in vals(
+        "Wheelchairs and Strollers are available to borrow for free in the coat rooms."
+    )
+    assert ("accessibility_contact", "yes") in vals("For help with your visit, please email accessinfo@go-metro.com or call us.")
+    assert ("accessible_parking", "yes") in vals(
+        "Handicapped parking spaces are located in the Washington Park Garage."
+    )
+    assert not any(
+        a == "accessibility_map"
+        for a, _ in vals("The Web Content Accessibility Guidelines (WCAG) are international standards.")
+    )
+    assert any(
+        a == "accessibility_map" for a, _ in vals("Download our accessibility guide before you visit.")
+    )
