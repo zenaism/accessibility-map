@@ -5,6 +5,7 @@ One topic per file. Where two files touch the same subject, the "owner" below is
 | File | What it is | Owner of |
 |---|---|---|
 | [`research_questions.md`](research_questions.md) | The four (revised) research questions, papers, venues, plan | RQs, paper plan, timeline |
+| [`improvement_plan.md`](improvement_plan.md) | Bugs and improvements found in the 2026-11-18 review, in the order to fix them | what to do next |
 | [`study_design.md`](study_design.md) | Method and threats to validity | how we test the RQs |
 | [`literature/`](literature/) | `literature_review.md` is the short synthesis with the gap map; `topic1` to `topic7` are the detailed notes behind it | related work |
 | [`national_data_plan.md`](national_data_plan.md) | Plan for automated, nationwide collection (draft) | discovery, fetching, storage, release format |
