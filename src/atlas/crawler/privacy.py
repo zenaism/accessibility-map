@@ -12,7 +12,7 @@ import re
 
 EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 ROLE = re.compile(
-    r"^(info|contact|hello|help|support|admin|office|ada|access|accessibility|disability|disabilities|events?|reservations?|"
+    r"^(info|contact|hello|help|support|admin|office|ada\w*|access\w*|disab\w*|events?|reservations?|"
     r"customer\w*|service\w*|webmaster|reception|front\w*|visit\w*|tours?|tickets?|box\w*|parking|transit|feedback|inquir\w*|"
     r"media|press|sales|booking|concierge|guest\w*)([._-]\w+)?$",
     re.I,

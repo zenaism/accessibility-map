@@ -16,6 +16,11 @@ entrance_step_free:
   - \bfully accessible\b
   - ramps? (that )?(lead|leads|to|onto|into)
   - accessible at the top of
+  - (street|ground)[- ]level (entrance|entry|entries|entrances)
+  - (entrance|entry|entries|entrances)[^.]{0,40}(is|are)( located)? (at )?(street|ground) level
+  - automatic (accessible )?doors? (is|are )?located
+  - entrance has an automatic door
+  - wheelchair[- ]accessible ramp
 automatic_door:
   any:
   - automatic (door|doors)
@@ -32,6 +37,9 @@ accessible_route_inside:
   - wheelchair[- ]accessible throughout
   - fully (wheelchair[- ])?accessible
   - all (floors|levels|exhibits) (are )?accessible
+  - (accessed|accessible|reached|reach) by wheelchair[^.]{0,60}(elevator|ramp|lift)
+  - wheelchair users? (need|must|should|can) (to )?use [^.]{0,40}(ramp|elevator|lift)
+  - wide enough for [^.]{0,30}wheelchairs?
 ramp_steep:
   any:
   - ramps? (is|are)? ?(steeper|steep)
@@ -44,6 +52,8 @@ restroom_accessible:
   - ada[- ]compliant restrooms?
   - restrooms?:?[^.]{0,60}(wheelchair|accessib)
   - (wheelchair|accessib)[^.]{0,40}restrooms?
+  - comfort stations?[^.]{0,60}accessib
+  - accessib[^.]{0,40}comfort stations?
 restroom_family:
   any:
   - family (restroom|restrooms|bathroom)
@@ -62,6 +72,9 @@ wheelchair_loan:
   - wheelchairs?[^.]{0,50}(rent|borrow|loan|free|\$)
   - wheelchair rentals?
   - (free|complimentary) wheelchair
+  - wheelchairs?[^.]{0,60}(available|offered)[^.]{0,30}(rent|borrow|loan|free|reserve)
+  - (providing|provides?|offers?) wheelchairs?
+  - wheelchairs? and (strollers|ecvs?|electric)[^.]{0,40}(available|borrow|rent)
 scooter_or_ecv:
   any:
   - scooters?\b
@@ -76,6 +89,10 @@ accessible_parking:
   - van[- ]accessible
   - ada parking
   - parking for (visitors with )?disabilit
+  - handicap(ped)? (parking )?spaces?
+  - parking (for|spaces for) (persons|people|guests|visitors) with (disabilit|mobility)
+  - (accessible|handicap\w*|disabled|ada) (parking )?spaces?
+  - parking for persons with disabilities
 drop_off:
   any:
   - drop[- ]?off
@@ -154,9 +171,9 @@ tactile:
   - touchable
 accessibility_map:
   any:
-  - accessibility (map|guide)
-  - access(ible)? guide
-  - accessible (map|route map)
+  - accessibility (map|guide)\b
+  - access(ible)? guide\b
+  - accessible (map|route map)\b
 accessibility_contact:
   any:
   - accessibility (coordinator|office|services|contact|questions)
@@ -168,6 +185,8 @@ accessibility_contact:
   - special accommodations
   - accessibility (text )?support line
   - guest (relations|services)[^.]{0,40}(accommodat|accessib)
+  - '[a-z0-9._-]*(access|ada\b|disab)[a-z0-9._-]*@[a-z0-9.-]+'
+  - questions or comments about accessibility
 transit_access:
   any:
   - wheelchair[- ]accessible (bus|buses|route|routes|transit|streetcar)
@@ -199,6 +218,8 @@ adaptive_recreation:
   - adaptive (kayak|golf|bike|cycl|sports?|recreation|equipment|paddl)
   - kayak launch
   - accessible (playground|fishing|kayak|boat)
+  - accessible (swimming )?pool
+  - adaptive programs?
 accessible_lodging:
   any:
   - roll[- ]in shower
