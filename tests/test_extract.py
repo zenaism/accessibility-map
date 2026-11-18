@@ -226,3 +226,30 @@ def test_patterns_do_not_match_inside_longer_words():
         "The north entrance has closures until the end of the month for repairs."
     )
     assert any(a == "elevator" for a, _ in vals("The elevator is located near the visitor services desk."))
+
+
+def test_facts_are_tied_to_a_place_only_when_the_title_names_it():
+    import pandas as pd
+
+    from atlas.extract import match
+
+    pl = pd.DataFrame({"entity_id": ["a", "b", "c", "d"], "layer": "x",
+                       "name": ["Oxford Lane Library", "Town Hall", "Capitol Hill Books", "Capitol Hill Bocks"]})  # fmt: skip
+    pl["key"] = pl.name.map(lambda s: " ".join(match.tokens(s)))
+    assert match.best("Opening hours | Oxford Lane Library", pl)[0] == "a"
+    assert (
+        match.best("Georgia Avenue Bus Priority Project - Virtual Town Hall", pl) is None
+    )  # the place name is only part of a longer title
+    assert match.best("Capitol Hill Boks", pl) is None  # two places match almost equally: no guess
+    assert match.best("Starbucks", pl) is None  # a single word is too weak
+    facts = pd.DataFrame({"doc_id": ["1", "2"], "url": "u", "place": ["Bob Evans", "Etiquette | odr"], "place_id": ["overture:9", None],
+                          "attribute": "elevator", "value": "yes", "evidence_quote": "q"})  # fmt: skip
+    import atlas.extract.match as m
+
+    m.places = lambda region: pl
+    out = m.link(facts, "x")
+    assert (
+        out.loc[0, "match_method"] == "seed"
+        and out.loc[0, "entity_id"] == "overture:9"
+        and pd.isna(out.loc[1, "entity_id"])
+    )

@@ -21,7 +21,10 @@ ROOT = Path(__file__).resolve().parents[2]
 RAW = Path(os.environ.get("ATLAS_RAW_DIR", ROOT / "data" / "raw"))
 PROCESSED = Path(os.environ.get("ATLAS_PROCESSED_DIR", ROOT / "data" / "processed"))
 CRAWL = Path(os.environ.get("ATLAS_CRAWL_DIR", ROOT / "data" / "crawl"))  # frontier, job state, reports
-USER_AGENT = "accessibility-map/0.1 (academic accessibility research, Miami University)"
+USER_AGENT = (
+    "accessibility-map/0.1 (+https://zenaism.github.io/accessibility-map/about-crawler.html; "
+    "academic accessibility research, Miami University)"
+)
 WGS84, METRIC = "EPSG:4326", "EPSG:32616"  # UTM 16N covers both regions
 
 log = logging.getLogger("atlas")
