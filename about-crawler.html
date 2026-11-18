@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About the accessibility-map crawler</title>
+<style>
+ body{font:17px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;color:#111827;max-width:42rem;margin:0 auto;padding:24px 16px 48px}
+ h1{font-size:1.6rem;line-height:1.25} h2{font-size:1.15rem;margin-top:1.8rem} a{color:#1d4ed8} code{background:#f3f4f6;padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+<main>
+<h1>About the accessibility-map crawler</h1>
+<p>If you run a website and saw <code>accessibility-map</code> in your server logs, this page explains who we are and how to stop us.</p>
+
+<h2>Who we are</h2>
+<p>A research project at Miami University that collects publicly available accessibility information (for example: step-free entrances, elevators, accessible restrooms and parking, transit access, events) to help wheelchair users and people who are blind or have low vision plan trips. The project code is open: <a href="https://github.com/zenaism/accessibility-map">github.com/zenaism/accessibility-map</a>.</p>
+
+<h2>What the crawler does</h2>
+<ul>
+ <li>Reads only public pages and documents. It never logs in, never fills in forms, and never gets around blocks or CAPTCHAs.</li>
+ <li>Obeys your <code>robots.txt</code>, including <code>Crawl-delay</code>, and waits between requests. It slows down or stops when your server answers with 429 or 503.</li>
+ <li>Checks your terms of use pages. If they forbid automated access, we stop and do not collect from your site unless you give permission.</li>
+ <li>Visits a small number of pages per site, starting with accessibility, visit and contact pages.</li>
+</ul>
+
+<h2>What we keep</h2>
+<ul>
+ <li>Short factual statements about accessibility (for example "the main entrance is step-free"), each with a quotation, a link back to your page and the date we read it.</li>
+ <li>Personal email addresses and personal phone numbers are removed. Business contact details that you publish are kept as facts about the place.</li>
+ <li>We do not publish copies of your pages.</li>
+</ul>
+
+<h2>How to stop us or correct a fact</h2>
+<p>Add this to your <code>robots.txt</code> and we will not visit your site:</p>
+<pre><code>User-agent: accessibility-map
+Disallow: /</code></pre>
+<p>To ask us to remove data we already hold about your site, or to correct a fact, <a href="https://github.com/zenaism/accessibility-map/issues/new?title=Crawler%20request">open an issue on GitHub</a> and name the site. We will stop crawling it and remove its data.</p>
+</main>
+</body>
+</html>

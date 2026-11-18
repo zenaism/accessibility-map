@@ -37,7 +37,7 @@ After changing the SQL, re-run `supabase/problem_reports.sql` in the Supabase SQ
 
 ## 4. Still open (needs people)
 
-1. **Crawler contact.** The User-Agent has no contact URL or email yet. Create a role address (not a personal one) and a short "about this crawler" page (what it is, what it collects, how to opt out) and put its address into `USER_AGENT` in `src/atlas/core.py`. This is the most important fix.
+1. **Crawler contact.** Done in part: the User-Agent now points to a public info and opt-out page (`about-crawler.html`, served by GitHub Pages) and site owners are told to open a GitHub issue. Still to decide: a role email address (not a personal one) to add to that page and to the User-Agent, and who answers the issues.
 2. **Counsel or library review** of releasing data derived from web pages, and whether Miami needs an IRB or compliance review for the report form's photos and contact details.
 3. **Retention rule.** 24 months is my proposal; the lab should confirm it.
 4. **Sites crawled before the terms check existed** (the 80 Oxford place pages, the DC and Dayton government sites) were crawled under robots.txt only. Government sites and public-agency pages are low risk; for the businesses, read the terms of any site whose facts we plan to publish.
