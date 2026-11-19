@@ -17,10 +17,16 @@ TERMS_PATHS = [
     "/terms-and-conditions",
     "/legal",
     "/legal/terms",
+    "/about/terms",
+    "/about/legal",
+    "/website-terms",
+    "/terms-of-use/",
+    "/policies/terms",
+    "/site-terms",
 ]
 TERMS_URL = re.compile(r"/(terms|tos|legal|conditions|user-agreement|website-use|site-use)([-_/.]|$)", re.I)
-ACTION = r"(?:scrap\w+|crawl\w*|spider\w*|robots?|bots?|data[- ]min\w+|harvest\w*|automated (?:means|tools?|access|queries|collection|systems?)|screen[- ]scrap\w+)"
-PROHIBIT = r"(?:may not|must not|shall not|not (?:to|permitted|allowed)|prohibit\w*|forbid\w*|unauthori[sz]ed|without (?:our |prior |express |written )+(?:consent|permission)|no )"
+ACTION = r"\b(?:scrap\w+|crawl\w*|spider\w*|robots?|bots?|data[- ]min\w+|harvest\w*|automated (?:means|tools?|access|queries|collection|systems?)|screen[- ]scrap\w+)\b"
+PROHIBIT = r"\b(?:may not|must not|shall not|do not|don['’]t|does not|cannot|can['’]t|never|not (?:to|permitted|allowed)|prohibit\w*|forbid\w*|unauthori[sz]ed|without (?:our |prior |express |written )+(?:consent|permission)|no)\b"
 # a prohibition and an automated-access word in the same sentence
 SENTENCE = re.compile(rf"[^.\n]*(?:{PROHIBIT}[^.\n]*{ACTION}|{ACTION}[^.\n]*{PROHIBIT})[^.\n]*", re.I)
 SAFE = re.compile(r"robots-file|search engine", re.I)  # "you may not ignore our robots.txt" is not a ban

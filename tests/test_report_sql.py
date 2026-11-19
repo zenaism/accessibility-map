@@ -49,11 +49,20 @@ def test_limits_match_the_form():
         and "t.length < 5" in JS
     )
     assert (
-        "octet_length(photo) <= 400000" in SQL and "blob.size <= 300000" in JS
+        "octet_length(v_photo) > 250000" in SQL and "blob.size <= 200000" in JS
     )  # the browser aims below the server's limit
     assert "\\xffd8ff" in SQL  # only JPEG data is accepted
 
 
-@pytest.mark.parametrize("word", ["p_website", "on conflict (id) do nothing", "interval '1 day'"])
+@pytest.mark.parametrize(
+    "word",
+    [
+        "p_website",
+        "on conflict (id) do nothing",
+        "interval '1 day'",
+        "interval '1 hour') >= 200",
+        "pg_advisory_xact_lock",
+    ],
+)
 def test_abuse_and_retry_protection_is_present(word):
     assert word in SQL

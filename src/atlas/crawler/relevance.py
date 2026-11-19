@@ -33,9 +33,18 @@ def keywords() -> tuple[str, ...]:
     return tuple(sorted(words, key=len, reverse=True))
 
 
+@cache
+def _patterns() -> tuple[re.Pattern, ...]:
+    # whole words only (an optional plural): "tip" must not match "participate", "ada" must not match "Canada"
+    return tuple(
+        re.compile(rf"(?<![a-z0-9]){re.escape(w.replace('-', ' ').replace('_', ' '))}(?:s|es)?(?![a-z0-9])")
+        for w in keywords()
+    )
+
+
 def _hits(text: str) -> int:
     t = text.lower().replace("-", " ").replace("_", " ")
-    return sum(1 for w in keywords() if w in t)
+    return sum(1 for p in _patterns() if p.search(t))
 
 
 def score_url(url: str, anchor: str = "", parent: float = 0.0) -> float:
@@ -54,7 +63,7 @@ def score_text(text: str) -> float:
     """Score after fetching: how many of our words appear, scaled by how long the page is."""
     if not text:
         return 0.0
-    words = max(len(text.split()), 1)
+    words = max(len(text.split()), 100)  # a four-word text cannot score full marks
     return round(min(1.0, _hits(text) * 1000 / words / 6), 3)
 
 

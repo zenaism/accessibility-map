@@ -75,6 +75,11 @@ def extract_docs(docs: pd.DataFrame, source: str, region: str, use_llm: bool = F
                 )
                 continue
             v = llm.verify(c.quote, c.attribute, c.value)
+            if v.get(
+                "error"
+            ):  # the model did not answer (Ollama down): this is a rules fact, not a model-checked one
+                rows.append(_row(d, source, region, c.attribute, c.value, "", c.quote, c.section, c.trigger, "rules", None, BASE_CONFIDENCE))  # fmt: skip
+                continue
             if v.get("states_fact") is False:
                 continue  # the model says it is a headline, a title or a general statement
             agree = v.get("value") == c.value

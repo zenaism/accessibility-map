@@ -7,7 +7,7 @@ Design choices (UX and accessibility):
     readers announce it as a dialog. Focus goes to the heading on open and back to the button on close.
   * Large tap targets (44 px or more), 16 px text (no zoom on phones), labels and hints tied to fields, errors named in words
     in a summary and next to the field, never by colour alone, and the text is kept if sending fails.
-  * Photo: "Take a photo" (phones open the camera) and "Choose a photo"; the photo is shrunk to about 300 KB and re-encoded in
+  * Photo: "Take a photo" (phones open the camera) and "Choose a photo"; the photo is shrunk to about 200 KB and re-encoded in
     the browser, which also removes location data, and a preview with a Remove button is shown.
   * Drafts are saved on the device while typing, so closing the dialog by accident loses nothing.
   * The button only appears once the database answers report_ping(), i.e. after supabase/problem_reports.sql has been run.
@@ -120,9 +120,9 @@ async function shrinkPhoto(file){
     const k = Math.min(1, max / Math.max(W, H)), cv = document.createElement('canvas');
     cv.width = Math.max(1, Math.round(W * k)); cv.height = Math.max(1, Math.round(H * k));
     const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height); g.drawImage(bmp, 0, 0, cv.width, cv.height);
-    for (const q of [0.8, 0.65, 0.5]){      // re-encoding drops all metadata, including GPS position
+    for (const q of [0.75, 0.6, 0.45, 0.35]){      // re-encoding drops all metadata, including GPS position
       const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', q));
-      if (blob && blob.size <= 300000) return blob;
+      if (blob && blob.size <= 200000) return blob;
     }
   }
   throw new Error('This photo is too large to send. Please try a smaller one.');
@@ -231,7 +231,7 @@ function openReport(ctx, opener){
       dlg.querySelectorAll('[data-x]').forEach(b => b.onclick = closeIt);
       dlg.querySelector('[data-del]').onclick = async ev => {
         const b = ev.currentTarget; b.disabled = true;
-        try { await deleteReport(S.id); dlg.querySelector('#rp-del-msg').textContent = 'Your report was deleted.'; b.hidden = true; }
+        try { const gone = await deleteReport(S.id); dlg.querySelector('#rp-del-msg').textContent = gone === true ? 'Your report was deleted.' : 'Nothing was deleted: the report may already be gone.'; b.hidden = true; }
         catch (e) { b.disabled = false; dlg.querySelector('#rp-del-msg').textContent = 'It could not be deleted just now. Please try again.'; }
       };
       dlg.querySelector('[data-again]').onclick = () => { closeIt(); setTimeout(() => openReport(ctx, opener), 0); };

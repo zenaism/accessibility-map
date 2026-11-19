@@ -123,6 +123,11 @@ def main(argv: list[str] | None = None) -> int:
     report_mod.write(base / "report.json", rep)
     if spider.restricted:
         log.warning("[%s] terms forbid automated access: %s", a.source, ", ".join(spider.restricted))
+    removed = docs_mod.purge_restricted(a.source, frontier)
+    if removed:
+        log.warning(
+            "[%s] deleted %d saved files from sites whose terms forbid automated access", a.source, removed
+        )
     df = docs_mod.build(a.source, region, spec, frontier)
     log.info("[%s] %s: %d urls, %d fetched, %d documents, ended: %s", region, a.source, rep["total_urls"],
              rep["by_state"].get("fetched", 0), len(df), rep["ended"])  # fmt: skip

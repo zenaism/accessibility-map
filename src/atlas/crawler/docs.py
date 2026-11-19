@@ -84,8 +84,9 @@ def build(source: str, region: str, spec: dict, frontier: Frontier) -> pd.DataFr
     docs = []
     ocr_left = [spec.get("budget", {}).get("ocr_images", 60)]
     vision_left = [spec.get("budget", {}).get("vision_images", 0)]  # off unless the crawl spec asks for it
+    restricted = frontier.restricted()  # sites whose terms forbid automated access keep nothing in the table
     for r in frontier.rows("fetched"):
-        if not r["content_sha"]:
+        if not r["content_sha"] or urls.host_key(r["url"]) in restricted:
             continue
         path = pick_file(source, r["content_sha"])
         if path is None:
@@ -136,3 +137,19 @@ def build(source: str, region: str, spec: dict, frontier: Frontier) -> pd.DataFr
         df["duplicate_urls"] = df["content_sha"].map(lambda s: json.dumps(also[s][1:]))
         df.to_parquet(out_dir(region) / f"{source}.docs.parquet", index=False)
     return df
+
+
+def purge_restricted(source: str, frontier: Frontier) -> int:
+    """Delete the saved raw files of sites whose terms forbid automated access (pages fetched before the ban was read)."""
+    restricted = frontier.restricted()
+    rows = frontier.rows("fetched")
+    keep = {r["content_sha"] for r in rows if urls.host_key(r["url"]) not in restricted and r["content_sha"]}
+    gone = 0
+    for r in rows:
+        sha = r["content_sha"]
+        if not sha or sha in keep or urls.host_key(r["url"]) not in restricted:
+            continue
+        for p in (archive.RAW / "web" / source).glob(f"{sha[:12]}.*"):
+            p.unlink(missing_ok=True)
+            gone += 1
+    return gone
