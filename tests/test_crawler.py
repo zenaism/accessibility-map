@@ -166,8 +166,8 @@ def test_stop_is_real_the_queue_is_not_drained(tmp_path):
         rep = crawl(tmp_path, site, spec={"budget": {"pages": 5, "megabytes": 50}})
         pages = [p for p in site.paths() if not p.startswith(("/img/", "/robots", "/sitemap"))]
         assert (
-            len(pages) <= 22
-        )  # budget of 5, six terms-page probes and the (at most 8) requests already handed to the downloader
+            len(pages) <= 28
+        )  # budget of 5, twelve terms-page probes and the (at most 8) requests already handed to the downloader
         assert len(pages) < 40  # the site has far more pages: the queue was not drained
         assert rep["ended"] == "page budget reached" and rep["unfinished_queued"] > 0
 
@@ -246,8 +246,8 @@ def test_each_site_gets_its_own_page_budget(tmp_path):
         )  # over-budget URLs are counted, not stored
         assert len(rows) < 120
         assert (
-            len(set(pages)) <= 6 + 12
-        )  # six queued pages plus probes, the robots/sitemap files and in-flight requests
+            len(set(pages)) <= 6 + 18
+        )  # six queued pages plus twelve terms probes, other probes, the robots/sitemap files and in-flight requests
 
 
 def test_pages_know_the_place_their_website_belongs_to(tmp_path):
@@ -345,3 +345,71 @@ def test_personal_data_is_removed_but_role_contacts_stay():
     assert "accessibility@city.gov" in out and "555-0100" in out
     row = privacy.scrub_row({"text": t, "sections": '[{"text": "mail bob@x.org"}]', "title": "t"})
     assert "bob@x.org" not in row["sections"] and "removed" in row["sections"]
+
+
+def test_relevance_matches_whole_words_only():
+    from atlas.crawler import relevance
+
+    assert relevance.score_text("Canada parade participate in the high school tipped over") == 0.0
+    assert relevance.score_text("Wheelchair accessible parking and a step-free entrance. " * 8) > 0.3
+
+
+def test_phones_and_emails_are_scrubbed_before_extraction_and_storage():
+    from atlas.crawler import privacy, read
+
+    text = "Front desk (614) 555-0100. Director cell: 513-555-0199. Call 937-555-0123 (mobile). Home | Contact (614) 555-0111"
+    phones = read.find_phones(text)
+    assert "(614) 555-0100" in phones and "(614) 555-0111" in phones
+    assert not any("0199" in p or "0123" in p for p in phones)
+    out = privacy.scrub(
+        "write adam@x.org or help.jsmith@x.org, or ada@x.org, accessibility.office@x.org, jsmith@\nx.org"
+    )
+    assert "adam@" not in out and "jsmith" not in out
+    assert "ada@x.org" in out and "accessibility.office@x.org" in out
+    row = privacy.scrub_row({"phones": '["(614) 555-0100", "cell 513-555-0199"]', "hours": "[]"})
+    assert "0199" not in row["phones"] and "0100" in row["phones"]
+
+
+def test_plain_bans_in_terms_are_found_and_lookalikes_are_not():
+    from atlas.crawler.tos import forbids_bots
+
+    assert forbids_bots("Do not scrape this site.")
+    assert forbids_bots("You don't use bots to copy pages.")
+    assert not forbids_bots("Robotics club meets Monday, do not be late.")
+    assert not forbids_bots("Our casino accepts no cash.")
+
+
+def test_a_redirect_is_followed_and_the_old_address_is_recorded(tmp_path):
+    spec = {
+        "seeds": ["/old"],
+        "discover": {"sitemaps": False, "feeds": False, "probe_paths": False},
+        "tos_check": False,
+        "scope": {"depth": 1},
+        "budget": {"pages": 5, "megabytes": 50},
+    }
+    with Site() as site:
+        crawl(tmp_path, site, name="redir", spec=spec)
+        assert "/accessibility" in site.paths()
+    rows = frontier_rows(tmp_path, "redir")
+    old = next(r for u, r in rows.items() if u == "old")
+    new = next(r for u, r in rows.items() if u == "accessibility")
+    assert old["state"] == "skipped" and "redirected to" in old["reason"]
+    assert new["state"] == "fetched" and new["parent"].endswith("/old")
+
+
+def test_a_banned_site_is_remembered_and_leaves_nothing_in_the_documents(tmp_path):
+    from atlas.crawler.frontier import Frontier
+
+    with Site() as site:
+        site.terms = "Do not scrape this site or use automated means to read it."
+        crawl(tmp_path, site, name="tosmem", delay="0.2")
+    f = Frontier(tmp_path / "crawl" / "tosmem" / "frontier.sqlite")
+    try:
+        assert f.restricted()  # kept in the frontier, so a resume or a fresh crawl still knows
+    finally:
+        f.close()
+    docs = list((tmp_path).rglob("documents*.parquet"))
+    if docs:
+        import pandas as pd
+
+        assert len(pd.read_parquet(docs[0])) == 0

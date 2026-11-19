@@ -11,22 +11,40 @@ import json
 import re
 
 EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
-ROLE = re.compile(
-    r"^(info|contact|hello|help|support|admin|office|ada\w*|access\w*|disab\w*|events?|reservations?|"
-    r"customer\w*|service\w*|webmaster|reception|front\w*|visit\w*|tours?|tickets?|box\w*|parking|transit|feedback|inquir\w*|"
-    r"media|press|sales|booking|concierge|guest\w*)([._-]\w+)?$",
+# A role address names a job or a service, not a person. Every part of the local name (split at . _ -) must be on this list:
+# "adam@" and "help.jsmith@" are people and are removed.
+ROLE_WORD = re.compile(
+    r"(?:info|information|contact|hello|help|support|admin|office|events?|reservations?|customers?|service|services|"
+    r"webmaster|reception|front|desk|visitors?|visit|tours?|tickets?|box|parking|transit|feedback|inquiries|inquiry|media|press|"
+    r"sales|booking|concierge|guest|guests|care|team|"
+    r"ada|adacoordinator|adaoffice|adainfo|adaservices?|access|accessibility|accessinfo|accessservices?|accessoffice|"
+    r"disabilit(?:y|ies)|disabilityservices|disabilityoffice|disabilityaccess|\d{1,3})",
     re.I,
 )
+WORDS = re.compile(r"[._-]")
+PHONE_NUM = r"\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}"
+LABEL = r"(?:cell|mobile|home|personal|private)"
+# "Cell: 614-555-0100", "Mobile phone 614...", and "614-555-0100 (cell)"; "Home | Contact (614)..." is a menu, not a label
 PERSONAL_PHONE = re.compile(
-    r"(?i)\b(?:cell|mobile|home|personal|private)\b[^\n]{0,20}?(?:\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4})"
+    rf"(?i)\b{LABEL}\b(?:\s+(?:phone|number|tel\w*))?\s*[:#\-–]?\s*{PHONE_NUM}|{PHONE_NUM}\s*[\[(]?\s*{LABEL}\b[\])]?"
 )
+# a mail address broken over two lines (PDF layout) is joined before it is read
+BROKEN_EMAIL = re.compile(r"([\w.%+-])[ \t]*\n[ \t]*(@)|(@)[ \t]*\n[ \t]*([\w-])")
+
+
+def is_role(local: str) -> bool:
+    parts = [p for p in WORDS.split(local) if p]
+    return bool(parts) and all(ROLE_WORD.fullmatch(p) for p in parts)
 
 
 def _email(m: re.Match) -> str:
-    return m.group(0) if ROLE.match(m.group(0).split("@")[0]) else "[email removed]"
+    return m.group(0) if is_role(m.group(0).split("@")[0]) else "[email removed]"
 
 
 def scrub(text: str) -> str:
+    text = BROKEN_EMAIL.sub(
+        lambda m: (m.group(1) + m.group(2)) if m.group(1) else (m.group(3) + m.group(4)), text
+    )
     text = EMAIL.sub(_email, text)
     return PERSONAL_PHONE.sub("[phone removed]", text)
 
@@ -53,6 +71,9 @@ def scrub_row(row: dict) -> dict:
     for k in ("title", "text"):
         if isinstance(row.get(k), str):
             row[k] = scrub(row[k])
+    for k in ("phones", "hours"):  # lists of strings stored as JSON
+        if isinstance(row.get(k), str):
+            row[k] = scrub_json(row[k])
     for k in ("sections", "tables", "structured", "access_snippets", "description"):
         if isinstance(row.get(k), str):
             row[k] = scrub_json(row[k])

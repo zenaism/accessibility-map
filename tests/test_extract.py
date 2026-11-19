@@ -128,6 +128,15 @@ def test_a_model_that_is_down_never_loses_the_rule_facts(monkeypatch):
     assert set(f.attribute) == {
         "entrance_step_free"
     }  # unknown verdict keeps the rule's fact (confidence stays modest)
+    assert set(f.method) == {"rules"} and f.model.isna().all()  # not labelled as checked by the model
+
+
+def test_a_half_written_cache_line_is_skipped(monkeypatch, tmp_path):
+    cache = tmp_path / "c.jsonl"
+    cache.write_text('{"key": "a", "answer": {"x": 1}}\n{"key": "b", "ans\n')
+    monkeypatch.setattr(llm, "CACHE", cache)
+    monkeypatch.setattr(llm, "_cache", None)
+    assert llm._load() == {"a": {"x": 1}}
 
 
 def test_config_files_agree_with_each_other():
@@ -262,7 +271,9 @@ def test_new_patterns_and_no_match_on_guidelines():
     assert ("wheelchair_loan", "yes") in vals(
         "Wheelchairs and Strollers are available to borrow for free in the coat rooms."
     )
-    assert ("accessibility_contact", "yes") in vals("For help with your visit, please email accessinfo@go-metro.com or call us.")
+    assert ("accessibility_contact", "yes") in vals(
+        "For help with your visit, please email accessinfo@go-metro.com or call us."
+    )
     assert ("accessible_parking", "yes") in vals(
         "Handicapped parking spaces are located in the Washington Park Garage."
     )
@@ -272,4 +283,53 @@ def test_new_patterns_and_no_match_on_guidelines():
     )
     assert any(
         a == "accessibility_map" for a, _ in vals("Download our accessibility guide before you visit.")
+    )
+
+
+def test_negation_anywhere_in_the_clause_flips_the_answer():
+    """Reviewed 2026-11-18: these sentences were stored as 'yes' (or 'no' for the exception)."""
+    assert ("entrance_step_free", "no") in vals("There is no step-free entrance to the building.")
+    assert ("restroom_accessible", "no") in vals("The restroom is not accessible to wheelchairs.")
+    assert ("wheelchair_loan", "no") in vals("Wheelchairs are not available to borrow here.")
+    assert ("service_animals", "yes") in vals("Dogs are not permitted, except service animals.")
+    assert ("entrance_step_free", "limited") in vals("Only the main entrance is step-free for visitors.")
+
+
+def test_a_no_that_is_part_of_the_fact_or_a_price_is_not_a_negation():
+    got = vals("The entrance has no steps and is fully accessible.")
+    assert ("entrance_step_free", "yes") in got and ("accessible_route_inside", "yes") in got
+    assert ("accessible_parking", "yes") in vals(
+        "Accessible parking is available at no cost next to the entrance."
+    )
+    assert ("entrance_step_free", "yes") in vals("The main entrance is step-free, but the side door is not.")
+
+
+def test_a_website_is_not_a_building():
+    assert not any(
+        a == "entrance_step_free" for a, _ in vals("Our website is fully accessible to screen readers.")
+    )
+
+
+def test_over_matching_rules_and_wrapped_lines():
+    """Reviewed 2026-11-18: each of these produced a false fact."""
+    assert not any(
+        a == "entrance_step_free"
+        for a, _ in vals("Trucks use the ramp to the loading dock behind the building.")
+    )
+    assert not any(
+        a == "scooter_or_ecv"
+        for a, _ in vals("Children's scooters and bikes are left outside by the families.")
+    )
+    assert not any(
+        a == "drop_off" for a, _ in vals("Please drop off your donations at the front desk during the week.")
+    )
+    assert not any(
+        a == "notice" for a, _ in vals("The cafe is closed for lunch between noon and one every weekday.")
+    )
+    assert not any(
+        a == "restroom_accessible"
+        for a, _ in vals("There are restrooms on the first floor; accessible seating is by the stage.")
+    )
+    assert ("restroom_accessible", "no") in vals(
+        "The restroom on the second floor is\nnot accessible to wheelchair users."
     )

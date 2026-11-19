@@ -35,9 +35,20 @@ class Frontier:
         cols = {r[1] for r in self.db.execute("PRAGMA table_info(urls)")}
         if "rendered" not in cols:  # older frontier files
             self.db.execute("ALTER TABLE urls ADD COLUMN rendered INTEGER DEFAULT 0")
+        # sites whose terms forbid automated access: remembered across resumed and fresh crawls
+        self.db.execute("CREATE TABLE IF NOT EXISTS restricted (host TEXT PRIMARY KEY, reason TEXT, at TEXT)")
         self.db.execute("CREATE INDEX IF NOT EXISTS ix_state ON urls(state)")
         self.db.execute("CREATE INDEX IF NOT EXISTS ix_pattern ON urls(pattern)")
         self.db.commit()
+
+    def restrict(self, host: str, reason: str) -> None:
+        self.db.execute(
+            "INSERT OR REPLACE INTO restricted (host, reason, at) VALUES (?, ?, ?)", (host, reason, now())
+        )
+        self.db.commit()
+
+    def restricted(self) -> dict[str, str]:
+        return dict(self.db.execute("SELECT host, reason FROM restricted").fetchall())
 
     def known(self, url: str) -> bool:
         return self.db.execute("SELECT 1 FROM urls WHERE url=?", (url,)).fetchone() is not None

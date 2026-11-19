@@ -2,22 +2,24 @@
 # One entry per attribute in config/attributes.yaml: `any` are regular expressions (case-insensitive) that mark a sentence
 # as possibly stating that attribute. The rules only PROPOSE a sentence; the polarity (yes / limited / no) is worked out
 # from the words around the match, and a local model may confirm or reject it. The sentence itself is the quote.
+#   skip_if: a regular expression; a sentence that matches it is not read for this attribute ("our website is fully accessible")
 #   positive_no: true  means words like "no" belong to the phrase ("no steps" is a positive fact for a step-free entrance)
 entrance_step_free:
   positive_no: true
+  skip_if: \b(web ?sites?|web ?pages?|online|web content|digital|pdfs?|documents?)\b
   any:
   - step[- ]free
-  - \bno steps?\b
+  - \bno steps?\b(?![- ]free)
   - level (entrance|access|entry)
   - ramp(ed)? (entrance|access|entry)
   - accessible (main |front |north |south |east |west )?(entrance|entry)
   - wheelchair[- ]accessible (main )?(entrance|entry)
   - (entrance|entry|entrances|doors?) (is|are) (fully )?(wheelchair )?accessible
   - \bfully accessible\b
-  - ramps? (that )?(lead|leads|to|onto|into)
+  - ramps? (that )?(lead|leads|to|onto|into)(?! (the )?(loading|dock|service|delivery|garage|stage|pool|basement))
   - accessible at the top of
   - (street|ground)[- ]level (entrance|entry|entries|entrances)
-  - (entrance|entry|entries|entrances)[^.]{0,40}(is|are)( located)? (at )?(street|ground) level
+  - (entrance|entry|entries|entrances)[^.;]{0,40}(is|are)( located)? (at )?(street|ground) level
   - automatic (accessible )?doors? (is|are )?located
   - entrance has an automatic door
   - wheelchair[- ]accessible ramp
@@ -32,14 +34,15 @@ elevator:
   - \belevators?\b
   - \blifts? (is|are|to|between)
 accessible_route_inside:
+  skip_if: \b(web ?sites?|web ?pages?|online|web content|digital|pdfs?|documents?)\b
   any:
   - accessible (route|path|exhibits?|areas?|galleries|floors?)
   - wheelchair[- ]accessible throughout
   - fully (wheelchair[- ])?accessible
   - all (floors|levels|exhibits) (are )?accessible
-  - (accessed|accessible|reached|reach) by wheelchair[^.]{0,60}(elevator|ramp|lift)
-  - wheelchair users? (need|must|should|can) (to )?use [^.]{0,40}(ramp|elevator|lift)
-  - wide enough for [^.]{0,30}wheelchairs?
+  - (accessed|accessible|reached|reach) by wheelchair[^.;]{0,60}(elevator|ramp|lift)
+  - wheelchair users? (need|must|should|can) (to )?use [^.;]{0,40}(ramp|elevator|lift)
+  - wide enough for [^.;]{0,30}wheelchairs?
 ramp_steep:
   any:
   - ramps? (is|are)? ?(steeper|steep)
@@ -50,10 +53,10 @@ restroom_accessible:
   - accessible (restroom|restrooms|bathroom|bathrooms|toilets?|stalls?)
   - wheelchair[- ]accessible (restroom|restrooms|bathroom|bathrooms|toilets?)
   - ada[- ]compliant restrooms?
-  - restrooms?:?[^.]{0,60}(wheelchair|accessib)
-  - (wheelchair|accessib)[^.]{0,40}restrooms?
-  - comfort stations?[^.]{0,60}accessib
-  - accessib[^.]{0,40}comfort stations?
+  - restrooms?:?[^.;]{0,60}(wheelchair|accessib)
+  - (wheelchair|accessib)[^.;]{0,40}restrooms?
+  - comfort stations?[^.;]{0,60}accessib
+  - accessib[^.;]{0,40}comfort stations?
 restroom_family:
   any:
   - family (restroom|restrooms|bathroom)
@@ -69,15 +72,16 @@ wheelchair_loan:
   - wheelchairs? (are |is |can be |may be )?(available|borrowed|loaned|rented|checked out|provided)
   - (loaner|loan|complimentary|free) wheelchairs?
   - wheelchair (loan|rental)
-  - wheelchairs?[^.]{0,50}(rent|borrow|loan|free|\$)
+  - wheelchairs?[^.;]{0,50}(rent|borrow|loan|free|\$)
   - wheelchair rentals?
   - (free|complimentary) wheelchair
-  - wheelchairs?[^.]{0,60}(available|offered)[^.]{0,30}(rent|borrow|loan|free|reserve)
+  - wheelchairs?[^.;]{0,60}(available|offered)[^.;]{0,30}(rent|borrow|loan|free|reserve)
   - (providing|provides?|offers?) wheelchairs?
-  - wheelchairs? and (strollers|ecvs?|electric)[^.]{0,40}(available|borrow|rent)
+  - wheelchairs? and (strollers|ecvs?|electric)[^.;]{0,40}(available|borrow|rent)
 scooter_or_ecv:
   any:
-  - scooters?\b
+  - (mobility|electric|motorized|power(ed)?|rental|rent a) scooters?\b
+  - scooters? (rental|rentals|available|allowed|permitted|parking|charging)
   - \becvs?\b
   - electric conveyance
   - motorized (cart|scooter|wheelchair)s?
@@ -95,7 +99,8 @@ accessible_parking:
   - parking for persons with disabilities
 drop_off:
   any:
-  - drop[- ]?off
+  - (passenger|loading|visitor|guest|accessible|curbside|vehicle|patron) (drop[- ]?off|pick[- ]?up)
+  - drop[- ]?off (zone|area|point|lane|location|spot|zones)
   - pick[- ]?up (zone|area|point)
 accessible_seating:
   any:
@@ -105,8 +110,8 @@ accessible_seating:
   - seating for (guests|patrons|visitors) (who use|using) wheelchairs
   - wheelchair[- ]accessible seats?
   - accommodate wheelchairs?
-  - wheelchairs?[^.]{0,40}seating
-  - seating[^.]{0,40}wheelchairs?
+  - wheelchairs?[^.;]{0,40}seating
+  - seating[^.;]{0,40}wheelchairs?
 companion_admission:
   any:
   - companion[s]? (is |are |gets? |receives? )?(free|admitted|discount)
@@ -180,11 +185,11 @@ accessibility_contact:
   - request (an )?(accommodation|accommodations)
   - ada coordinator
   - contact .{0,30}(accommodation|accessibility)
-  - contact [^.]{0,60}(accessibility|accommodations?)
+  - contact [^.;]{0,60}(accessibility|accommodations?)
   - \baccess(ibility)?@[a-z0-9.-]+
   - special accommodations
   - accessibility (text )?support line
-  - guest (relations|services)[^.]{0,40}(accommodat|accessib)
+  - guest (relations|services)[^.;]{0,40}(accommodat|accessib)
   - '[a-z0-9._-]*(access|ada\b|disab)[a-z0-9._-]*@[a-z0-9.-]+'
   - questions or comments about accessibility
 transit_access:
@@ -232,7 +237,8 @@ mobility_device_policy:
   - mobility devices? (are |is )?(allowed|permitted|prohibited|welcome)
 notice:
   any:
-  - (temporarily |currently )?closed (until|for|due|through)
+  - (temporarily |currently )?closed (until|due|through)
+  - closed for (renovations?|repairs?|maintenance|construction|cleaning|the (winter|season))
   - temporarily closed
   - closure
   - out of service

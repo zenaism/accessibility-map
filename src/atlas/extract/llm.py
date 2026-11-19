@@ -52,9 +52,13 @@ def _load() -> dict:
         _cache = {}
         if CACHE.exists():
             for line in CACHE.read_text().splitlines():
-                if line.strip():
+                if not line.strip():
+                    continue
+                try:
                     r = json.loads(line)
                     _cache[r["key"]] = r["answer"]
+                except (ValueError, KeyError):
+                    continue  # a half-written line (a crash while saving) must not stop extraction
     return _cache
 
 

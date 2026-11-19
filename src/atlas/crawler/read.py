@@ -17,7 +17,7 @@ from functools import cache
 
 from lxml import html as lxml_html
 
-from . import relevance
+from . import privacy, relevance
 
 MIN_IMAGE_SIDE = 300  # an image with no side this long is an icon or logo
 MIN_IMAGE_AREA = 40_000  # ...and so is one with fewer pixels than this (a wide banner can still be a sign)
@@ -88,6 +88,7 @@ def split_sections(markdown: str) -> list[dict]:
 
 
 def find_phones(text: str) -> list[str]:
+    text = privacy.scrub(text)  # a cell or home number is never extracted
     return sorted({f"({a}) {b}-{c}" for a, b, c in PHONE.findall(text)})[:10]
 
 

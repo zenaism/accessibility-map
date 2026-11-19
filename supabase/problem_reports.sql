@@ -11,7 +11,7 @@
 --   * problem_reports_review a view for the accessibility team in the Supabase dashboard (no photo bytes, so it is fast).
 --   * report_ping()          lets the page check that this script has been run before it shows the button.
 -- The photo is resized and stripped of location data in the visitor's browser, then stored in the row (JPEG, at most
--- 400 KB). The team views photos with scripts/export_reports.py (see docs/problem_reports.md).
+-- 250 KB). The team views photos with scripts/export_reports.py (see docs/problem_reports.md).
 -- No name, account or IP address is stored. The contact field is optional and only for follow-up questions.
 
 create table if not exists public.problem_reports (
@@ -56,17 +56,25 @@ begin
   if coalesce(p_website, '') <> '' then
     return upper(substr(p_report_id::text, 1, 8));               -- looks like a robot: pretend it worked, store nothing
   end if;
+  if exists (select 1 from problem_reports where id = p_report_id) then
+    return upper(substr(p_report_id::text, 1, 8));               -- a retry of a saved report: no new row, no rate check
+  end if;
+  perform pg_advisory_xact_lock(7001);                           -- one writer at a time, so the limits below cannot race
+  -- the device id is chosen by the browser, so a script can invent new ones: the global cap is what protects the free database
+  if (select count(*) from problem_reports where created_at > now() - interval '1 hour') >= 200 then
+    raise exception 'The report form is very busy right now; please try again in an hour.';
+  end if;
   if (select count(*) from problem_reports
         where device_id = p_device_id and created_at > now() - interval '1 day') >= 10 then
     raise exception 'Too many reports from this device today; please try again tomorrow.';
   end if;
   if p_photo_b64 is not null and p_photo_b64 <> '' then
-    if char_length(p_photo_b64) > 560000 then
+    if char_length(p_photo_b64) > 340000 then
       raise exception 'The photo is too large.';
     end if;
     v_photo := decode(p_photo_b64, 'base64');
-    if octet_length(v_photo) > 400000 or substring(v_photo from 1 for 3) <> '\xffd8ff'::bytea then
-      raise exception 'The photo must be a JPEG of at most 400 KB.';
+    if octet_length(v_photo) > 250000 or substring(v_photo from 1 for 3) <> '\xffd8ff'::bytea then
+      raise exception 'The photo must be a JPEG of at most 250 KB.';
     end if;
   end if;
   insert into problem_reports (id, link_id, place_name, region, category, description, contact,

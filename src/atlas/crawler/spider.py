@@ -24,6 +24,7 @@ from .render import Renderer, render_signal
 
 HTML = ("text/html", "application/xhtml")
 SITEMAP_PATHS = ["/sitemap.xml", "/sitemap_index.xml", "/wp-sitemap.xml"]
+REDIRECTS = (301, 302, 303, 307, 308)
 FEED_TYPES = ("application/rss+xml", "application/atom+xml", "text/calendar")
 
 
@@ -66,10 +67,15 @@ class AtlasSpider(scrapy.Spider):
         )  # drop a site after this many pages with nothing relevant (0 = never)
         self.host_hits, self.host_misses = Counter(), Counter()
         self.tos_check = spec.get("tos_check", True)
-        self.tos_allow = set(spec.get("tos_allow", []))  # sites the lab has permission for
+        self.tos_allow = {
+            urls.host_key(h) for h in spec.get("tos_allow", [])
+        }  # sites the lab has permission for
         self.restricted = {
-            h: "listed in the spec (tos_restricted)" for h in spec.get("tos_restricted", [])
-        }  # host -> why
+            urls.host_key(h): "listed in the spec (tos_restricted)" for h in spec.get("tos_restricted", [])
+        }  # host -> why; spec hosts like www.x.com are matched the way the crawler names hosts
+        for h, why in self.frontier.restricted().items():  # remembered from an earlier run
+            if h not in self.tos_allow:
+                self.restricted.setdefault(h, why)
         self.over_budget = Counter()  # URLs not queued because their site used up its page budget
         self.languages = set(scope.get("languages", ["en"]))
         self.render_stats: dict[str, list[int]] = {}  # host -> [renders tried, renders that added text]
@@ -129,12 +135,13 @@ class AtlasSpider(scrapy.Spider):
                     )
         hosts_done = set()
         for seed in self.seeds:
-            if self.frontier.add(
+            seed_new = self.frontier.add(
                 seed, host=urls.host_key(seed), depth=0, via="seed", score=1.0, section=urls.section(seed)
-            ):
-                yield self._req(seed, 0, 1.0, 100)
+            )
             origin = "{0.scheme}://{0.netloc}".format(urlsplit(seed))
             if origin in hosts_done:
+                if seed_new:
+                    yield self._req(seed, 0, 1.0, 100)
                 continue
             hosts_done.add(origin)
             if self.discover["sitemaps"]:
@@ -152,6 +159,44 @@ class AtlasSpider(scrapy.Spider):
                     u, host=urls.host_key(u), depth=1, via="probe", score=0.5, section=urls.section(u)
                 ):
                     yield self._req(u, 1, 0.5, prio, via="probe")
+            if (
+                seed_new
+            ):  # the seed goes after the terms probes of its site, so a ban is read before the page is kept
+                if urls.host_key(seed) in self.restricted:
+                    self.frontier.update(seed, state="skipped", reason="terms forbid automated access")
+                else:
+                    yield self._req(seed, 0, 1.0, 100)
+
+    def redirect(self, response):
+        """The request that follows a 3xx answer (handle_httpstatus_all turns Scrapy's own redirect handling off)."""
+        original = response.request.url
+        loc = response.headers.get("Location", b"").decode("latin1").strip()
+        target = urls.normalize(loc, response.url) if loc else None
+        hops = response.meta.get("redirects", 0) + 1
+
+        def stop(reason: str):
+            self.frontier.update(original, state="skipped", status=response.status, reason=reason)
+
+        if not target or hops > 5:
+            return stop("redirect without a usable target or too many redirects")
+        if not urls.in_scope(target, self.hosts):
+            return stop("redirected off-site")
+        if urls.host_key(target) in self.restricted and not tos.is_terms_url(target):
+            return stop("terms forbid automated access")
+        if self.frontier.known(target) and target != original:
+            return stop(f"redirected to {target}")
+        meta = {
+            k: v for k, v in response.meta.items()
+            if k in ("atlas_depth", "score", "via", "handle_httpstatus_all", "robots_probe", "sitemap", "origin", "dont_obey_robotstxt")
+        } | {"redirects": hops}  # fmt: skip
+        self.frontier.add(
+            target, host=urls.host_key(target), depth=response.meta.get("atlas_depth", 0), via=response.meta.get("via", "link"),
+            parent=original, score=response.meta.get("score", 0.0), section=urls.section(target), pattern=urls.pattern_key(target),
+        )  # fmt: skip
+        self.frontier.update(
+            original, state="skipped", status=response.status, reason=f"redirected to {target}"
+        )
+        return response.request.replace(url=target, meta=meta, dont_filter=True)
 
     def _req(
         self, url: str, depth: int, score: float, priority: int, callback=None, via: str = "link"
@@ -191,6 +236,10 @@ class AtlasSpider(scrapy.Spider):
     # ---- sitemaps ---------------------------------------------------------------------------------------------------
     def parse_sitemap(self, response):
         url = response.url
+        if response.status in REDIRECTS:
+            if req := self.redirect(response):
+                yield req
+            return
         if response.status != 200:
             self.frontier.update(
                 url, state="skipped", reason=f"no sitemap (HTTP {response.status})", status=response.status
@@ -234,6 +283,11 @@ class AtlasSpider(scrapy.Spider):
         if urls.host_key(url) in self.restricted and not tos.is_terms_url(url):
             self.frontier.update(url, state="skipped", reason="terms forbid automated access")
             return  # a site that forbids bots: nothing it sent is kept, including files already on their way
+        if status in REDIRECTS:
+            req = self.redirect(response)
+            if req:
+                yield req
+            return
         if status == 304:
             self.frontier.update(url, state="unchanged", status=304, last_fetched=self._now())
             return
@@ -292,6 +346,7 @@ class AtlasSpider(scrapy.Spider):
             sentence = tos.forbids_bots(text)
             if sentence:
                 self.restricted[host0] = f"{url}: {sentence[:300]}"
+                self.frontier.restrict(host0, self.restricted[host0])
                 self.logger.warning("terms forbid automated access on %s; no more pages from it", host0)
         if host0 in self.restricted:
             self.frontier.update(url, state="skipped", reason="terms forbid automated access")
