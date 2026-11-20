@@ -43,11 +43,14 @@
     for (let i = 0; i < m; i++) {
       cost[i] = E.cost[i] === null ? Infinity : E.cost[i];
       blind[i] = E.blind[i] === null ? Infinity : E.blind[i];
-      if (isFinite(cost[i])) {
+      if (isFinite(cost[i]) && E.len[i] > 0) {
+        // (zero-length edges exist in some networks; 0/0 would make the heuristic NaN)
         ratioW = Math.min(ratioW, cost[i] / E.len[i]);
         ratioB = Math.min(ratioB, blind[i] / E.len[i]);
       }
     }
+    if (!isFinite(ratioW)) ratioW = 0;
+    if (!isFinite(ratioB)) ratioB = 0;
     const u = Int32Array.from(E.u);
     const v = Int32Array.from(E.v);
     // adjacency in compressed form: edges of node i are adjEdge[adjStart[i] .. adjStart[i+1])

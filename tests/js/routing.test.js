@@ -89,3 +89,31 @@ test('snap agrees with a brute-force nearest search', opts, () => {
     else assert.equal(got.node, best);
   }
 });
+
+test('a zero-length edge (seen in Cincinnati) does not break the search heuristic', () => {
+  // four nodes in a row, ~111 m apart, with a zero-length edge in the middle
+  const g = core.loadGraph({
+    scale: 1e7,
+    lat0: 0.68,
+    classes: [],
+    flags: {},
+    names: [],
+    kinds: [],
+    nodes: { lon: [0, 0, 0, 0], lat: [0, 10000, 0, 10000] }, // 0, .001, .001, .002 degrees
+    edges: {
+      u: [0, 1, 2],
+      v: [1, 2, 3],
+      len: [111.2, 0, 111.2],
+      cost: [111.2, 0, 111.2],
+      blind: [111.2, 0, 111.2],
+      cls: [1, 1, 1],
+      name: [-1, -1, -1],
+      kind: [-1, -1, -1],
+      flags: [0, 0, 0],
+      grade: [null, null, null],
+    },
+  });
+  assert.ok(Number.isFinite(g.ratio.wheelchair) && Number.isFinite(g.ratio.blind));
+  const p = core.findPath(g, 0, 3, 'wheelchair');
+  assert.deepEqual(p.nodes, [0, 1, 2, 3]);
+});
