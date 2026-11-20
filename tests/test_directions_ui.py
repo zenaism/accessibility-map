@@ -68,6 +68,17 @@ def site(tmp_path_factory):
                     FIRST_CINCINNATI.setdefault(
                         "pt", [f["geometry"]["coordinates"][1], f["geometry"]["coordinates"][0]]
                     )
+    # a page where only Oxford has the panel (Cincinnati places then have no walking graph)
+    from atlas import map_viewer
+
+    data, title, nav = _page_data("index")
+    patched = map_viewer.ROUTING_JS.replace('"regions": ["oxford", "cincinnati"]', '"regions": ["oxford"]')
+    assert patched != map_viewer.ROUTING_JS
+    saved, map_viewer.ROUTING_JS = map_viewer.ROUTING_JS, patched
+    try:
+        (root / "oxford_only.html").write_text(render(data, title, nav))
+    finally:
+        map_viewer.ROUTING_JS = saved
     graph = ROOT / "data" / "map" / "routing" / "oxford.graph.json"
     if not graph.exists():
         export_routing.write("oxford")
@@ -423,7 +434,7 @@ def test_state_same_start_and_end(page):
 
 def test_state_unavailable_and_mixed_cities(browser, cdn, site):
     p = _new_page(browser, cdn, viewport={"width": 1280, "height": 800})
-    p.goto(f"{site}/index.html")
+    p.goto(f"{site}/oxford_only.html")
     p.wait_for_selector("#list .card", state="attached")
     cid = FIRST_CINCINNATI["id"]
     p.evaluate(
@@ -432,6 +443,10 @@ def test_state_unavailable_and_mixed_cities(browser, cdn, site):
     )
     wait_state(p, "unavailable")
     assert "not available for this area yet" in p.inner_text("#dp-alert")
+    p.goto(
+        f"{site}/index.html"
+    )  # both cities have a graph here: an Oxford start and a Cincinnati place do not mix
+    p.wait_for_selector("#list .card", state="attached")
     p.evaluate("([id]) => AtlasRouting.open({toPlaceId: id, fromLatLng: [39.5079, -84.7368]})", [cid])
     wait_state(p, "mixed")
     assert "different cities" in p.inner_text("#dp-alert")
