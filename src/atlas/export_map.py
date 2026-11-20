@@ -681,10 +681,9 @@ def write() -> list[Path]:
     for region in map_data:
         page = MAP / f"{region}.html"
         nav = (
-            f' · <a href="{other[region]}.html">Switch to the {other[region].title()} map</a>'
-            f' · <a href="places/{region}/index.html">All places A–Z (text only)</a>'
+            f'<a href="places/{region}/index.html">All places A–Z (text only)</a>'
             + (
-                f' · <a href="places/{region}/shows.html">Accessible shows by date</a>'
+                f'<a href="places/{region}/shows.html">Accessible shows by date</a>'
                 if any(
                     e.get("access")
                     for f in map_data[region]["features"]
@@ -698,6 +697,11 @@ def write() -> list[Path]:
                 {region: map_data[region]},
                 f"{region.title()} accessibility map",
                 nav,
+                (
+                    '<label class="vh" for="city">Switch map</label><select id="city" class="city">'
+                    f'<option value="{region}.html" selected>{region.title()}</option>'
+                    f'<option value="{other[region]}.html">{other[region].title()}</option></select>'
+                ),
             )
         )
         written.append(page)
