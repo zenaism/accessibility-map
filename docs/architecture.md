@@ -158,6 +158,8 @@ flowchart TB
 
 The model never answers from memory. It calls tools; the tools return records with sources; the answer is written only from those records.
 
+_Update 2026-11-20: with no funding for a hosted model, the assistant is built as a fixed pipeline (plan, run tools, compose, verify) with a rules version and a small-local-model version; see section 12 and [`assistant_build_spec.md`](assistant_build_spec.md). The diagram below shows the principle (tools first, sources on every claim), not the final design._
+
 ```mermaid
 sequenceDiagram
   actor User as Wheelchair user
@@ -329,3 +331,63 @@ flowchart LR
   classDef bad fill:#eeeeee,stroke:#777,color:#111
   class SKIP bad
 ```
+
+## 12. Delivery: from build to what people use (Openway Assistant and routing)
+
+How the pieces fit from collecting data to the screen. **Green = exists today, blue = planned** (see [`routing_in_browser_plan.md`](routing_in_browser_plan.md), [`assistant_plan.md`](assistant_plan.md) and [`assistant_build_spec.md`](assistant_build_spec.md)). First scope: **Cincinnati and Oxford**; nothing is Ohio-specific in the code, regions come from `config/regions.yaml`, so more regions can be added later.
+
+```mermaid
+flowchart TD
+  subgraph BUILD["Build time (laptop, run weekly with make refresh)"]
+    S["Sources<br/>OpenStreetMap, Overture, city data,<br/>venue websites, events, 311"]:::ext
+    C["Collect and read<br/>connectors and crawler"]:::built
+    F["Extract facts<br/>each with a quote and source"]:::built
+    T["Trust engine<br/>rates every source and fact"]:::built
+    KB[("Knowledge base<br/>DuckDB")]:::built
+    S --> C --> F --> T --> KB
+  end
+
+  subgraph EXPORT["Exported files (static)"]
+    E1["Map data and place pages<br/>GeoJSON, HTML"]:::built
+    E2["Walking network<br/>with costs per profile"]:::planned
+    E3["Assistant data<br/>places, facts, events"]:::planned
+  end
+  KB --> E1
+  KB --> E2
+  KB --> E3
+
+  subgraph SITE["Static website (GitHub Pages, free)"]
+    M["Map and list"]:::built
+    D["Directions panel<br/>route search in the browser"]:::planned
+    A["Openway Assistant<br/>guided mode, no model"]:::planned
+  end
+  E1 --> M
+  E2 --> D
+  E3 --> A
+  A -. "show on map" .-> M
+  A -. "route here" .-> D
+  M --> D
+  M --> RP["Report a problem<br/>Supabase"]:::built
+  A -.-> RP
+
+  subgraph LAB["Research stack (your laptop only)"]
+    P["Pipeline: plan, run tools,<br/>compose, verify"]:::planned
+    O["Small local model<br/>Ollama"]:::planned
+    EV["Evaluation<br/>question bank, trap tests"]:::planned
+    KB --> P
+    P <--> O
+    P --> EV
+  end
+
+  classDef built fill:#d4edda,stroke:#2e7d32,stroke-width:2px,color:#111
+  classDef planned fill:#e0f2fe,stroke:#0369a1,stroke-width:2px,color:#111
+  classDef ext fill:#eeeeee,stroke:#777,color:#111
+```
+
+Reading it:
+
+- **One build, three outputs.** The knowledge base feeds the map files, the walking network and the assistant data in the same build, so they never disagree.
+- **The public site needs no server and no paid model.** Routing and the assistant's guided mode run in the visitor's browser from the exported files, and questions never leave the device.
+- **The research stack is separate.** The same four-step pipeline runs on the laptop with a small local model, so we can measure what a model adds over rules alone.
+- **Answers lead to actions.** The assistant can show places on the map, open the Directions panel for a place, or open the report form.
+- **Freshness.** The site shows the snapshot date. Events and other fast-changing data are only as fresh as the last `make refresh`; a scheduled refresh is a pending decision.

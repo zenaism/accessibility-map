@@ -13,6 +13,11 @@ One topic per file. Where two files touch the same subject, the "owner" below is
 | [`categories.md`](categories.md) | Generated list of all question categories (trails, parking, restrooms, events, ...) with how to fetch each; source is `../config/categories.yaml` | what users ask about, drives fetching |
 | [`data_dictionary.md`](data_dictionary.md) | Generated: every column of the observation table (schema v2), the dataset card, candidate table and raw manifest | exact data formats |
 | [`crawler_plan.md`](crawler_plan.md) | Research and implementation plan for the web crawler (requirements, tool comparison, architecture, tests, phases) | how we fetch websites |
+| [`crawler_guide.md`](crawler_guide.md) | How to run the crawler, with a diagram, spec fields, example report, and where the data is saved | running the crawler |
+| [`implementation_plan.md`](implementation_plan.md) | The work order for routing and Openway Assistant: steps, order, checks, approval gates, what the first overnight run would produce (not started) | how the work will be done |
+| [`assistant_plan.md`](assistant_plan.md) | Product, UI ideas, architecture choices, build phases, evaluation, and how to build it in parallel with routing (not started) | planned assistant |
+| [`assistant_build_spec.md`](assistant_build_spec.md) | Technical spec for Openway Assistant: pipeline, what we use ($0 stack), files, evaluation variants (not started) | how the assistant will be built |
+| [`routing_in_browser_plan.md`](routing_in_browser_plan.md) | Step-by-step plan for place-to-place walking routes in the map page (not started) | planned routing feature |
 | [`data_needs.md`](data_needs.md) | All data we need: now, for computing, for prediction; what to keep from day one | data requirements and future use |
 | [`data_landscape.md`](data_landscape.md) | What users need and every way to get it, by acquisition method | acquisition strategy |
 | [`source_catalog.md`](source_catalog.md) | Researched candidate sources: what each adds, access, terms, priority | source reasoning |

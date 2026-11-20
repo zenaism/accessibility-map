@@ -19,6 +19,20 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-30: The assistant is a tool-first pipeline that runs without a paid model (2026-11-20, proposed)
+Decision: there is no funding for a hosted model, so (1) the assistant is built as a fixed pipeline of plan, run tools, compose, verify, with a rules version and a small-local-model version of the plan and compose steps; (2) the public version is a static "guided mode" with no model and no server (quick-ask tiles and a question matcher over exported data); (3) a local small model through Ollama is used for research, evaluation and demonstrations; (4) a hosted model is not used unless funding appears. Details: [`assistant_build_spec.md`](assistant_build_spec.md).
+Why: no budget (D-15). Small local models are poor at free-form tool use but acceptable at narrow, schema-constrained steps; the tools and the verifier, not the model, keep answers sourced. A static public version costs nothing, keeps questions on the device, and cannot invent facts.
+Alternatives: a hosted model through a proxy (best quality, needs money); a model in the visitor's browser (free but heavy on phones, kept as an experiment); free-tier APIs (limits and terms change, questions go to a third party); a free-form agent loop on a 3B model (unreliable).
+Costs / revisit if: free-text understanding in the public version is limited to what rules and the matcher cover; the research claim is about the design, so we must measure rules-only against model-assisted versions honestly; revisit if credits or funding appear.
+Basis: recorded (the user stated there is no funding on 2026-11-20; the architecture is proposed and not yet tested).
+
+### D-29: The assistant is named "Openway Assistant" (2026-11-20, accepted)
+Decision: the assistant's public name is Openway Assistant; the project and maps stay "Accessibility Map".
+Why: includes blind and low-vision users as well as wheelchair users, says what it does, not tied to Ohio. "Ramp Up" was rejected because it leaves out blind users and is a common phrase.
+Alternatives: Scout, Levelway, Waymark, Ramp Up.
+Costs / revisit if: a quick web search found two small accessibility projects already called Openway (an accessible travel app and a hackathon project); no trademark search was done. Check the USPTO database and ask the professor before publishing, and revisit if there is a conflict.
+Basis: recorded (user choice 2026-11-20; web search results).
+
 ### D-28: Agreement between sources is measured as corroboration, never as coverage (2026-11-16, accepted)
 **Decision:** the trust engine's "agreement" part is the share of what a crowd source *claims* that an independent source backs up within a distance (corroboration), computed by `fusion.py`. What a crowd map *lacks* (coverage) is reported but never lowers its score; the official inventory is not scored by agreement at all. First use, Washington DC: OSM lowered or flush kerbs are corroborated by the official curb-ramp inventory 89% of the time (15 m), audible-signal tags only 29% (25 m).
 **Why:** OpenStreetMap is incomplete by nature (it holds 28% of DC's inventoried ramps), so punishing it for what it does not contain would make every crowd source look bad; what matters for believing a claim is whether independent evidence supports it. Conflicts (624 inventory ramps rated "missing" where OSM maps a lowered kerb) are listed as leads, because either source can be out of date.

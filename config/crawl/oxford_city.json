@@ -1,0 +1,11 @@
+{
+  "regions": ["oxford"],
+  "author_type": "official",
+  "seeds": ["https://cityofoxford.org/"],
+  "scope": {"hosts": ["cityofoxford.org", "www.cityofoxford.org"], "depth": 4},
+  "budget": {"pages": 200, "images": 20, "megabytes": 400, "per_pattern": 30, "ocr_images": 15},
+  "assets": "all",
+  "discover": {"sitemaps": true, "feeds": true, "probe_paths": true},
+  "render": "auto",
+  "explore_share": 0.1
+}
