@@ -35,8 +35,15 @@ def run(base, region):
     graph = ROOT / "data" / "map" / "routing" / f"{region}.graph.json"
     raw = graph.read_bytes()
     out = {"region": region, "raw_mb": len(raw) / 1e6, "gzip_mb": len(gzip.compress(raw, 6)) / 1e6}
-    golden = json.loads((ROOT / "tests" / f"golden_routes_{region}.json").read_text()) if region == "oxford" else None
-    feats = {f["properties"]["name"]: f["properties"]["link_id"] for f in json.loads((ROOT / "data" / "map" / f"{region}_atlas.geojson").read_text())["features"]}
+    golden = (
+        json.loads((ROOT / "tests" / f"golden_routes_{region}.json").read_text())
+        if region == "oxford"
+        else None
+    )
+    feats = {
+        f["properties"]["name"]: f["properties"]["link_id"]
+        for f in json.loads((ROOT / "data" / "map" / f"{region}_atlas.geojson").read_text())["features"]
+    }
     cases = {}
     if not golden:  # other regions: pick place pairs about 0.4 km and about 5 km apart (the first that route)
         import math
@@ -62,18 +69,27 @@ def run(base, region):
         browser = p.chromium.launch()
         # CPU throttling applies to the page's main thread only, not to Web Workers; "main_thread" has no
         # Worker, so the same code runs on the (throttled) main thread: the worst case for a slow phone.
-        for label, rate, workers in (("laptop_worker", 1, True), ("cpu_x4_worker", 4, True), ("cpu_x4_main_thread", 4, False)):
+        for label, rate, workers in (
+            ("laptop_worker", 1, True),
+            ("cpu_x4_worker", 4, True),
+            ("cpu_x4_main_thread", 4, False),
+        ):
             ctx = browser.new_context(viewport={"width": 1280, "height": 800})
             if not workers:
                 ctx.add_init_script("window.Worker = undefined")
             page = ctx.new_page()
-            page.route("**/basemap.nationalmap.gov/**", lambda r: r.fulfill(status=200, content_type="image/png", body=PNG))
+            page.route(
+                "**/basemap.nationalmap.gov/**",
+                lambda r: r.fulfill(status=200, content_type="image/png", body=PNG),
+            )
             page.goto(f"{base}/{region}.html")
             page.wait_for_selector("#list .card", state="attached")
             cdp = ctx.new_cdp_session(page)
             cdp.send("Emulation.setCPUThrottlingRate", {"rate": rate})
             r = {}
-            r["panel_open_ms"] = page.evaluate("() => { const t = performance.now(); document.getElementById('dir-open').click(); return performance.now() - t; }")
+            r["panel_open_ms"] = page.evaluate(
+                "() => { const t = performance.now(); document.getElementById('dir-open').click(); return performance.now() - t; }"
+            )
             page.evaluate("AtlasRouting.close()")
             for name, spec in cases.items():
                 tries = spec if isinstance(spec, list) else [spec]
@@ -86,7 +102,13 @@ def run(base, region):
                     r[f"{name}_note"] = "no candidate pair routed"
                 if name == "short":
                     st = page.evaluate("AtlasRouting.stats")
-                    r.update(first_route_incl_download_ms=cold, download_parse_ms=st["loadMs"], graph_build_ms=st["buildMs"], nodes=st["nodes"], edges=st["edges"])
+                    r.update(
+                        first_route_incl_download_ms=cold,
+                        download_parse_ms=st["loadMs"],
+                        graph_build_ms=st["buildMs"],
+                        nodes=st["nodes"],
+                        edges=st["edges"],
+                    )
                 times = []
                 for _ in range(15):
                     page.evaluate("AtlasRouting.close()")
@@ -94,7 +116,9 @@ def run(base, region):
                     times.append(page.evaluate("AtlasRouting.stats.searchMs"))
                 r[f"search_{name}_ms_median"] = statistics.median(times)
                 r[f"search_{name}_ms_max"] = max(times)
-                r[f"result_{name}_feet"] = page.evaluate("AtlasRouting.result && AtlasRouting.result.length_feet")
+                r[f"result_{name}_feet"] = page.evaluate(
+                    "AtlasRouting.result && AtlasRouting.result.length_feet"
+                )
             out[label] = r
             ctx.close()
         browser.close()

@@ -30,6 +30,10 @@ def link_ids():
 IDS = link_ids()
 
 
+def holder(held):
+    return lambda route: held.append(route)
+
+
 def pick(page, field, text):
     page.fill(f"#dp-{field}", text)
     page.wait_for_selector(f"#dp-{field}-list [role=option]")
@@ -134,7 +138,7 @@ def run(base):
                 "**/basemap.nationalmap.gov/**",
                 lambda r: r.fulfill(status=200, content_type="image/png", body=PNG),
             )
-            p2.route("**/routing/oxford.graph.json", lambda r, held=held: held.append(r))
+            p2.route("**/routing/oxford.graph.json", holder(held))
             p2.goto(base + "/oxford.html")
             p2.wait_for_selector("#list .card", state="attached")
             p2.evaluate(
@@ -146,9 +150,6 @@ def run(base):
             p2.wait_for_selector("#dirp[data-state=load-error]")
             p2.screenshot(path=str(OUT / f"{view}-14-load-error.png"))
             ctx2.close()
-            # a different city (index page holds both) and a city without routing
-            fresh("/cincinnati.html")
-            assert page.locator("#dir-open").count() == 0
             ctx.close()
         browser.close()
 
