@@ -32,5 +32,10 @@ data/cache/
 
 # History archives (weather, alerts): kept locally, published through a data release, not git
 data/history/
+
+# Generated routing graphs (rebuilt by python -m atlas.export_routing)
+data/map/routing/
+# axe-core for accessibility tests (npm install --no-save --prefix ./.axe)
 .axe/
 eval/results/raw_*.json
+node_modules/
