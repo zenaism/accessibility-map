@@ -1,7 +1,8 @@
+# ruff: noqa: E501
 """Save screenshots of every Directions state (desktop 1280x800, phone 390x844) to docs/work_logs/screens/routing/.
 
-    scripts/serve_routing.sh &            # serves data/map on http://localhost:8001
-    PYTHONPATH=src python scripts/routing_screenshots.py [--base http://localhost:8001]
+scripts/serve_routing.sh &            # serves data/map on http://localhost:8001
+PYTHONPATH=src python scripts/routing_screenshots.py [--base http://localhost:8001]
 """
 
 import argparse
@@ -49,7 +50,10 @@ def run(base):
             phone = view == "phone"
             ctx = browser.new_context(viewport=size, has_touch=phone, is_mobile=phone)
             page = ctx.new_page()
-            page.route("**/basemap.nationalmap.gov/**", lambda r: r.fulfill(status=200, content_type="image/png", body=PNG))
+            page.route(
+                "**/basemap.nationalmap.gov/**",
+                lambda r: r.fulfill(status=200, content_type="image/png", body=PNG),
+            )
             held = []
 
             def shot(name, view=view, page=page):
@@ -126,11 +130,16 @@ def run(base):
             # loading (hold the graph request), then load failure
             ctx2 = browser.new_context(viewport=size, has_touch=phone, is_mobile=phone)
             p2 = ctx2.new_page()
-            p2.route("**/basemap.nationalmap.gov/**", lambda r: r.fulfill(status=200, content_type="image/png", body=PNG))
-            p2.route("**/routing/oxford.graph.json", lambda r: held.append(r))
+            p2.route(
+                "**/basemap.nationalmap.gov/**",
+                lambda r: r.fulfill(status=200, content_type="image/png", body=PNG),
+            )
+            p2.route("**/routing/oxford.graph.json", lambda r, held=held: held.append(r))
             p2.goto(base + "/oxford.html")
             p2.wait_for_selector("#list .card", state="attached")
-            p2.evaluate(f"AtlasRouting.open({json.dumps({'toPlaceId': IDS['Western Dining Commons'], 'fromLatLng': [39.5079, -84.7368]})})")
+            p2.evaluate(
+                f"AtlasRouting.open({json.dumps({'toPlaceId': IDS['Western Dining Commons'], 'fromLatLng': [39.5079, -84.7368]})})"
+            )
             p2.wait_for_selector("#dirp[data-state=loading]")
             p2.screenshot(path=str(OUT / f"{view}-13-loading.png"))
             held[0].fulfill(status=500, body="nope")
