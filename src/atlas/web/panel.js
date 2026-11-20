@@ -745,6 +745,7 @@ self.onmessage = async (e) => {
       el('dp-empty').textContent = S.from || S.to ? `Now choose ${S.from ? 'where you are going' : 'where you are starting'}.` : 'Choose where you are starting and where you are going.';
       return;
     }
+    fit([S.from.pt, S.to.pt], 17); // both ends in view, whatever happens next
     const sameSpot =
       (S.from.kind === 'place' && S.to.kind === 'place' && S.from.it === S.to.it) ||
       Math.hypot((S.from.pt[0] - S.to.pt[0]) * 111320, (S.from.pt[1] - S.to.pt[1]) * 85000) < 8;
@@ -839,7 +840,7 @@ self.onmessage = async (e) => {
     S.model = { result: r, fromName, toName, doorNote: doorNote(), link: null };
     const sum = el('dp-sum-h');
     sum.textContent = `${U.timeText(r.length_feet)[0].toUpperCase()}${U.timeText(r.length_feet).slice(1)} · ${U.distText(r.length_feet)}`;
-    el('dp-fromto').innerHTML = `<span class="vh">Route </span>${esc(fromName)} <span aria-hidden="true">→</span><span class="vh"> to </span> ${esc(toName)}`;
+    el('dp-fromto').innerHTML = `<span class="vh">Route </span>${esc(fromName)} <span aria-hidden="true">→</span><span class="vh"> to </span> ${esc(toName)}<br><span class="dp-prof">${U.PROFILE_LABEL[S.profile]} route</span>`;
     const facts = [`<li class="ok">${svg('check')}<span>No stairs</span></li>`, `<li>${svg('cross')}<span>${esc(r.crossings_text)}</span></li>`];
     if (r.steep_sections) facts.push(`<li class="warn">${svg('warn')}<span><strong>Caution:</strong> ${r.steep_sections} short section${r.steep_sections > 1 ? 's' : ''} steeper than a ramp</span></li>`);
     if (r.road_without_sidewalk_feet > 50) facts.push(`<li class="warn">${svg('warn')}<span><strong>Caution:</strong> about ${r.road_without_sidewalk_feet} feet on a road with no sidewalk mapped</span></li>`);
@@ -862,7 +863,8 @@ self.onmessage = async (e) => {
     el('dp-stepof').textContent = `${r.stepList.length + 1} steps`;
     el('dp-google').href = U.googleUrl(S.from.pt, S.to.pt);
     attachReport(el('dp-report-slot'));
-    setSteps(true);
+    if (!S.keepHeight) S.height = PHONE.matches ? 'summary' : 'steps'; // phone: map first, steps one tap away
+    setSteps(S.height !== 'summary');
     el('dp-result').hidden = false;
     drawRoute(r);
     fit(r.line.map((c) => [c[1], c[0]]));
@@ -920,8 +922,12 @@ self.onmessage = async (e) => {
     el('dp-expand').textContent = S.height === 'full' ? 'Smaller list' : 'Full list';
     if (PHONE.matches && S.result) requestAnimationFrame(() => fit(S.result.line.map((c) => [c[1], c[0]])));
   }
-  el('dp-toggle-steps').onclick = () => setSteps(S.height === 'summary');
+  el('dp-toggle-steps').onclick = () => {
+    S.keepHeight = true;
+    setSteps(S.height === 'summary');
+  };
   el('dp-expand').onclick = () => {
+    S.keepHeight = true;
     S.height = S.height === 'full' ? 'steps' : 'full';
     setSteps(true);
   };
@@ -1147,6 +1153,9 @@ self.onmessage = async (e) => {
     stats,
     get state() {
       return S.state;
+    },
+    get result() {
+      return S.result;
     },
   };
   window.addEventListener('atlas:route-to', (e) => {
