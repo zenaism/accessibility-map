@@ -722,3 +722,14 @@ def test_short_wide_screen_phone_landscape_shows_the_route_first(browser, cdn, s
     assert p.is_visible("#dp-from")
     assert p.errors == [], p.errors
     p.context.close()
+
+
+def test_chat_closes_when_it_sends_you_to_directions_on_a_phone(phone):
+    phone.tap("#ask-open")
+    phone.wait_for_selector("#ow-panel:not([hidden])")
+    pid = PLACES["Western Dining Commons"]
+    phone.evaluate("pid => window.dispatchEvent(new CustomEvent('atlas:route-to', {detail: {placeId: pid}}))", pid)
+    wait_state(phone, "locate-ask")
+    assert phone.is_hidden("#ow-panel")
+    top = phone.evaluate("(() => { const r = document.getElementById('dirp').getBoundingClientRect(); return !!document.elementFromPoint(195, r.top + 40).closest('#dirp'); })()")
+    assert top  # the Directions sheet is what you see, not the chat

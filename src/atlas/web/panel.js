@@ -1055,6 +1055,12 @@ self.onmessage = async (e) => {
     document.body.classList.add('dp-open');
     const side = document.getElementById('side');
     if (side) side.inert = true;
+    // the chat assistant (a full-screen panel on phones, 440 px wide on tablets) would cover or crowd this panel
+    const chat = document.getElementById('ow-panel');
+    if (chat && !chat.hidden && window.matchMedia('(max-width: 1000px)').matches) {
+      const x = chat.querySelector('button[aria-label^="Close"]');
+      if (x) x.click();
+    }
     if (PHONE.matches) ctx.setSheet(false);
     else ctx.setList(true);
     if (o.profile) {
