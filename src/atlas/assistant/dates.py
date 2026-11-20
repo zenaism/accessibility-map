@@ -90,7 +90,9 @@ def parse_when(text: str, today: str) -> dict | None:
     if has("this year"):
         return _span("this year", d0, date(d0.year, 12, 31))
     for i, name in enumerate(MONTHS):
-        if has(name) or (name != "may" and has(name[:3])) or (name == "may" and has("in may")):
+        if (name != "may" and (has(name) or has(name[:3]))) or (
+            name == "may" and (has("in may") or has("this may") or has("next may"))
+        ):
             y = d0.year + (i + 1 < d0.month)
             first = date(y, i + 1, 1)
             return _span(

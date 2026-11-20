@@ -8,6 +8,13 @@
   const need = n => g.Openway[n] || require('./' + n + '.js');
   const tools = need('tools'), P = need('planner'), C = need('composer'), V = need('verify');
 
+  function scrubPlan(pl) {
+    if (!pl) return pl;
+    const out = Object.assign({}, pl, { args: Object.assign({}, pl.args) });
+    delete out.args.from_lat; delete out.args.from_lon;
+    if (pl.anchor && pl.anchor.name === 'your location') { out.anchor = { name: 'your location' }; delete out.args.lat; delete out.args.lon; }
+    return out;
+  }
   function toEvents(a) {
     const ev = [];
     if (a.clarify) ev.push(Object.assign({ type: 'clarify' }, a.clarify));
@@ -18,7 +25,7 @@
     if (a.call) ev.push(Object.assign({ type: 'call' }, a.call));
     if (a.unknown.length || ['unknown', 'no_data', 'out_of_area'].includes(a.kind)) ev.push({ type: 'unknown', about: a.unknown.slice(), call: a.call });
     if (a.sources.length) ev.push({ type: 'sources', items: a.sources });
-    ev.push({ type: 'meta', as_of: a.as_of, notes: a.notes, plan: a.plan, engine: a.engine });
+    ev.push({ type: 'meta', as_of: a.as_of, notes: a.notes, plan: scrubPlan(a.plan), engine: a.engine });
     ev.push({ type: 'done', verified: a.verified, removed: a.removed });
     return ev;
   }
@@ -79,7 +86,7 @@
       }
     }
   };
-  const E = { GuidedEngine, LocalEngine, toEvents };
+  const E = { GuidedEngine, LocalEngine, toEvents, scrubPlan };
   O.engine = E;
   if (typeof module !== 'undefined') module.exports = E;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

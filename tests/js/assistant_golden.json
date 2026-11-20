@@ -5458,7 +5458,16 @@
 "today": "2026-11-20"
 },
 "expected": {
-"actions": [],
+"actions": [
+{
+"ids": [
+"center-for-performing-arts-86279",
+"krohn-conservatory-b6dc8",
+"shideler-hall-ca10a"
+],
+"type": "show_on_map"
+}
+],
 "as_of": "2026-11-13",
 "call": null,
 "cards": [
@@ -5467,15 +5476,15 @@
 "distance_text": null,
 "event": {
 "access": [],
-"start": "2026-11-21T00:00",
-"title": "Friday Public Skate",
-"url": "https://events.miamioh.edu/event/friday-public-skate-3551",
-"when_text": "Saturday 21 November"
+"start": "2026-11-20T00:30",
+"title": "Ian Kennedy Student Recital",
+"url": "https://events.miamioh.edu/event/ian-kennedy-student-recital",
+"when_text": "Friday 20 November"
 },
 "facts": [],
-"name": "Goggin Ice Center",
+"name": "Center for Performing Arts",
 "phone": null,
-"place_id": "goggin-ice-center-14d9f",
+"place_id": "center-for-performing-arts-86279",
 "rating": "unknown"
 },
 {
@@ -5483,15 +5492,15 @@
 "distance_text": null,
 "event": {
 "access": [],
-"start": "2026-11-28T00:00",
-"title": "Friday Public Skate",
-"url": "https://events.miamioh.edu/event/friday-public-skate-3551",
-"when_text": "Saturday 28 November"
+"start": "2026-11-20T00:30",
+"title": "The Last Five Years",
+"url": "https://events.miamioh.edu/event/the-last-five-years",
+"when_text": "Friday 20 November"
 },
 "facts": [],
-"name": "Goggin Ice Center",
+"name": "Center for Performing Arts",
 "phone": null,
-"place_id": "goggin-ice-center-14d9f",
+"place_id": "center-for-performing-arts-86279",
 "rating": "unknown"
 },
 {
@@ -5499,32 +5508,34 @@
 "distance_text": null,
 "event": {
 "access": [],
-"start": "2026-12-05T00:00",
-"title": "Friday Public Skate",
-"url": "https://events.miamioh.edu/event/friday-public-skate-3551",
-"when_text": "Saturday 5 December"
+"start": "2026-11-20T10:00",
+"title": "A Spider's Gift",
+"url": "https://www.cincinnati-oh.gov/cincyparks/visit-a-park/parks-events-calendar/a-spiders-gift/",
+"when_text": "Friday 20 November, 10:00 am"
 },
 "facts": [],
-"name": "Goggin Ice Center",
+"name": "Krohn Conservatory",
 "phone": null,
-"place_id": "goggin-ice-center-14d9f",
-"rating": "unknown"
+"place_id": "krohn-conservatory-b6dc8",
+"rating": "partial"
 }
 ],
 "details": [
-"Events data was last updated 13 November 2026. It is a snapshot, so check with the venue."
+"The Last Five Years, Friday 20 November, at Center for Performing Arts.",
+"A Spider's Gift, Friday 20 November, 10:00 am, at Krohn Conservatory.",
+"A Spider's Gift: Movie Night at Krohn Conservatory, Friday 20 November, 6:00 pm, at Krohn Conservatory.",
+"Joy of Birding Lecture, Friday 20 November, 11:00 pm, at Shideler Hall."
 ],
 "headline": [
-"I found no events Friday.",
-"The next one I have is Friday Public Skate, Saturday 21 November, at Goggin Ice Center."
+"I found 5 events Friday. The first is Ian Kennedy Student Recital, Friday 20 November, at Center for Performing Arts.",
+"Events data was last updated 13 November 2026. It is a snapshot, so check with the venue."
 ],
-"kind": "unknown",
+"kind": "answer",
 "plan": {
 "access": [],
 "anchor": null,
 "args": {
 "end": "2026-11-20",
-"query": "friday",
 "start": "2026-11-20"
 },
 "clarify": null,
@@ -5546,11 +5557,11 @@
 },
 "removed": 0,
 "sources": [
-"https://events.miamioh.edu/event/friday-public-skate-3551"
+"https://events.miamioh.edu/event/ian-kennedy-student-recital",
+"https://events.miamioh.edu/event/the-last-five-years",
+"https://www.cincinnati-oh.gov/cincyparks/visit-a-park/parks-events-calendar/a-spiders-gift/"
 ],
-"unknown": [
-"events in that time"
-],
+"unknown": [],
 "verified": true
 },
 "q": "Any events on Friday?"
@@ -6385,121 +6396,40 @@
 "today": "2026-11-20"
 },
 "expected": {
-"actions": [
-{
-"ids": [
-"cincinnati-museum-center-82154",
-"music-hall-9d303",
-"william-howard-taft-national-historic-site-ea1af",
-"national-underground-railroad-freedom-center-92376",
-"aronoff-center-for-the-arts-f6bb5"
-],
-"type": "show_on_map"
-}
-],
+"actions": [],
 "as_of": "2026-11-13",
-"call": {
-"name": "Cincinnati Museum Center",
-"phone": "(513) 287-7000"
-},
-"cards": [
-{
-"direction": null,
-"distance_text": null,
-"event": null,
-"facts": [
-[
-"Step-free entrance",
-"yes",
-"front entrance at top of sloped driveway (2016 guide)",
-"https://www.visitcincy.com/blog/post/accessiblity-in-the-cincinnati-region/",
-"2016-01-29"
-]
-],
-"name": "Cincinnati Museum Center",
-"phone": "(513) 287-7000",
-"place_id": "cincinnati-museum-center-82154",
-"rating": "accessible"
-},
-{
-"direction": null,
-"distance_text": null,
-"event": null,
-"facts": [
-[
-"Step-free entrance",
-"yes",
-"ADA entrance on Elm Street, southeast side; Access Ambassadors there",
-"https://www.cincinnatiarts.org/plan-your-visit/visit-music-hall/accessibility-information-2",
-"2026-11-11"
-]
-],
-"name": "Music Hall",
-"phone": "(513) 621-2787",
-"place_id": "music-hall-9d303",
-"rating": "accessible"
-},
-{
-"direction": null,
-"distance_text": null,
-"event": null,
-"facts": [
-[
-"Step-free entrance",
-"yes",
-"curb ramp to Education Center on Auburn Ave",
-"https://www.nps.gov/wiho/planyourvisit/accessibility.htm",
-"2024-09-10"
-],
-[
-"Step-free entrance",
-"yes",
-"Taft House: basement door, north side",
-"https://www.nps.gov/wiho/planyourvisit/accessibility.htm",
-"2024-09-10"
-]
-],
-"name": "William Howard Taft National Historic Site",
-"phone": "(513) 684-3262",
-"place_id": "william-howard-taft-national-historic-site-ea1af",
-"rating": "accessible"
-}
-],
+"call": null,
+"cards": [],
 "details": [
-"Also on record: Music Hall; William Howard Taft National Historic Site; National Underground Railroad Freedom Center; Aronoff Center for the Arts."
+"I can answer: accessible restrooms and changing tables near you; accessible parking and drop-off; places to eat with no steps; step-free routes to a place; events, including audio described, signed or sensory-friendly shows; trails and parks; what we know about one place: entrance, restroom, elevator, hours, phone."
 ],
 "headline": [
-"5 places have a step-free entrance on record. The first is Cincinnati Museum Center.",
-"Step-free entrance: yes (front entrance at top of sloped driveway (2016 guide)). Source: the website visitcincy.com, 29 Jan 2016 (old: from 2016)."
+"I don't have information about places of worship and community centers yet.",
+"I can look up restrooms, parking, places to eat, events and trails."
 ],
-"kind": "answer",
+"kind": "no_data",
 "plan": {
 "access": [],
 "anchor": null,
-"args": {
-"limit": 5,
-"need": "step_free_entrance"
-},
+"args": {},
 "clarify": null,
-"intent": "search",
-"need": "step_free_entrance",
+"intent": "no_data",
+"need": null,
 "place": null,
 "place_type": null,
 "region": null,
 "source": "rules",
-"tool": "search_places",
-"topic": null,
+"tool": null,
+"topic": "Places of worship and community centers",
 "unmatched": [],
 "unsupported": [],
 "when": null
 },
 "removed": 0,
-"sources": [
-"https://www.visitcincy.com/blog/post/accessiblity-in-the-cincinnati-region/",
-"https://www.cincinnatiarts.org/plan-your-visit/visit-music-hall/accessibility-information-2",
-"https://www.nps.gov/wiho/planyourvisit/accessibility.htm"
+"sources": [],
+"unknown": [
+"Places of worship and community centers"
 ],
-"unknown": [],
 "verified": true
 },
 "q": "Which churches have ramps?"

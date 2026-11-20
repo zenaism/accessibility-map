@@ -211,7 +211,16 @@ NO_DATA = [
     {
         "topic": "housing",
         "label": "Accessible housing",
-        "words": ["apartment", "housing", "rent an", "rental unit", "landlord", "accessible home", "lease"],
+        "words": [
+            "apartment",
+            "apartments",
+            "housing",
+            "rent an",
+            "rental unit",
+            "landlord",
+            "accessible home",
+            "lease",
+        ],
     },
     {
         "topic": "civic_government",
@@ -245,7 +254,20 @@ NO_DATA = [
     {
         "topic": "worship_community",
         "label": "Places of worship and community centers",
-        "words": ["church", "mosque", "synagogue", "temple", "worship", "place of worship", "chapel"],
+        "words": [
+            "church",
+            "churches",
+            "mosque",
+            "mosques",
+            "synagogue",
+            "synagogues",
+            "temple",
+            "temples",
+            "worship",
+            "place of worship",
+            "places of worship",
+            "chapel",
+        ],
     },
     {
         "topic": "comfort_environment",
@@ -1064,6 +1086,7 @@ MONTHS_DAYS = [
     "nov",
     "dec",
 ]
+EVENT_FILLER = EVENT_FILLER + MONTHS_DAYS + [d + "s" for d in MONTHS_DAYS[12:19]]
 KNOWN_CAPS = ["ada", "asl", "google", "facebook", "openstreetmap", "wheelchair", "metro", "openway", "i"]
 
 # things people ask about that our data does not hold; the answer says so instead of ignoring them
