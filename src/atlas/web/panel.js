@@ -159,6 +159,7 @@ function initRoutingPanel(ctx) {
     prev: '<path d="m5 12 5-5 5 5"/>',
     next: '<path d="m5 8 5 5 5-5"/>',
     locate: '<circle cx="10" cy="10" r="3" fill="currentColor"/><circle cx="10" cy="10" r="7"/>',
+    speak: '<path d="M3 8v4h3l4 3V5L6 8zM13 7.5a3.5 3.5 0 0 1 0 5M15 5a6.5 6.5 0 0 1 0 10"/>',
     stairs: '<path d="M3 16h4v-4h4V8h4V4h2"/>',
   };
   const svg = (name, cls) =>
@@ -374,6 +375,7 @@ self.onmessage = async (e) => {
       <ol class="dp-steps" id="dp-steps" role="list"></ol>
       <p class="dp-doornote" id="dp-doornote" hidden></p>
       <div class="dp-actions" id="dp-actions">
+        <button type="button" id="dp-speak" aria-pressed="false" hidden>${svg('speak')}<span>Read aloud</span></button>
         <button type="button" id="dp-copy-text">${svg('copy')}Copy directions</button>
         <button type="button" id="dp-copy-link">${svg('link')}Copy link</button>
         <a class="btn" id="dp-google" target="_blank" rel="noopener">${svg('google')}Open in Google Maps<span class="vh"> (opens in a new tab)</span></a>
@@ -837,6 +839,7 @@ self.onmessage = async (e) => {
     clearMsgs();
     setState('route');
     root.classList.remove('is-error');
+    stopSpeech();
     S.result = r;
     S.step = -1;
     const fromName = nameOf(S.from);
@@ -900,7 +903,7 @@ self.onmessage = async (e) => {
     el('dp-stepof').textContent = `Step ${i + 1} of ${n + 1}`;
     el('dp-prev').disabled = i === 0;
     el('dp-next').disabled = i === n - 1;
-    announce(`Step ${i + 1} of ${n + 1}: ${s.text}`);
+    if (!(opts && opts.quiet)) announce(`Step ${i + 1} of ${n + 1}: ${s.text}`);
     const btn = root.querySelector(`.dp-step[data-i="${i}"]`);
     if (btn) {
       if (opts && opts.focus) btn.focus({ preventScroll: true });
@@ -940,6 +943,59 @@ self.onmessage = async (e) => {
     root.classList.add('editing');
     fieldEls.from.focus();
   };
+
+  // ---------------------------------------------------------------- read aloud (the browser's own voice; nothing is sent anywhere)
+  const synth = window.speechSynthesis;
+  const canSpeak = !!synth && typeof window.SpeechSynthesisUtterance !== 'undefined';
+  let speaking = false;
+  function setSpeakUi() {
+    const b = el('dp-speak');
+    b.setAttribute('aria-pressed', String(speaking));
+    b.querySelector('span').textContent = speaking ? 'Stop reading' : 'Read aloud';
+  }
+  function stopSpeech() {
+    if (!canSpeak) return;
+    speaking = false;
+    synth.cancel();
+    setSpeakUi();
+  }
+  function startSpeech() {
+    const r = S.result;
+    if (!canSpeak || !r) return;
+    synth.cancel();
+    speaking = true;
+    setSpeakUi();
+    const toName = nameOf(S.to);
+    const lines = [
+      { t: `Route from ${nameOf(S.from)} to ${toName}. About ${U.timeText(r.length_feet)}, ${r.length_feet} feet. No stairs. ${r.crossings_text} ${r.compared_with_shortest}` },
+      ...r.stepList.map((st, i) => ({ t: `Step ${i + 1}. ${st.text}`, step: i })),
+      { t: `You have arrived at ${toName}. ${doorNote()} ${NOT_CHECKED}`, last: true },
+    ];
+    lines.forEach((ln) => {
+      const u = new window.SpeechSynthesisUtterance(ln.t);
+      u.lang = 'en-US';
+      u.rate = 0.95;
+      u.onstart = () => {
+        if (ln.step !== undefined) selectStep(ln.step, { quiet: true }); // follow along on the map and in the list
+      };
+      u.onend = () => {
+        if (ln.last) {
+          speaking = false;
+          setSpeakUi();
+        }
+      };
+      u.onerror = () => {
+        speaking = false;
+        setSpeakUi();
+      };
+      synth.speak(u);
+    });
+  }
+  if (canSpeak) {
+    el('dp-speak').hidden = false;
+    el('dp-speak').onclick = () => (speaking ? stopSpeech() : startSpeech());
+    window.addEventListener('pagehide', stopSpeech);
+  }
 
   // ---------------------------------------------------------------- actions
   function say(text) {
@@ -1092,6 +1148,7 @@ self.onmessage = async (e) => {
   function closePanel(opts) {
     if (!S.open) return;
     endPick();
+    stopSpeech();
     S.open = false;
     S.wantHere = false;
     S.token++;

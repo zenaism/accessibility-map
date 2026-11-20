@@ -77,7 +77,9 @@ def site(tmp_path_factory):
     saved = map_viewer.ROUTING_JS
     try:
         for name, regions in (("oxford_only", ["oxford"]), ("both_cities", ["oxford", "cincinnati"])):
-            map_viewer.ROUTING_JS = saved.replace(marker, json.dumps({**routing_ui.config(), "regions": regions}))
+            map_viewer.ROUTING_JS = saved.replace(
+                marker, json.dumps({**routing_ui.config(), "regions": regions})
+            )
             (root / f"{name}.html").write_text(render(data, title, nav))
     finally:
         map_viewer.ROUTING_JS = saved
@@ -728,8 +730,60 @@ def test_chat_closes_when_it_sends_you_to_directions_on_a_phone(phone):
     phone.tap("#ask-open")
     phone.wait_for_selector("#ow-panel:not([hidden])")
     pid = PLACES["Western Dining Commons"]
-    phone.evaluate("pid => window.dispatchEvent(new CustomEvent('atlas:route-to', {detail: {placeId: pid}}))", pid)
+    phone.evaluate(
+        "pid => window.dispatchEvent(new CustomEvent('atlas:route-to', {detail: {placeId: pid}}))", pid
+    )
     wait_state(phone, "locate-ask")
     assert phone.is_hidden("#ow-panel")
-    top = phone.evaluate("(() => { const r = document.getElementById('dirp').getBoundingClientRect(); return !!document.elementFromPoint(195, r.top + 40).closest('#dirp'); })()")
+    top = phone.evaluate(
+        "(() => { const r = document.getElementById('dirp').getBoundingClientRect(); return !!document.elementFromPoint(195, r.top + 40).closest('#dirp'); })()"
+    )
     assert top  # the Directions sheet is what you see, not the chat
+
+
+SPEECH_STUB = """
+window.__said = []; window.__cancels = 0;
+window.SpeechSynthesisUtterance = function (t) { this.text = t; };
+Object.defineProperty(window, 'speechSynthesis', {configurable: true, value: { speak(u) { window.__said.push(u); }, cancel() { window.__cancels++; window.__said = []; }, pause() {}, resume() {} }});
+"""
+
+
+def test_read_aloud_speaks_the_route_and_can_be_stopped(browser, cdn, site):
+    p = _new_page(browser, cdn, viewport={"width": 1280, "height": 800})
+    p.add_init_script(SPEECH_STUB)
+    p.goto(f"{site}/oxford.html" + route_hash([39.5079, -84.7368], [39.5088, -84.7345]))
+    wait_state(p, "route")
+    steps = p.locator(".dp-step").count()
+    assert p.is_visible("#dp-speak") and p.inner_text("#dp-speak").strip() == "Read aloud"
+    p.click("#dp-speak")
+    said = p.evaluate("__said.map(u => u.text)")
+    assert len(said) == steps + 2  # summary, every step, arrival
+    assert said[0].startswith("Route from") and "No stairs" in said[0]
+    assert said[1].startswith("Step 1.") and said[-1].startswith("You have arrived")
+    assert "not checked on site" in said[-1]
+    assert (
+        p.get_attribute("#dp-speak", "aria-pressed") == "true"
+        and p.inner_text("#dp-speak").strip() == "Stop reading"
+    )
+    p.evaluate(
+        "__said[2] && __said[2].onstart && __said[2].onstart()"
+    )  # the voice reaches step 2: the list follows
+    assert p.get_attribute(".dp-step[data-i='1']", "aria-current") == "step"
+    p.click("#dp-speak")
+    assert p.evaluate("__said.length") == 0 and p.get_attribute("#dp-speak", "aria-pressed") == "false"
+    p.click("#dp-speak")
+    p.evaluate("AtlasRouting.close()")  # closing the panel stops the voice
+    assert p.evaluate("__said.length") == 0
+    assert p.errors == [], p.errors
+    p.context.close()
+
+
+def test_no_read_aloud_button_without_speech_support(browser, cdn, site):
+    p = _new_page(browser, cdn, viewport={"width": 1280, "height": 800})
+    p.add_init_script(
+        "Object.defineProperty(window, 'speechSynthesis', {configurable: true, value: undefined}); window.SpeechSynthesisUtterance = undefined;"
+    )
+    p.goto(f"{site}/oxford.html" + route_hash([39.5079, -84.7368], [39.5088, -84.7345]))
+    wait_state(p, "route")
+    assert p.is_hidden("#dp-speak")
+    p.context.close()
