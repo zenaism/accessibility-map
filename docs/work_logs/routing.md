@@ -41,3 +41,40 @@ Decisions I made:
 - Escape closes the suggestions first, then the panel, and returns focus to the button that opened it.
 - Share links never contain "My location": they say `here`, so whoever opens the link is asked for their own location.
 - Fixed while testing: the suggestion list closed itself 120 ms after an earlier blur when the user clicked back into the field quickly.
+
+## R7 speed and size (Oxford) — `scripts/measure_routing.py`
+Targets from the plan (4.7): panel opens < 100 ms; graph < 2 MB gzipped; first route < 1 s on a laptop (< 2 s on a mid-range phone).
+Measured (headless Chromium on this Mac, local server, no network latency):
+| | laptop (worker) | CPU x4 (worker) | CPU x4, main thread (no Worker) |
+|---|---|---|---|
+| panel open | 5 ms | 20 ms | 22 ms |
+| graph download + JSON parse | 10 ms | 11 ms | 56 ms |
+| build typed arrays + grid | 10 ms | 10 ms | 22 ms |
+| first route including download (cold) | 29 ms | 75 ms | 102 ms |
+| search, short route (383 ft) | 0.2 ms | 0.2 ms | 0.9 ms |
+| search, long route (8,498 ft) | 1.8 ms | 1.8 ms | 7.6 ms |
+Graph: 1.42 MB raw, **0.49 MB gzipped** (21,637 nodes, 25,425 edges). All targets are met with a very large margin.
+Caveats: CDP CPU throttling does not slow Web Workers, so the "CPU x4 (worker)" column is not really throttled; the "main thread" column is the honest slow-phone estimate. Network time is not included: 0.49 MB is about 2.5 s on a 1.6 Mbit/s link (arithmetic, not measured); GitHub Pages compresses on the wire and browsers cache the file. Not measured on a real phone.
+
+## R8 build and docs
+`python -m atlas.cli map` (what `make map` runs) now also writes the graphs for every region in `routing_ui.ROUTING_REGIONS` (a 4-line block marked ROUTING in `cli.py`; the Makefile is untouched). `python -m atlas.export_routing --all` does only that. `scripts/rerender_maps.py` renders the new page template into the existing pages. `docs/routing_usage.md` explains build, serve, use, limits.
+I did NOT edit docs/README.md, docs/architecture.md, Makefile, docs/progress_log.md (integrator).
+
+## R9 self-review
+- ruff: no findings in any file of mine; `ruff format` clean for them. `ruff check src tests scripts` still reports 35 findings, all in older scripts (crawl_recall, eval_*, make_*), none from this work.
+- `scripts/review_routes.py`: 10 real Oxford pairs (campus, uptown, parks), both profiles, through the page in headless Chromium: **all 20 results equal Python `routing.route()`** (directions, length, comparison sentence).
+- Routes that look odd (probably missing/untagged OpenStreetMap data, not code bugs; I cannot check them against the streets):
+  - Martin Dining Hall -> Yager Stadium: 2,708 ft for a 1.5k ft straight line (1.8x) with 1,076 ft on "road with no sidewalk mapped".
+  - McGuffey House and Museum -> Cocks Art Museum: 369-403 ft on a road with no sidewalk mapped.
+  - Oxford Lane Library -> Graeter's Ice Cream (blind): 474 ft on a road with no sidewalk mapped; wheelchair version has 5 unmarked/unknown crossings out of 12.
+  - Center for the Performing Arts -> Peffer Park: 3 steep sections (DEM estimate).
+  Please check these on the ground (Mariam).
+- Found by tests/parity checks and fixed: (1) suggestion list closing 120 ms after an earlier blur; (2) **A* heuristic became NaN when any edge has length 0 (Cincinnati has some) and returned wrong, much longer paths**; fixed and covered by a unit test (see R10).
+- Finding in the Python engine (not changed, outside my scope): on Cincinnati `routing.route()` sometimes raises `ValueError: Contradictory paths found: negative weights?` from networkx bidirectional Dijkstra when stair edges have infinite cost (3 of 150 random cases). It could hit `export_map._route` at build time. A fix would be to search with a weight function that returns None for infinite-cost edges. The JavaScript does not have this problem.
+
+## R10 Cincinnati
+Graph: 190,174 nodes, 216,144 edges: **12.8 MB raw, 4.3 MB gzipped** without contracting degree-2 nodes (limit was about 8 MB gzipped), export takes 7 s and ~0.7 GB RAM.
+Browser (`scripts/measure_routing.py --region cincinnati`): panel open 6 ms; download+parse 74 ms; build 18 ms; first route including download 133 ms; short route (3,868 ft) 1.1 ms; long route (32,140 ft, about 6 miles) **80 ms in the worker**; slowest case, CPU x4 on the main thread without a Worker: download+parse 273 ms, first route 381 ms, long route 308 ms. Limit was 2 s. So I did not contract or tile the graph and **enabled Cincinnati** (`ROUTING_REGIONS = ["oxford", "cincinnati"]`).
+Correctness: 135 random Cincinnati cases (both profiles) identical to Python, 16 both-null, 0 mismatches (after the NaN fix above; 3 more cases skipped because Python itself raised).
+Not checked: the Cincinnati panel by eye (screenshots are Oxford only), Cincinnati golden file (only the random parity run), memory on a phone (12.8 MB JSON is parsed into about 20 MB of typed arrays; that is probably fine but unmeasured on a real phone).
+Decision: enable it, but the published site must serve `data/map/routing/cincinnati.graph.json` (4.3 MB gzipped, loaded only when someone opens Directions on a page with Cincinnati places). If that is too heavy for hosting, remove "cincinnati" from `ROUTING_REGIONS`; the old links come back automatically.
