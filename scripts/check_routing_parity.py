@@ -23,6 +23,7 @@ def main() -> None:
     _, nodes, _, lat0 = routing.network(a.region)
     rnd = random.Random(99)
     out = []
+    errors = 0
     while len(out) < a.n:
         i, j = rnd.randrange(len(nodes)), rnd.randrange(len(nodes))
         p, q = nodes.iloc[i], nodes.iloc[j]
@@ -31,13 +32,19 @@ def main() -> None:
         pa = [p.lat + rnd.uniform(-3e-4, 3e-4), p.lon + rnd.uniform(-3e-4, 3e-4)]
         pb = [q.lat + rnd.uniform(-3e-4, 3e-4), q.lon + rnd.uniform(-3e-4, 3e-4)]
         for prof in ("wheelchair", "blind"):
-            r = routing.route(a.region, *pa, *pb, prof)
+            try:
+                r = routing.route(a.region, *pa, *pb, prof)
+            except (
+                ValueError
+            ):  # networkx "Contradictory paths found" with infinite (stair) weights; see work log
+                errors += 1
+                continue
             if r:
                 r = {k: v for k, v in r.items() if k not in ("line", "note")}
             out.append({"from": pa, "to": pb, "profile": prof, "result": r})
     with open(a.out, "w") as f:
         json.dump(out, f)
-    print(len(out), "cases ->", a.out)
+    print(len(out), "cases ->", a.out, f"({errors} skipped: Python raised)")
 
 
 if __name__ == "__main__":

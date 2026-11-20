@@ -3,7 +3,7 @@
 const fs = require('fs');
 const core = require('../src/atlas/web/routing.js');
 const D = require('../src/atlas/web/directions.js');
-const G = core.loadGraph(JSON.parse(fs.readFileSync('data/map/routing/oxford.graph.json', 'utf8')));
+const G = core.loadGraph(JSON.parse(fs.readFileSync(`data/map/routing/${process.env.REGION || 'oxford'}.graph.json`, 'utf8')));
 const cases = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 let ok = 0, none = 0, bad = 0;
 for (const c of cases) {
