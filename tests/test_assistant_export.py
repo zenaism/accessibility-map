@@ -66,10 +66,6 @@ def test_only_public_fields_and_no_private_paths(data):
 
 
 def test_conditions_are_precomputed_for_every_named_area(data):
-    from atlas.assistant.export_assistant_data_keys import key_of  # noqa: F401
-
-
-def test_conditions_are_precomputed_for_every_named_area(data):
     from atlas.assistant import rules as R
     from atlas.export_assistant_data import key_of
 

@@ -176,7 +176,7 @@ def build_small_db(path) -> None:
             }
         )
     con = duckdb.connect(str(path))
-    for name, data, cols in (
+    for name, data, _cols in (
         ("places", pd.DataFrame(rows), None),
         (
             "facts",
