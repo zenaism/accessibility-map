@@ -303,6 +303,15 @@
    .dirp[data-state=picking] .dp-form,.dirp[data-state=picking] .dp-result{display:none}
    .dp-scroll{max-height:70dvh}
  }
+ /* a phone turned sideways: little height, so show the route first and keep the fields one tap away */
+ @media (min-width:721px) and (max-height:520px){
+   .dirp[data-state=route] .dp-form,.dirp[data-state=route] .dp-msgs{display:none}
+   .dirp[data-state=route] .dp-sheetbtns{display:flex;gap:8px;margin:6px 0}
+   .dirp[data-state=route] #dp-toggle-steps,.dirp[data-state=route] #dp-expand{display:none}
+   .dirp[data-state=route][data-height=form] .dp-form,.dirp[data-state=route][data-height=form] .dp-msgs{display:block}
+   .dirp[data-state=route][data-height=form] .dp-result{display:none}
+   .dp-scroll{padding-top:2px}
+ }
  @media (max-width:420px){ header .search{flex:1 1 100%} }
  @media (forced-colors:active){
    .dp-opt[aria-selected=true],.dp-step[aria-current=step]{outline:3px solid Highlight}
@@ -3422,7 +3431,7 @@ function initRoutingPanel(ctx) {
     return { kind: 'place', it, pt: it.pts[0], door: false, noDoorKnown: !!(r && noDoor) };
   }
   const nameOf = (sel) =>
-    !sel ? '' : sel.kind === 'place' ? sel.it.p.name : sel.kind === 'here' ? 'My location' : 'The point you picked on the map';
+    !sel ? '' : sel.kind === 'place' ? sel.it.p.name : sel.kind === 'here' ? 'My location' : 'Point on the map';
   const routable = (it) => enabledRegions.has(it.p.region) && it.p.layer !== 'event';
   const searchable = ITEMS.filter(routable);
   const searchNames = searchable.map((it) => it.p.name);

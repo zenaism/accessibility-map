@@ -641,7 +641,7 @@ def test_pick_on_map_and_escape_cancels(page):
     page.wait_for_function(
         "['route','too-far','no-route','load-error','loading','searching'].includes(AtlasRouting.state)"
     )
-    assert page.input_value("#dp-from") == "The point you picked on the map"
+    assert page.input_value("#dp-from") == "Point on the map"
 
 
 # ------------------------------------------------------------------------------------------ axe
@@ -710,3 +710,15 @@ def test_route_here_in_the_map_popup(page):
     page.click(".leaflet-popup .dp-route-btn")
     wait_state(page, "locate-ask")
     assert page.input_value("#dp-to") == name
+
+
+def test_short_wide_screen_phone_landscape_shows_the_route_first(browser, cdn, site):
+    p = _new_page(browser, cdn, viewport={"width": 844, "height": 390}, is_mobile=True, has_touch=True)
+    p.goto(f"{site}/oxford.html" + route_hash([39.5079, -84.7368], [39.5088, -84.7345]))
+    wait_state(p, "route")
+    assert p.is_hidden("#dp-from") and p.is_visible("#dp-sum-h") and p.is_visible("#dp-change")
+    assert p.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    p.click("#dp-change")
+    assert p.is_visible("#dp-from")
+    assert p.errors == [], p.errors
+    p.context.close()
