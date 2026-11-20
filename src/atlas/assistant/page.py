@@ -67,7 +67,9 @@ def build_standalone(out: Path | None = None) -> Path:
     d = ROOT / "data/map/assistant"
     data = {k: json.loads((d / f"{k}.json").read_text()) for k in ("rules", "cincinnati", "oxford")}
     blob = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
-    html = PAGE.replace("__CSS__", css()).replace("__JS__", "window.__OPENWAY_DATA = " + blob + ";\n" + js_bundle())
+    html = PAGE.replace("__CSS__", css()).replace(
+        "__JS__", "window.__OPENWAY_DATA = " + blob + ";\n" + js_bundle()
+    )
     out.write_text(html)
     return out
 

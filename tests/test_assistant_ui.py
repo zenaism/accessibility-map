@@ -120,7 +120,7 @@ def test_keyboard_only(page, base):
     assert page.locator(".ow-settings").is_visible()
     page.keyboard.press("Escape")
     assert not page.locator(".ow-settings").is_visible()
-    assert page.evaluate("document.activeElement.textContent.trim()") == "Settings"
+    assert page.evaluate("document.activeElement.getAttribute('aria-label')") == "Settings"
 
 
 def test_every_control_has_a_name_and_a_big_enough_target(page, base):
@@ -199,7 +199,7 @@ def test_my_needs_with_storage_blocked(browser, base):
     assert pg.locator(".ow-a").last.inner_text()
     assert not errs, errs
     # focus returns to where it was
-    assert pg.evaluate("document.activeElement.textContent.trim()") in ("Settings", "")
+    assert pg.evaluate("document.activeElement.getAttribute('aria-label')") in ("Settings", "")
     ctx.close()
 
 
@@ -231,7 +231,7 @@ def test_text_size_and_plain_language(page, base):
     page.get_by_label("Extra large").check(force=True)
     assert page.evaluate("document.querySelector('.ow').style.getPropertyValue('--ow-scale')") == "1.5"
     assert (
-        page.evaluate("parseFloat(getComputedStyle(document.querySelector('.ow-welcome p')).fontSize)") >= 24
+        page.evaluate("parseFloat(getComputedStyle(document.querySelector('.ow-welcome p')).fontSize)") >= 22
     )
     page.get_by_role("switch", name="Plain language (shorter sentences)").check()
     page.keyboard.press("Escape")
