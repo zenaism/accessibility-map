@@ -1,0 +1,1950 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Openway Assistant</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Ask about accessible places, restrooms, parking, food, events and trails in Cincinnati and Oxford. Answers come with sources and dates.">
+<meta name="theme-color" content="#ffffff">
+<style>
+:root{--ink:#111827;--muted:#4b5563;--line:#d9dde3;--soft:#f3f4f6;--focus:#2563eb}
+*{box-sizing:border-box}html,body{height:100%;margin:0}body{background:#fff;color:var(--ink);overflow:hidden}
+.skip{position:absolute;left:12px;top:-80px;background:#fff;padding:10px 14px;border-radius:10px;z-index:4000;box-shadow:0 2px 12px rgba(0,0,0,.2);font-weight:600;color:var(--ink)}
+.skip:focus{top:10px}
+main{height:100%}
+/* Openway Assistant: styles. Everything is under .ow so it can sit inside the map page without clashing.
+   Colours follow the map's tokens (--ink, --muted, --line, --soft, --focus) with safe fallbacks. */
+.ow{--ow-ink:var(--ink,#111827);--ow-muted:#4b5563;--ow-line:#d9dde3;--ow-soft:#f3f4f6;--ow-bg:#fff;--ow-focus:var(--focus,#2563eb);
+  --ow-accent:#111827;--ow-accent-ink:#fff;--ow-good:#0b5cad;--ow-warn:#8a4b00;--ow-bad:#a63c00;--ow-scale:1;--ow-r:14px;
+  display:flex;flex-direction:column;min-height:0;height:100%;background:var(--ow-bg);color:var(--ow-ink);
+  font:calc(17px*var(--ow-scale))/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;box-sizing:border-box}
+.ow *,.ow *::before,.ow *::after{box-sizing:border-box}
+.ow [hidden]{display:none!important}
+.ow :focus-visible{outline:3px solid var(--ow-focus);outline-offset:2px;border-radius:6px}
+.ow .ow-vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.ow button,.ow .ow-btn,.ow select,.ow input[type=text]{font:inherit;font-size:.94em}
+.ow button,.ow .ow-btn{min-height:44px;min-width:44px;padding:.5em .9em;border-radius:12px;border:1.5px solid #9aa3af;background:#fff;color:var(--ow-ink);
+  cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:.45em;text-decoration:none;line-height:1.2}
+.ow button:hover,.ow .ow-btn:hover{background:var(--ow-soft)}
+.ow button[disabled]{opacity:.55;cursor:not-allowed}
+.ow .ow-primary{background:var(--ow-accent);border-color:var(--ow-accent);color:var(--ow-accent-ink)}
+.ow .ow-primary:hover{background:#1f2937}
+.ow .ow-ghost{border-color:transparent;background:transparent}
+.ow svg.ow-i{width:1.2em;height:1.2em;flex:none}
+
+/* header */
+.ow-head{display:flex;align-items:center;gap:.6em;padding:.6em .9em;border-bottom:1px solid var(--ow-line);flex:none}
+.ow-head h1,.ow-head h2{margin:0;font-size:1.12em;font-weight:650;flex:1;letter-spacing:-.01em}
+.ow-head .ow-sub{display:block;font-size:.78em;font-weight:400;color:var(--ow-muted)}
+.ow-mode{font-size:.8em;color:var(--ow-muted);white-space:nowrap}
+
+/* settings */
+.ow-settings{border-bottom:1px solid var(--ow-line);padding:.8em .9em;background:var(--ow-soft);display:grid;gap:.9em}
+.ow-settings fieldset{border:0;margin:0;padding:0;min-width:0}
+.ow-settings legend{font-weight:650;margin-bottom:.3em;padding:0}
+.ow-seg{display:flex;flex-wrap:wrap;gap:.4em}
+.ow-seg label{position:relative}
+.ow-seg input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.ow-seg span{display:inline-flex;align-items:center;min-height:44px;padding:.4em .9em;border:1.5px solid #9aa3af;border-radius:12px;background:#fff}
+.ow-seg input:checked+span{background:var(--ow-accent);color:#fff;border-color:var(--ow-accent)}
+.ow-seg input:focus-visible+span{outline:3px solid var(--ow-focus);outline-offset:2px}
+.ow-seg input:disabled+span{opacity:.55}
+.ow-switch{display:flex;align-items:center;gap:.7em;min-height:44px}
+.ow-switch input{width:1.4em;height:1.4em;flex:none;accent-color:var(--ow-accent)}
+.ow-hint{font-size:.85em;color:var(--ow-muted);margin:.2em 0 0}
+
+/* conversation */
+.ow-log{flex:1;min-height:0;overflow-y:auto;padding:1em .9em;display:flex;flex-direction:column;gap:1em;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){.ow-log{scroll-behavior:auto}}
+.ow-welcome h3{margin:.1em 0 .3em;font-size:1.25em;letter-spacing:-.01em}
+.ow-welcome p{margin:.2em 0 .8em;color:var(--ow-muted)}
+.ow-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(10.5em,1fr));gap:.55em;margin:.4em 0 0;padding:0;list-style:none}
+.ow-tiles button{width:100%;min-height:56px;text-align:left;justify-content:flex-start;font-weight:560;border-radius:14px;background:#fff;padding:.6em .8em}
+.ow-me{align-self:flex-end;max-width:88%;background:var(--ow-accent);color:#fff;padding:.6em .9em;border-radius:16px 16px 4px 16px;overflow-wrap:anywhere}
+.ow-me .ow-who{display:block;font-size:.75em;opacity:.85}
+.ow-a{align-self:stretch;border:1px solid var(--ow-line);border-radius:var(--ow-r);padding:.9em 1em;background:#fff;box-shadow:0 1px 2px rgba(17,24,39,.05)}
+.ow-a h3{margin:0 0 .3em;font-size:.8em;font-weight:650;text-transform:uppercase;letter-spacing:.05em;color:var(--ow-muted)}
+.ow-a h3:focus{outline:3px solid var(--ow-focus);outline-offset:3px}
+.ow-main{margin:.1em 0 .6em;font-size:1.06em;font-weight:650;overflow-wrap:anywhere}
+.ow-main .ow-rest{font-weight:400;font-size:.95em;color:#374151}
+.ow-a.ow-unknown-kind{border-left:5px solid var(--ow-warn)}
+.ow-a.ow-emergency{border:3px solid var(--ow-bad);background:#fff7f3}
+.ow-a.ow-emergency .ow-main{font-size:1.3em;font-weight:700}
+.ow-thinking{color:var(--ow-muted);display:flex;align-items:center;gap:.6em;min-height:44px}
+.ow-dots{display:inline-flex;gap:.25em}.ow-dots i{width:.5em;height:.5em;border-radius:50%;background:currentColor;opacity:.4;animation:ow-b 1.2s infinite}
+.ow-dots i:nth-child(2){animation-delay:.2s}.ow-dots i:nth-child(3){animation-delay:.4s}
+@keyframes ow-b{0%,80%,100%{opacity:.25}40%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.ow-dots i{animation:none;opacity:.7}}
+
+/* cards */
+.ow-cards{display:grid;gap:.7em;margin:.5em 0;padding:0;list-style:none}
+.ow-card{border:1px solid var(--ow-line);border-radius:12px;padding:.75em .85em;background:var(--ow-soft)}
+.ow-card h4{margin:0;font-size:1.02em;font-weight:650;line-height:1.3}
+.ow-meta{display:flex;flex-wrap:wrap;gap:.3em .8em;align-items:center;margin:.25em 0 .1em;font-size:.88em;color:#374151}
+.ow-rate{display:inline-flex;align-items:center;gap:.4em;font-weight:600}
+.ow-rate i{font-style:normal;width:1.35em;height:1.35em;border-radius:50%;display:inline-grid;place-items:center;font-size:.8em;font-weight:700;color:#fff;background:#6b7280}
+.ow-rate.r-accessible i{background:#0b5cad}.ow-rate.r-partial i{background:#8a4b00}.ow-rate.r-not_accessible i{background:#a63c00}
+.ow-facts{list-style:none;margin:.45em 0;padding:0;display:grid;gap:.25em;font-size:.92em}
+.ow-facts li{padding-left:1.5em;position:relative}
+.ow-facts .ow-g{position:absolute;left:.2em;font-weight:700;color:var(--ow-good)}
+.ow-facts li.no .ow-g{color:var(--ow-bad)}
+.ow-src{font-size:.82em;color:var(--ow-muted);margin:.25em 0}
+.ow-when{font-weight:600}
+.ow-chips{display:flex;flex-wrap:wrap;gap:.35em;margin:.3em 0;padding:0;list-style:none}
+.ow-chips li{background:#fff;border:1px solid var(--ow-line);border-radius:999px;padding:.1em .7em;font-size:.85em}
+.ow-row{display:flex;flex-wrap:wrap;gap:.45em;margin:.55em 0 0}
+.ow-row .ow-btn,.ow-row button{font-size:.9em}
+.ow-note{font-size:.86em;color:var(--ow-muted);margin:.4em 0 0}
+.ow-unknown{margin:.5em 0;padding:.5em .7em;background:#fff8ec;border:1px solid #e8c68a;border-radius:10px;font-size:.92em}
+.ow-unknown strong{font-weight:650}
+.ow-call{margin:.5em 0}
+.ow-detail,.ow-sources{margin:.6em 0;padding:.7em .8em;border-radius:10px;border:1px dashed #9aa3af;font-size:.92em}
+.ow-detail ul,.ow-sources ul{margin:.2em 0;padding-left:1.2em}.ow-detail li,.ow-sources li{margin:.3em 0;overflow-wrap:anywhere}
+.ow-sources blockquote{margin:.2em 0 .2em .2em;padding-left:.6em;border-left:3px solid var(--ow-line);color:#374151}
+.ow-asof{font-size:.8em;color:var(--ow-muted);margin:.6em 0 0}
+.ow-clarify{display:flex;flex-wrap:wrap;gap:.45em;margin:.4em 0}
+.ow-voicebar{display:flex;flex-wrap:wrap;align-items:center;gap:.45em;margin:.5em 0;padding:.4em .6em;background:var(--ow-soft);border-radius:10px;font-size:.9em}
+
+/* composer */
+.ow-compose{flex:none;border-top:1px solid var(--ow-line);padding:.7em .9em calc(.7em + env(safe-area-inset-bottom));background:#fff}
+.ow-compose form{display:flex;gap:.45em;align-items:stretch}
+.ow-compose input[type=text]{flex:1;min-width:0;min-height:48px;padding:.5em .8em;border:1.5px solid #6b7280;border-radius:12px;background:#fff;color:var(--ow-ink)}
+.ow-compose .ow-tools{display:flex;gap:.4em;margin:.5em 0 0;flex-wrap:wrap;align-items:center}
+.ow-tiles-mini{display:flex;gap:.4em;overflow-x:auto;padding:.1em 0 .5em;margin:0 0 .3em;list-style:none}
+.ow-tiles-mini button{white-space:nowrap;min-height:44px;border-radius:999px}
+.ow-status{font-size:.88em;color:var(--ow-muted);min-height:1.4em;margin:.35em 0 0}
+.ow-attach{display:flex;align-items:center;gap:.6em;margin:.4em 0;font-size:.9em}
+.ow-attach img{width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--ow-line)}
+
+/* dialogs */
+.ow dialog{border:1px solid var(--ow-line);border-radius:16px;padding:1.1em 1.2em;max-width:min(32em,calc(100vw - 24px));width:100%;color:var(--ow-ink);background:#fff;
+  box-shadow:0 20px 50px rgba(17,24,39,.3)}
+.ow dialog::backdrop{background:rgba(17,24,39,.5)}
+.ow dialog h2{margin:0 0 .3em;font-size:1.25em}
+.ow dialog fieldset{border:0;padding:0;margin:.8em 0}
+.ow dialog legend{font-weight:650;padding:0;margin-bottom:.3em}
+.ow dialog label.ow-opt{display:flex;align-items:center;gap:.6em;min-height:44px;padding:.1em 0}
+.ow dialog input[type=radio],.ow dialog input[type=checkbox]{width:1.3em;height:1.3em;flex:none;accent-color:var(--ow-accent)}
+.ow dialog .ow-row{justify-content:flex-end;margin-top:1em}
+
+/* panel on the map pages */
+.ow-panel{position:fixed;z-index:3500;top:var(--head,60px);right:0;bottom:0;width:min(440px,100vw);border-left:1px solid var(--ow-line);box-shadow:-8px 0 30px rgba(17,24,39,.15);background:#fff}
+@media (max-width:720px){.ow-panel{top:0;left:0;width:100vw;border:0}}
+.ow-panel-x{position:absolute;right:.4em;top:.5em}
+/* the page version fills the window */
+.ow-page{height:100vh;height:100dvh}
+.ow-page .ow-inner{width:100%;max-width:52em;margin:0 auto;display:flex;flex-direction:column;min-height:0;flex:1;border-left:1px solid var(--ow-line);border-right:1px solid var(--ow-line)}
+@media (max-width:720px){.ow-page .ow-inner{border:0}}
+.ow-topnav{display:flex;gap:.8em;align-items:center;padding:.5em .9em;border-bottom:1px solid var(--ow-line);font-size:.9em;flex:none}
+.ow-topnav a{color:var(--ow-ink);min-height:44px;display:inline-flex;align-items:center}
+@media (forced-colors:active){.ow button,.ow .ow-btn,.ow-card,.ow-a,.ow-me{border:1px solid ButtonText}.ow .ow-primary{background:ButtonFace;color:ButtonText;border:2px solid ButtonText}
+  .ow-seg input:checked+span{outline:3px solid Highlight}.ow-rate i{border:1px solid ButtonText;background:Canvas;color:CanvasText}}
+@media print{.ow-compose,.ow-settings{display:none}}
+
+</style></head><body>
+<a class="skip" href="#ow-skip">Skip to the question box</a>
+<main id="ow-root" aria-label="Openway Assistant"></main>
+<noscript><p style="padding:1em">The Openway Assistant needs JavaScript. You can still use the <a href="cincinnati.html">Cincinnati map</a> or the <a href="oxford.html">Oxford map</a>, which list every place as text.</p></noscript>
+<script>
+/* Openway Assistant: text helpers shared by the planner, composer and verifier (port of planner.py / composer.py helpers).
+   Plain script, no build step. In the browser it attaches to window.Openway; in Node (tests) it also exports. */
+(function (g) {
+  'use strict';
+  const O = (g.Openway = g.Openway || {});
+  O.rules = O.rules || null;
+  O.setRules = function (r) { O.rules = r; O._normCache = new Map(); };
+  O._normCache = new Map();
+
+  const TOKEN = /[a-z0-9]+(?:['-][a-z0-9]+)*/g;
+  function norm(s) {
+    s = String(s == null ? '' : s).toLowerCase().replace(/’/g, "'").replace(/mt\./g, 'mt').replace(/st\./g, 'st');
+    return (s.match(TOKEN) || []).join(' ');
+  }
+  function tokens(s) { const n = norm(s); return n ? n.split(' ') : []; }
+  function nphrase(p) {
+    let v = O._normCache.get(p);
+    if (v === undefined) { v = norm(p); O._normCache.set(p, v); }
+    return v;
+  }
+  function has(t, phrase) { return (' ' + t + ' ').includes(' ' + nphrase(phrase) + ' '); }
+  function hasAny(t, phrases) { for (const p of phrases) if (has(t, p)) return p; return null; }
+  function stem(w) {
+    w = w.replace(/'s$/, '');
+    return w.length > 3 && w.endsWith('s') && !w.endsWith('ss') ? w.slice(0, -1) : w;
+  }
+  function lev(a, b) {
+    let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+    for (let i = 1; i <= a.length; i++) {
+      const cur = [i];
+      for (let j = 1; j <= b.length; j++) {
+        cur.push(Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] !== b[j - 1] ? 1 : 0)));
+      }
+      prev = cur;
+    }
+    return prev[prev.length - 1];
+  }
+  function tokMatch(q, n) {
+    if (q === n) return true;
+    const m = Math.min(q.length, n.length);
+    if (m < 7) return false;
+    return lev(q, n) <= (m >= 10 ? 2 : 1);
+  }
+  const rhu = x => Math.floor(x + 0.5);
+  const isDigits = s => /^[0-9]+$/.test(s);
+  const unique = a => Array.from(new Set(a));
+  function cmp(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
+  function cmpKeys(ka, kb) {
+    for (let i = 0; i < ka.length; i++) { const c = cmp(ka[i], kb[i]); if (c) return c; }
+    return 0;
+  }
+  const T = { norm, tokens, has, hasAny, stem, lev, tokMatch, rhu, isDigits, unique, cmp, cmpKeys };
+  O.text = T;
+  if (typeof module !== 'undefined') module.exports = T;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* Openway Assistant: dates in words with an injected today (port of dates.py). */
+(function (g) {
+  'use strict';
+  const O = (g.Openway = g.Openway || {});
+  const WEEKDAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+  const DEFAULT_DAYS = 30;
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+  const pad = n => String(n).padStart(2, '0');
+  function mk(y, m, d) { return new Date(Date.UTC(y, m - 1, d)); }
+  function parse(iso) { return mk(+iso.slice(0, 4), +iso.slice(5, 7), +iso.slice(8, 10)); }
+  function iso(d) { return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()); }
+  function add(d, n) { return new Date(d.getTime() + n * 86400000); }
+  function weekday(d) { return (d.getUTCDay() + 6) % 7; } // Monday = 0
+  function lastOfMonth(y, m) { return add(mk(y + (m === 12 ? 1 : 0), (m % 12) + 1, 1), -1); }
+  function span(label, a, b) { return { label, start: iso(a), end: iso(b) }; }
+
+  function parseWhen(text, today) {
+    let t = ' ' + String(text).toLowerCase().replace(/’/g, "'").replace(/[^a-z0-9' ]+/g, ' ') + ' ';
+    t = t.replace(/\s+/g, ' ');
+    const d0 = parse(today), wd = weekday(d0), nextMonday = add(d0, 7 - wd);
+    const has = p => t.includes(' ' + p + ' ');
+    if (has('tonight')) return span('tonight', d0, d0);
+    if (has('today')) return span('today', d0, d0);
+    if (has('tomorrow')) return span('tomorrow', add(d0, 1), add(d0, 1));
+    if (has('next weekend')) { const sat = add(nextMonday, 5); return span('next weekend', sat, add(sat, 1)); }
+    if (has('this weekend') || has('the weekend') || has('weekend')) {
+      if (wd <= 4) { const sat = add(d0, 5 - wd); return span('this weekend', sat, add(sat, 1)); }
+      return span('this weekend', d0, add(d0, 6 - wd));
+    }
+    if (has('next week')) return span('next week', nextMonday, add(nextMonday, 6));
+    if (has('this week')) return span('this week', d0, add(d0, 6 - wd));
+    for (let i = 0; i < 7; i++) {
+      if (has('next ' + WEEKDAYS[i])) { const day = add(nextMonday, i); return span('next ' + cap(WEEKDAYS[i]), day, day); }
+    }
+    for (let i = 0; i < 7; i++) {
+      if (has(WEEKDAYS[i]) || has(WEEKDAYS[i] + 's')) {
+        const day = add(d0, (((i - wd) % 7) + 7) % 7);
+        return span(cap(WEEKDAYS[i]), day, day);
+      }
+    }
+    if (has('next month')) {
+      const y = d0.getUTCFullYear() + (d0.getUTCMonth() === 11 ? 1 : 0), m = (d0.getUTCMonth() + 1) % 12 + 1;
+      return span('next month', mk(y, m, 1), lastOfMonth(y, m));
+    }
+    if (has('this month')) return span('this month', d0, lastOfMonth(d0.getUTCFullYear(), d0.getUTCMonth() + 1));
+    if (has('this year')) return span('this year', d0, mk(d0.getUTCFullYear(), 12, 31));
+    for (let i = 0; i < 12; i++) {
+      const name = MONTHS[i];
+      if (has(name) || (name !== 'may' && has(name.slice(0, 3))) || (name === 'may' && has('in may'))) {
+        const y = d0.getUTCFullYear() + (i + 1 < d0.getUTCMonth() + 1 ? 1 : 0);
+        const first = mk(y, i + 1, 1);
+        const start = (y === d0.getUTCFullYear() && i + 1 === d0.getUTCMonth() + 1) ? (first > d0 ? first : d0) : first;
+        return span(cap(name), start, lastOfMonth(y, i + 1));
+      }
+    }
+    return null;
+  }
+  const defaultRange = today => { const d0 = parse(today); return span('the next ' + DEFAULT_DAYS + ' days', d0, add(d0, DEFAULT_DAYS)); };
+  const dayText = s => { const d = parse(s.slice(0, 10)); return cap(WEEKDAYS[weekday(d)]) + ' ' + d.getUTCDate() + ' ' + cap(MONTHS[d.getUTCMonth()]); };
+  function timeText(s) {
+    if (s.length < 16) return '';
+    const h = parseInt(s.slice(11, 13), 10), m = s.slice(14, 16);
+    if (h < 6) return '';
+    return ((h % 12) || 12) + ':' + m + ' ' + (h < 12 ? 'am' : 'pm');
+  }
+  function whenText(s) { const t = timeText(s); return t ? dayText(s) + ', ' + t : dayText(s); }
+  function rangeText(w) { return w.start === w.end ? dayText(w.start) : dayText(w.start) + ' to ' + dayText(w.end); }
+  function plusDays(s, n) { return iso(add(parse(s), n)); }
+  const D = { WEEKDAYS, MONTHS, parseWhen, defaultRange, dayText, timeText, whenText, rangeText, plusDays, cap };
+  O.dates = D;
+  if (typeof module !== 'undefined') module.exports = D;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* Openway Assistant: the lookup tools and the executor over the exported JSON (port of tools.py + executor.py).
+   Same names, same results as the Python tools on the DuckDB knowledge base; golden tests check it. */
+(function (g) {
+  'use strict';
+  const O = (g.Openway = g.Openway || {});
+  const T = g.Openway.text || require('./text.js');
+  const D = g.Openway.dates || require('./dates.js');
+  const COMPASS = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'];
+  const RATING_ORDER = { accessible: 0, partial: 1, not_accessible: 2, unknown: 3 };
+  const FALLBACK_NEED = { step_free_entrance: 'listed_wheelchair_accessible' };
+  const nz = v => (v === undefined || v === '' ? null : v);
+
+  /** KB from the region files: rows shaped like the DuckDB `places` rows. */
+  function buildKB(regionFiles) {
+    const kb = { places: [], byId: new Map(), facts: new Map(), events: [], areas: {}, generated: null, site: null };
+    for (const f of regionFiles) {
+      kb.generated = kb.generated && kb.generated > f.generated ? kb.generated : f.generated;
+      kb.site = f.site;
+      const start = kb.places.length;
+      for (const p of f.places) {
+        const row = {
+          link_id: p.id, name: p.name, region: f.region, layer: p.layer, rating: p.rating,
+          lat: nz(p.lat), lon: nz(p.lon), summary: p.summary || '', notice: nz(p.notice),
+          keys: p.keys || [], newest_source: nz(p.newest_source), address: nz(p.address), phone: nz(p.phone),
+          website: nz(p.website), hours: nz(p.hours), arrival: nz(p.arrival), route: p.route || null,
+          page: p.page || (f.site + '/places/' + f.region + '/' + p.id + '.html'),
+        };
+        kb.places.push(row); kb.byId.set(row.link_id, row); kb.facts.set(row.link_id, []);
+      }
+      for (const x of f.facts) {
+        const id = f.places[x[0]].id;
+        kb.facts.get(id).push({ attribute: x[1], value: x[2], detail: x[3], quote: x[4], source: x[5], date: x[6] });
+      }
+      for (const e of f.events) {
+        const row = kb.places[start + e[0]];
+        kb.events.push({ link_id: row.link_id, title: e[1], start: e[2], url: e[3], access: e[4], accessible_tag: !!e[5], disability_focused: !!e[6], place: row.name, rating: row.rating, page: row.page, region: row.region });
+      }
+      Object.assign(kb.areas, f.areas || {});
+    }
+    kb.names = kb.places.map(p => p.name.toLowerCase());
+    return kb;
+  }
+
+  const miles = (lat1, lon1, lat2, lon2) => {
+    const r = 3958.8, rad = Math.PI / 180, p1 = lat1 * rad, p2 = lat2 * rad;
+    const a = Math.sin((p2 - p1) / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin((lon2 - lon1) * rad / 2) ** 2;
+    return 2 * r * Math.asin(Math.sqrt(a));
+  };
+  function direction(lat1, lon1, lat2, lon2) {
+    const rad = Math.PI / 180;
+    const y = Math.sin((lon2 - lon1) * rad) * Math.cos(lat2 * rad);
+    const x = Math.cos(lat1 * rad) * Math.sin(lat2 * rad) - Math.sin(lat1 * rad) * Math.cos(lat2 * rad) * Math.cos((lon2 - lon1) * rad);
+    const deg = Math.atan2(y, x) / rad;
+    return COMPASS[T.rhu((((deg + 360) % 360)) / 45) % 8];
+  }
+  const round2 = x => Math.round(x * 100) / 100;
+
+  function words(s) {
+    const stop = new Set(['the', 'a', 'an', 'of', 'in', 'at', 'and', 'is', 'to', 'for', 'on', 'my', 'me', 'near']);
+    return (String(s || '').toLowerCase().match(/[a-z0-9']+/g) || []).filter(w => !stop.has(w) && w.length > 1);
+  }
+
+  function Backend(kb, rules) {
+    const NEEDS = rules.NEEDS, POSITIVE = new Set(rules.POSITIVE);
+    const idsWithNeed = need => {
+      const spec = NEEDS[need], ids = new Set();
+      if (spec.facts) {
+        const attrs = new Set(spec.facts);
+        for (const [id, fs] of kb.facts) for (const f of fs) {
+          if (attrs.has(f.attribute) && POSITIVE.has(String(f.value).split(';').pop())) { ids.add(id); break; }
+        }
+      }
+      if (spec.restroom_layer) for (const p of kb.places) if (p.layer === 'restroom' && (p.rating === 'accessible' || p.rating === 'partial')) ids.add(p.link_id);
+      if (spec.layers) for (const p of kb.places) if (spec.layers.includes(p.layer)) ids.add(p.link_id);
+      return ids;
+    };
+    const brief = (row, here) => {
+      const out = {
+        link_id: row.link_id, name: row.name, region: row.region, type: row.layer, rating: row.rating,
+        what_is_known: row.keys, summary: row.summary, notice: row.notice, newest_source: row.newest_source,
+        page: row.page, address: row.address, phone: row.phone, website: row.website, hours: row.hours,
+      };
+      if (here) { out.miles = round2(miles(here[0], here[1], row.lat, row.lon)); out.direction = direction(here[0], here[1], row.lat, row.lon); }
+      return out;
+    };
+    const factText = {};
+    let weightCache = {};
+    const be = {
+      places() { return kb.places.map(p => ({ id: p.link_id, name: p.name, layer: p.layer, region: p.region, rating: p.rating, lat: p.lat, lon: p.lon })); },
+      as_of() { return kb.generated; },
+      coords(id) { const p = kb.byId.get(id); return p ? [p.lat, p.lon] : [null, null]; },
+      facts(id) { return (kb.facts.get(id) || []).map(f => Object.assign({}, f)); },
+      search_places(a) {
+        const region = a.region || null, type = a.place_type || null, need = a.need || null, limit = a.limit || 5;
+        let rows = kb.places.filter(r => (!region || r.region === region) && (!type || r.layer === type));
+        if (need) { const ok = idsWithNeed(need); rows = rows.filter(r => ok.has(r.link_id)); }
+        const ws = words(a.query || '');
+        const text = {};
+        if (ws.length) {
+          for (const [id, fs] of kb.facts) if (fs.length) text[id] = fs.map(f => (f.attribute + ' ' + f.detail).toLowerCase()).join(' ');
+        }
+        const weight = {};
+        for (const w of ws) weight[w] = 1 / Math.log(2 + kb.names.reduce((n, nm) => n + (nm.includes(w) ? 1 : 0), 0));
+        const scored = [];
+        for (const r of rows) {
+          const name = r.name.toLowerCase();
+          let score = 0;
+          if (ws.length) {
+            let inName = 0, inBody = 0;
+            for (const w of ws) if (name.includes(w)) inName += weight[w];
+            const body = r.summary.toLowerCase() + ' ' + (r.address || '').toLowerCase() + ' ' + (text[r.link_id] || '');
+            for (const w of ws) if (body.includes(w)) inBody += weight[w];
+            if (inName === 0 && !ws.every(w => body.includes(w))) continue;
+            const exact = name.includes(ws.join(' ')) ? 3 : 0;
+            score = exact + 2 * inName + 0.5 * inBody;
+          }
+          scored.push([-score, RATING_ORDER[r.rating], -r.keys.length, r.name, r]);
+        }
+        scored.sort((x, y) => T.cmpKeys(x.slice(0, 4), y.slice(0, 4)));
+        return scored.slice(0, limit).map(t => brief(t[4]));
+      },
+      nearest(a) {
+        const need = a.need || null, type = a.place_type || null, maxMiles = a.max_miles == null ? 5.0 : a.max_miles, limit = a.limit || 5;
+        let rows = kb.places.filter(r => r.lat !== null && (!type || r.layer === type));
+        if (need) { const ok = idsWithNeed(need); rows = rows.filter(r => ok.has(r.link_id)); }
+        const hits = rows.map(r => [miles(a.lat, a.lon, r.lat, r.lon), r]).sort((x, y) => x[0] - y[0]);
+        return hits.filter(h => h[0] <= maxMiles).slice(0, limit).map(h => brief(h[1], [a.lat, a.lon]));
+      },
+      find_events(a) {
+        const start = a.start, end = a.end || D.plusDays(start, 30), limit = a.limit || 10;
+        let rows = kb.events.filter(e => e.start.slice(0, 10) >= start && e.start.slice(0, 10) <= end);
+        if (a.region) rows = rows.filter(e => e.region === a.region);
+        if (a.link_id) rows = rows.filter(e => e.link_id === a.link_id);
+        if (a.disability_focused) rows = rows.filter(e => e.disability_focused);
+        if (a.access && a.access.length) rows = rows.filter(e => a.access.some(x => e.access.includes(x)));
+        for (const w of words(a.query || '')) rows = rows.filter(e => e.title.toLowerCase().includes(w));
+        rows = rows.slice().sort((x, y) => T.cmp(x.start, y.start) || T.cmp(x.title, y.title)).slice(0, limit);
+        return rows.map(e => ({ title: e.title, start: e.start, url: e.url, access: e.access.split(',').filter(Boolean), accessible_tag: e.accessible_tag, disability_focused: e.disability_focused, place: e.place, link_id: e.link_id, rating: e.rating, page: e.page }));
+      },
+      get_place(id) {
+        const r = kb.byId.get(id);
+        if (!r) {
+          const hit = be.search_places({ query: id, limit: 1 });
+          if (!hit.length) return null;
+          return be.get_place(hit[0].link_id);
+        }
+        const out = brief(r);
+        out.facts = be.facts(r.link_id);
+        out.getting_there = r.arrival || r.route ? { arrival: r.arrival, route: r.route } : {};
+        out.contacts = {};
+        out.events = [];
+        out.data_as_of = kb.generated;
+        return out;
+      },
+      area_conditions(lat, lon) {
+        const c = kb.areas[lat.toFixed(4) + ',' + lon.toFixed(4)];
+        return c ? JSON.parse(JSON.stringify(c)) : null;
+      },
+      accessible_route(a) {
+        const p = be.get_place(a.to);
+        if (!p) return null;
+        const r = (p.getting_there || {}).route;
+        if (!r) return null;
+        if (a.profile === 'blind' && r.blind) return Object.assign({ place: p.name, from: r.from, to: r.to }, r.blind);
+        const o = { place: p.name };
+        for (const k of Object.keys(r)) if (k !== 'blind') o[k] = r[k];
+        return o;
+      },
+    };
+    return be;
+  }
+
+  const enrich = (rows, be) => { for (const r of rows) { r.facts = be.facts(r.link_id); const c = be.coords(r.link_id); r.lat = c[0]; r.lon = c[1]; } return rows; };
+  const upcoming = (be, args, today) => be.find_events(Object.assign({}, args, { limit: args.limit || 10 })).filter(e => e.start.slice(0, 10) >= today);
+
+  function execute(pl, ctx, be) {
+    const out = [];
+    const a = Object.assign({}, pl.args);
+    const R = (tool, args, data, meta) => ({ tool, args, data, meta: meta || {} });
+    if (pl.tool === 'search_places' || pl.tool === 'nearest') {
+      const fn = pl.tool === 'search_places' ? be.search_places : be.nearest;
+      let rows = fn(a), meta = {};
+      if (!rows.length && FALLBACK_NEED[a.need]) {
+        const a2 = Object.assign({}, a, { need: FALLBACK_NEED[a.need] });
+        rows = fn(a2);
+        if (rows.length) meta = { fallback_need: a2.need, wanted: a.need };
+      }
+      out.push(R(pl.tool, a, enrich(rows, be), meta));
+    } else if (pl.tool === 'get_place') {
+      const p = be.get_place(a.name_or_id);
+      if (p) { p.events = upcoming(be, { link_id: p.link_id, start: ctx.today, end: D.plusDays(ctx.today, 365) }, ctx.today); const c = be.coords(p.link_id); p.lat = c[0]; p.lon = c[1]; }
+      out.push(R('get_place', a, p));
+    } else if (pl.tool === 'find_events') {
+      const rows = upcoming(be, a, ctx.today);
+      out.push(R('find_events', a, rows, { as_of: be.as_of() }));
+      if (!rows.length) {
+        const nxt = {};
+        for (const k of Object.keys(a)) if (k !== 'start' && k !== 'end') nxt[k] = a[k];
+        nxt.start = D.plusDays(a.end, 1); nxt.end = D.plusDays(a.end, 365); nxt.limit = 3;
+        out.push(R('find_events', nxt, upcoming(be, nxt, ctx.today), { role: 'next_events', as_of: be.as_of() }));
+      }
+    } else if (pl.tool === 'area_conditions') {
+      out.push(R('area_conditions', a, be.area_conditions(a.lat, a.lon, a.region)));
+      if (pl.anchor && pl.anchor.id) out.push(R('get_place', { name_or_id: pl.anchor.id }, be.get_place(pl.anchor.id)));
+    } else if (pl.tool === 'accessible_route') {
+      out.push(R('accessible_route', a, be.accessible_route(a)));
+      out.push(R('get_place', { name_or_id: a.to }, be.get_place(a.to)));
+    }
+    return out;
+  }
+  const X = { buildKB, Backend, execute };
+  O.tools = X;
+  if (typeof module !== 'undefined') module.exports = X;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* Openway Assistant: rules planner (port of planner.py). Question + context -> plan. Deterministic, no model. */
+(function (g) {
+  'use strict';
+  const O = (g.Openway = g.Openway || {});
+  const X = g.Openway.text || require('./text.js');
+  const D = g.Openway.dates || require('./dates.js');
+  const { norm, tokens, has, hasAny, stem, tokMatch } = X;
+  const RATING_ORDER = { accessible: 0, partial: 1, not_accessible: 2, unknown: 3 };
+  const R = () => O.rules;
+
+  function mkPlan(intent, f) {
+    return Object.assign({
+      intent, tool: null, args: {}, need: null, place_type: null, place: null, region: null, when: null, anchor: null,
+      clarify: null, topic: null, access: [], unmatched: [], unsupported: [], source: 'rules',
+    }, f || {});
+  }
+
+  function Index(places) {
+    const r = R();
+    this.places = places;
+    this.generic = new Set(tokens(r.GENERIC_NAME_WORDS.join(' ')).map(stem));
+    for (const [, ws] of r.TYPE_WORDS) for (const w of tokens(ws.join(' '))) this.generic.add(stem(w));
+    this.byId = new Map(places.map(p => [p.id, p]));
+    this.entries = [];
+    this.allTokens = new Set();
+    const df = {};
+    for (const p of places) {
+      for (const w of tokens(p.name)) this.allTokens.add(stem(w));
+      if (p.layer === 'restroom') continue;
+      const main = p.name.split(/[,(]/)[0];
+      const toks = X.unique(tokens(main).filter(w => !this.generic.has(stem(w)) && w.length > 1 && !X.isDigits(w)).map(stem));
+      for (const w of toks) df[w] = (df[w] || 0) + 1;
+      if (toks.length) this.entries.push([p, toks, new Set(tokens(main).map(stem))]);
+    }
+    this.weight = {};
+    for (const w of Object.keys(df)) this.weight[w] = 1 / Math.log(2 + df[w]);
+    this.alias = r.ALIASES.map(([a, b]) => [norm(a), norm(b)]);
+    this.byName = new Map();
+    for (const p of places) if (p.layer !== 'restroom') this.byName.set(norm(p.name), p);
+  }
+  Index.prototype.resolve = function (t, region) {
+    for (const [a, full] of this.alias) if (has(t, a) && this.byName.has(full)) return [this.byName.get(full), 1.0];
+    const q = X.unique(t.split(' ').filter(Boolean).map(stem)), qset = new Set(q);
+    let best = null;
+    for (const [p, toks, allToks] of this.entries) {
+      const matched = toks.filter(n => q.some(w => tokMatch(w, n)));
+      if (!matched.length) continue;
+      const total = toks.reduce((s, n) => s + this.weight[n], 0);
+      const got = matched.reduce((s, n) => s + this.weight[n], 0);
+      const cov = got / total;
+      if (cov < 0.5 || (matched.length < 2 && got < 0.45 && cov < 0.99)) continue;
+      let gh = 0;
+      for (const x of allToks) if (qset.has(x) && this.generic.has(x)) gh++;
+      const key = [-Math.round(cov * 1e6) / 1e6, (region == null || p.region === region) ? 0 : 1, -matched.length, -gh,
+        RATING_ORDER[p.rating] === undefined ? 3 : RATING_ORDER[p.rating], p.name.length, p.name];
+      if (best === null || X.cmpKeys(key, best[0]) < 0) best = [key, p, cov];
+    }
+    return best ? [best[1], best[2]] : null;
+  };
+
+  function detectRegion(t) {
+    const r = R();
+    if (has(t, 'oxford')) return 'oxford';
+    if (has(t, 'cincinnati') || has(t, 'cincy')) return 'cincinnati';
+    for (const region of r.REGION_KEYS) if (hasAny(t, r.REGION_WORDS[region])) return region;
+    return null;
+  }
+  function detectArea(t) {
+    let hit = null;
+    for (const k of Object.keys(R().AREAS)) {
+      if (has(t, k) && (hit === null || norm(k).length > norm(hit[0]).length)) hit = [k, R().AREAS[k]];
+    }
+    return hit ? hit[1] : null;
+  }
+  function firstNeed(t) { for (const [need, ws] of R().NEED_WORDS) if (hasAny(t, ws)) return need; return null; }
+  function firstType(t) {
+    const found = R().TYPE_WORDS.filter(([, ws]) => hasAny(t, ws)).map(x => x[0]);
+    const other = found.filter(x => x !== 'restroom');
+    return other.length ? other[0] : (found.length ? found[0] : null);
+  }
+  function contentWords(t, extra) {
+    const skip = new Set([...tokens(R().STOP.join(' ')), ...(extra || [])]);
+    return t.split(' ').filter(w => w && !skip.has(w) && w.length > 1);
+  }
+  function capitalized(text, starts) {
+    starts = starts || '.?!';
+    const out = [], re = /[A-Z][a-zA-Z']+/g;
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      const before = text.slice(0, m.index).replace(/\s+$/, '');
+      if (before === '' || starts.includes(before[before.length - 1])) continue;
+      out.push(m[0]);
+    }
+    return out;
+  }
+  function areaWordSet() {
+    const r = R(), words = new Set();
+    for (const k of Object.keys(r.AREAS)) for (const w of tokens(k)) words.add(stem(w));
+    for (const ws of Object.values(r.REGION_WORDS)) for (const k of ws) for (const w of tokens(k)) words.add(stem(w));
+    return words;
+  }
+  function unmatchedNames(text, index, areaWords, named) {
+    const r = R();
+    const known = new Set([...areaWords, ...tokens(r.MONTHS_DAYS.concat(r.KNOWN_CAPS).join(' '))]);
+    if (named) for (const w of tokens(named.name)) known.add(stem(w));
+    const out = [];
+    for (const w of capitalized(text)) {
+      const tk = stem(norm(w));
+      if (tk && !known.has(tk) && !index.generic.has(tk) && tk.length > 2 && !out.includes(tk)) out.push(tk);
+    }
+    return out;
+  }
+  function stripPhrases(t, phrases) {
+    let out = ' ' + t + ' ';
+    for (const p of phrases.slice().sort((a, b) => norm(b).length - norm(a).length || 0)) out = out.split(' ' + norm(p) + ' ').join(' ');
+    return out.split(' ').filter(Boolean).join(' ');
+  }
+  function queryMap(t) {
+    for (const [phrases, q] of R().QUERY_MAP) if (hasAny(t, phrases)) return q;
+    return null;
+  }
+  function optionsWhere(text) {
+    return [
+      { label: 'Use my location', message: text, action: 'locate' },
+      { label: 'Downtown Cincinnati', message: text + ' near downtown Cincinnati' },
+      { label: 'Uptown Oxford', message: text + ' near uptown Oxford' },
+    ];
+  }
+  const compact = o => { const r = {}; for (const k of Object.keys(o)) if (o[k] !== null && o[k] !== undefined) r[k] = o[k]; return r; };
+
+  function plan(text, ctx, index) {
+    const pl = _plan(text, ctx, index);
+    if (['nearest', 'search', 'place', 'events', 'area'].includes(pl.intent)) {
+      const t = norm(text);
+      pl.unsupported = R().UNSUPPORTED.filter(p => has(t, p));
+    }
+    return pl;
+  }
+
+  function _plan(text, ctx, index) {
+    const r = R();
+    const t = norm(text);
+    const region = detectRegion(t) || ctx.region || null;
+    const needs = ctx.needs || {};
+    if (hasAny(t, r.EMERGENCY) || (has(t, r.EMERGENCY_SOFT) && !hasAny(t, r.EMERGENCY_SOFT_NOT))) return mkPlan('emergency');
+    if (hasAny(t, r.HELP) && t.split(' ').length <= 8 && !firstNeed(t) && !firstType(t)) return mkPlan('help');
+
+    const tPlaces = stripPhrases(t, Object.keys(r.AREAS).concat(['oxford', 'cincinnati', 'cincy']));
+    const hit = index.resolve(tPlaces, region);
+    const named = hit ? hit[0] : null, cov = hit ? hit[1] : 0.0;
+    const placeRef = named ? { id: named.id, name: named.name } : null;
+    const areaWords = areaWordSet();
+    const unmatched = named ? unmatchedNames(text, index, areaWords, named) : [];
+
+    for (const intent of ['ada_trust', 'conflict_trust', 'reports_trust', 'dates_trust']) {
+      if (hasAny(t, r.TRUST[intent])) {
+        if (intent === 'dates_trust' && hasAny(t, r.EVENT_STRONG)) break;
+        const pl = mkPlan(intent, { region, place: placeRef });
+        if (named) { pl.tool = 'get_place'; pl.args = { name_or_id: named.id }; }
+        return pl;
+      }
+    }
+    const other = hasAny(t, r.OTHER_PLACES);
+    if (other && !(has(t, 'oxford') || has(t, 'cincinnati') || has(t, 'cincy'))) return mkPlan('out_of_area', { topic: titleCase(other) });
+    for (const cat of r.NO_DATA) if (hasAny(t, cat.words) && !named) return mkPlan('no_data', { topic: cat.label, region });
+    if (hasAny(t, r.LIVE_INFO)) {
+      let topic = 'that';
+      for (const [lab, ph] of r.LIVE_TOPICS) if (hasAny(t, ph)) { topic = lab; break; }
+      return mkPlan('live_info', { region, topic, place: placeRef, tool: named ? 'get_place' : null, args: named ? { name_or_id: named.id } : {} });
+    }
+
+    const when = D.parseWhen(text, ctx.today);
+    const area = detectArea(t);
+    const need = firstNeed(t);
+    const tType = named ? stripPhrases(t, [named.name].concat(tokens(named.name))) : t;
+    const ptype = firstType(tType);
+    let access = Object.keys(r.EVENT_ACCESS).filter(k => hasAny(t, r.EVENT_ACCESS[k]));
+    if (hasAny(t, r.EVENT_ACCESS_ALL)) access = ['audio_description', 'asl', 'sensory_friendly'];
+    let qfirst = null;
+    for (const [phrases, q] of r.QUERY_MAP.slice(0, r.QUERY_FIRST)) if (hasAny(t, phrases)) { qfirst = q; break; }
+    if (qfirst && !named) {
+      const a = { query: qfirst }; if (region) a.region = region; a.limit = 5;
+      return mkPlan('search', { tool: 'search_places', args: a, region });
+    }
+
+    const strong = hasAny(t, r.EVENT_STRONG), weak = hasAny(t, r.EVENT_WORDS);
+    if (strong || (weak && !named && (when || !(need || ptype)))) {
+      let words = contentWords(t, r.EVENT_FILLER);
+      const evNamed = cov >= 0.99 ? named : null;
+      if (evNamed) { const drop = new Set(tokens(evNamed.name).map(stem)); words = words.filter(w => !drop.has(stem(w))); }
+      words = words.filter(w => !areaWords.has(stem(w)));
+      const w = when || D.defaultRange(ctx.today);
+      const args = { start: w.start, end: w.end };
+      if (region) args.region = region;
+      if (access.length) args.access = access;
+      if (hasAny(t, r.EVENT_DISABILITY) && !hasAny(t, r.EVENT_ACCESS_ALL)) args.disability_focused = true;
+      if (evNamed) args.link_id = evNamed.id;
+      else if (words.length && !access.length) args.query = words.slice(0, 3).join(' ');
+      return mkPlan('events', { tool: 'find_events', args, region, when, access, place: evNamed ? placeRef : null });
+    }
+
+    if (hasAny(t, r.ROUTE_WORDS)) {
+      if (!named) return mkPlan('clarify', { region, clarify: { question: 'Which place do you want to go to?', options: [] } });
+      const blind = ['cane', 'guide'].includes(needs.mobility) || (needs.rely || []).includes('screen_reader');
+      const args = { to: named.id, profile: blind ? 'blind' : 'wheelchair' };
+      if (ctx.location) { args.from_lat = ctx.location[0]; args.from_lon = ctx.location[1]; }
+      return mkPlan('route', { tool: 'accessible_route', args, region: region || named.region, place: placeRef });
+    }
+
+    if (hasAny(t, r.AREA_WORDS) && !(need && need !== 'step_free_entrance')) {
+      const topic = hasAny(t, ['closure', 'closures', 'construction', '311', 'road work', 'sidewalk problems', 'sidewalk closures']) ? 'reports' : 'slope';
+      if (named && named.lat !== null && named.lat !== undefined) {
+        return mkPlan('area', { tool: 'area_conditions', topic, args: { lat: named.lat, lon: named.lon, region: named.region },
+          anchor: { name: named.name, lat: named.lat, lon: named.lon, id: named.id }, place: placeRef, region: named.region });
+      }
+      let a = area;
+      if (a === null && ctx.location) a = { name: 'your location', lat: ctx.location[0], lon: ctx.location[1], region };
+      if (a === null && region) a = r.AREAS[region === 'oxford' ? 'uptown oxford' : 'downtown'];
+      if (a === null) return mkPlan('clarify', { region, clarify: { question: 'Which area do you mean?', options: optionsWhere(text) } });
+      return mkPlan('area', { tool: 'area_conditions', topic, args: { lat: a.lat, lon: a.lon, region: a.region || region },
+        anchor: { name: a.name, lat: a.lat, lon: a.lon }, region: a.region || region });
+    }
+
+    const nearPhrase = hasAny(t, r.NEAR_WORDS) || hasAny(t, r.NEAR_ME);
+    if ((need || ptype || qfirst) && !(named && !nearPhrase)) {
+      const steps = needs.steps === 'cannot';
+      let eff = need;
+      if ((!eff || eff === 'listed_wheelchair_accessible') && steps && ptype !== 'restroom') eff = 'step_free_entrance';
+      if (!eff && ptype && r.TYPE_DEFAULT_NEED[ptype]) eff = r.TYPE_DEFAULT_NEED[ptype];
+      if (ptype === 'restroom' && !eff) eff = 'accessible_restroom';
+      if (eff === 'listed_wheelchair_accessible' && ptype && !['food_drink', 'restroom'].includes(ptype)) eff = null;
+      const useType = ptype === 'restroom' ? null : ptype;
+      let anchor = null;
+      if (named && named.lat !== null && named.lat !== undefined) anchor = { name: named.name, lat: named.lat, lon: named.lon };
+      if (anchor === null && area) anchor = { name: area.name, lat: area.lat, lon: area.lon };
+      const wantsNear = !!hasAny(t, r.NEAR_ME);
+      if (anchor === null && ctx.location && (wantsNear || region === null)) anchor = { name: 'your location', lat: ctx.location[0], lon: ctx.location[1] };
+      const nearish = ['accessible_restroom', 'adult_changing_table', 'accessible_parking'].includes(eff) || useType === 'food_drink';
+      if (anchor === null && wantsNear && region === null && nearish) {
+        return mkPlan('clarify', { need: eff, place_type: useType, region, clarify: { question: 'Where are you? I use your location only to sort places by distance.', options: optionsWhere(text) } });
+      }
+      if (anchor !== null && (eff || useType) && !qfirst) {
+        return mkPlan('nearest', { tool: 'nearest', args: { lat: anchor.lat, lon: anchor.lon, need: eff, place_type: useType, max_miles: 5.0, limit: 5 },
+          need: eff, place_type: useType, anchor, region, place: placeRef });
+      }
+      let q = queryMap(t);
+      if (!q && !named) { const miss = unmatchedNames(text, index, areaWords, null); q = miss.length ? miss.join(' ') : null; }
+      const args = compact({ region, place_type: useType, need: eff, limit: 5, query: q });
+      return mkPlan('search', { tool: 'search_places', args, need: eff, place_type: useType, region });
+    }
+
+    if (named) return mkPlan('place', { tool: 'get_place', args: { name_or_id: named.id }, need, place: placeRef, region: region || named.region, unmatched });
+
+    const q = queryMap(t);
+    if (q) { const a = { query: q }; if (region) a.region = region; a.limit = 5; return mkPlan('search', { tool: 'search_places', args: a, region }); }
+    const miss = unmatchedNames(text, index, areaWords, null);
+    const words = miss.length ? miss : contentWords(t, []);
+    if (words.length) {
+      const a = { query: words.slice(0, 4).join(' ') }; if (region) a.region = region; a.limit = 5;
+      return mkPlan('search', { tool: 'search_places', args: a, region, topic: 'words' });
+    }
+    return mkPlan('unknown', { region });
+  }
+  function titleCase(s) { return s.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()); }
+
+  const P = { Index, plan, mkPlan, capitalized, detectRegion, detectArea, firstNeed, firstType, unmatchedNames, areaWordSet, optionsWhere };
+  O.planner = P;
+  if (typeof module !== 'undefined') module.exports = P;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* Openway Assistant: template composer (port of composer.py). Tool results -> answer, from fixed sentence templates. */
+(function (g) {
+  'use strict';
+  const O = (g.Openway = g.Openway || {});
+  const X = g.Openway.text || require('./text.js');
+  const D = g.Openway.dates || require('./dates.js');
+  const R = () => O.rules;
+  const { rhu } = X;
+  const MAX_CARDS = 3;
+  const STANDING = 'Computed from map data, not checked on site.';
+
+  const S = (text, refs, kind, derived) => ({ text, refs: refs || [], kind: kind || 'claim', derived: derived || [] });
+  const titleCase = s => s.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+  const trimEnd = (s, chars) => { let i = s.length; while (i > 0 && chars.includes(s[i - 1])) i--; return s.slice(0, i); };
+
+  function clip(s, n) {
+    n = n || 90;
+    s = String(s).split(/\s+/).filter(Boolean).join(' ');
+    if (s.length <= n) return s;
+    const cut = s.slice(0, n), i = cut.lastIndexOf(' ');
+    return trimEnd(i > Math.floor(n / 2) ? cut.slice(0, i) : cut, ' ,;:.') + '…';
+  }
+  function fullDate(iso) {
+    if (!iso || iso.length < 10) return iso || '';
+    return parseInt(iso.slice(8, 10), 10) + ' ' + D.cap(D.MONTHS[parseInt(iso.slice(5, 7), 10) - 1]) + ' ' + iso.slice(0, 4);
+  }
+  function monthYear(d) {
+    if (d.length >= 10) return parseInt(d.slice(8, 10), 10) + ' ' + D.cap(D.MONTHS[parseInt(d.slice(5, 7), 10) - 1].slice(0, 3)) + ' ' + d.slice(0, 4);
+    if (d.length >= 7) return D.cap(D.MONTHS[parseInt(d.slice(5, 7), 10) - 1].slice(0, 3)) + ' ' + d.slice(0, 4);
+    return d;
+  }
+  function sourceWords(url) {
+    const u = String(url || '').toLowerCase();
+    for (const [host, words] of R().SOURCE_KINDS) if (u.includes(host)) return words;
+    const m = u.match(/^https?:\/\/(?:www\.)?([^/]+)/);
+    return m ? 'the website ' + m[1] : 'a listed source';
+  }
+  function ageWords(d, today) {
+    if (!d) return 'no date given';
+    let out = monthYear(d);
+    if (/^\d{4}/.test(d) && parseInt(today.slice(0, 4), 10) - parseInt(d.slice(0, 4), 10) >= 2) out += ' (old: from ' + d.slice(0, 4) + ')';
+    return out;
+  }
+  function distanceText(m) {
+    if (m === null || m === undefined) return null;
+    if (m < 0.19) return 'about ' + Math.max(50, rhu(m * 5280 / 50) * 50) + ' feet';
+    return 'about ' + (rhu(m * 10) / 10).toFixed(1) + ' miles';
+  }
+  function fmtPhone(p) {
+    if (!p) return p;
+    let d = String(p).replace(/\D/g, '');
+    if (d.length === 11 && d[0] === '1') d = d.slice(1);
+    return d.length === 10 ? '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6) : p;
+  }
+  const joinOr = items => items.length === 1 ? items[0] : items.slice(0, -1).join(', ') + ' or ' + items[items.length - 1];
+  const needLabel = need => R().NEED_LABELS[need || ''] || '';
+  const factLabel = a => R().FACT_LABELS[a] || a;
+  function factText(f) {
+    const label = factLabel(f.attribute), v = String(f.value), d = clip(f.detail || '');
+    return label + ': ' + v + (d ? ' (' + d + ')' : '');
+  }
+  const positive = f => new Set(R().POSITIVE).has(String(f.value).split(';').pop().trim());
+  function pickFacts(facts, need, k) {
+    k = k === undefined ? 4 : k;
+    const attrs = new Set(((R().NEEDS[need || ''] || {}).facts) || []);
+    let rel = facts.filter(f => attrs.has(f.attribute) && positive(f));
+    rel = rel.filter(f => f.quote).concat(rel.filter(f => !f.quote));
+    if (!rel.length) {
+      let rest = facts.filter(f => !R().NOISE_FACTS.includes(f.attribute));
+      rest = rest.filter(f => f.quote).concat(rest.filter(f => !f.quote));
+      const pr = a => { const i = R().FACT_PRIORITY.indexOf(a); return i >= 0 ? i : 99; };
+      rest = rest.map((f, i) => [f, i]).sort((x, y) => (pr(x[0].attribute) - pr(y[0].attribute)) || (x[1] - y[1])).map(x => x[0]);
+      rel = rest.length ? rest : facts;
+    }
+    return rel.slice(0, k);
+  }
+  const toFact = (f, pid) => ({ label: factLabel(f.attribute), value: String(f.value), detail: f.detail || '', quote: f.quote || '', source: f.source || '', date: f.date || '', place_id: pid });
+  function cardFor(row, need, ctx, k) {
+    const facts = pickFacts(row.facts || [], need, k === undefined ? 4 : k);
+    const seen = new Set(), sources = [];
+    for (const f of facts) {
+      const key = f.source || '';
+      if (key && !seen.has(key)) { seen.add(key); sources.push({ url: key, date: f.date || '', quote: f.quote || '', label: sourceWords(key) }); }
+    }
+    const m = row.miles === undefined ? null : row.miles;
+    return {
+      place_id: row.link_id, name: row.name, type: R().TYPE_LABELS[row.type] || row.type || '', rating: row.rating,
+      facts: facts.map(f => toFact(f, row.link_id)), sources, miles: m, direction: row.direction === undefined ? null : row.direction,
+      distance_text: distanceText(m), phone: fmtPhone(row.phone) || null, note: row.notice || null,
+      lat: row.lat === undefined ? null : row.lat, lon: row.lon === undefined ? null : row.lon, event: null,
+    };
+  }
+  function eventCard(e) {
+    return {
+      place_id: e.link_id, name: e.place, type: 'event', rating: e.rating, facts: [],
+      sources: e.url ? [{ url: e.url, date: '', quote: '', label: sourceWords(e.url) }] : [],
+      miles: null, direction: null, distance_text: null, phone: null, note: null, lat: null, lon: null,
+      event: { title: e.title, start: e.start, when_text: D.whenText(e.start), url: e.url || '', access: (e.access || []).map(a => R().ACCESS_WORDS[a] || a) },
+    };
+  }
+  function sourcesOf(cards) {
+    const out = [], seen = new Set();
+    for (const c of cards) for (const s of c.sources) if (!seen.has(s.url)) { seen.add(s.url); out.push(s); }
+    return out;
+  }
+  const dataOf = (results, tool, role) => results.find(r => r.tool === tool && ((r.meta || {}).role || null) === (role || null)) || null;
+  const callOf = row => (row && row.phone ? { name: row.name, phone: fmtPhone(row.phone) } : null);
+  function A(kind, headline, f) {
+    return Object.assign({
+      kind, headline: headline.slice(0, 2), details: [], cards: [], unknown: [], call: null, actions: [], sources: [],
+      clarify: null, as_of: null, notes: [], verified: false, removed: 0, plan: null, engine: 'rules',
+    }, f || {});
+  }
+
+  function compose(pl, results, ctx, asOf) {
+    const fn = {
+      emergency, help, ada_trust: trust, conflict_trust: trust, reports_trust: trust, dates_trust: trust,
+      out_of_area: outOfArea, no_data: noData, live_info: live, events, route, area, nearest: list, search: list, place, clarify, unknown,
+    }[pl.intent];
+    const a = fn(pl, results, ctx, asOf);
+    a.plan = pl;
+    a.as_of = ['emergency', 'out_of_area', 'help', 'clarify'].includes(pl.intent) ? null : (asOf === undefined ? null : asOf);
+    return a;
+  }
+  const emergency = () => A('emergency', [S('If this is an emergency, call 911 now.', [], 'meta')], { actions: [{ type: 'call', name: 'Emergency services', phone: '911' }] });
+  const help = () => A('help', [S('I can look things up about accessible places in Cincinnati and Oxford.', [], 'meta'), S("Each answer shows its source. I say so when I don't know.", [], 'meta')],
+    { details: [S('I can answer: ' + R().CAN_ANSWER.join('; ') + '.', [], 'meta'), S('I cannot answer: ' + R().CANNOT_ANSWER.join('; ') + '.', [], 'meta')] });
+  const outOfArea = pl => A('out_of_area', [S('I only cover Cincinnati and Oxford for now.', [], 'meta'), S("I can't help with " + pl.topic + ' yet.', [], 'meta')], { unknown: [pl.topic] });
+  const noData = pl => A('no_data', [S("I don't have information about " + pl.topic.toLowerCase() + ' yet.', [], 'meta'), S('I can look up restrooms, parking, places to eat, events and trails.', [], 'meta')],
+    { details: [S('I can answer: ' + R().CAN_ANSWER.join('; ') + '.', [], 'meta')], unknown: [pl.topic] });
+  const unknown = () => A('unknown', [S("I didn't understand that, or I don't have the data to answer it.", [], 'meta'),
+    S('Try a button below, or ask about a restroom, parking, food, events, a trail or a place by name.', [], 'meta')], { unknown: ['that question'] });
+  const clarify = pl => A('clarify', [S(pl.clarify.question, [], 'meta')], { clarify: pl.clarify });
+
+  function live(pl, res, ctx, asOf) {
+    const place = dataOf(res, 'get_place'), row = place && place.data ? place.data : null;
+    const first = S("I can't tell you " + pl.topic + ' because my information is a saved snapshot, not live.', [], 'meta');
+    const second = S('It was last updated ' + fullDate(asOf) + '.', [], 'meta');
+    const det = []; let call = null;
+    if (row) {
+      call = callOf(row);
+      if (row.hours) det.push(S('The listing for ' + row.name + ' says hours are: ' + row.hours + '. This may be out of date.', [row.link_id]));
+      if (call) det.push(S('To be sure, call ' + row.name + ' at ' + call.phone + '.', [row.link_id]));
+      else det.push(S('Check with ' + row.name + ' directly.', [row.link_id]));
+    } else det.push(S('Check with the venue or agency directly for live information.', [], 'meta'));
+    const cards = row ? [cardFor(row, null, ctx)] : [];
+    return A('unknown', [first, second], { details: det, cards, call, unknown: [pl.topic], sources: sourcesOf(cards) });
+  }
+
+  function trust(pl, res, ctx, asOf) {
+    const place = dataOf(res, 'get_place'), row = place && place.data ? place.data : null;
+    const name = row ? row.name : null;
+    const cards = row ? [cardFor(row, null, ctx, 5)] : [];
+    const refs = row ? [row.link_id] : [];
+    const det = []; let head;
+    if (pl.intent === 'ada_trust') {
+      head = [S("I can't say whether a place is ADA compliant. That takes a formal survey.", [], 'disclaimer'),
+        S(name ? 'Here is what public sources say about ' + name + '.' : 'I only collect what public sources say, with dates.', refs, 'meta')];
+      if (row) det.push(S('Map rating for ' + name + ': ' + R().RATING_TEXT[row.rating].toLowerCase() + ', from the facts on the card.', refs));
+    } else if (pl.intent === 'conflict_trust') {
+      head = [S('Sources can disagree, so I show each source and its date.', [], 'meta'),
+        S(name ? 'For ' + name + ', check the card to see which source says what.' : 'Tell me which place you mean.', refs, 'meta')];
+      if (row) {
+        const n = new Set(row.facts.filter(f => f.source).map(f => f.source)).size;
+        det.push(S('I have ' + n + ' sources for ' + name + '. If they disagree, trust the newest and call to check.', refs, 'claim', [String(n)]));
+      }
+    } else if (pl.intent === 'reports_trust') {
+      head = [S("I can't confirm what people say on social media. I only use sources I can name and date.", [], 'meta'),
+        S(name ? 'If you saw a problem at ' + name + ', use Report a problem so it can be checked.' : 'If you saw a problem, use Report a problem so it can be checked.', refs, 'meta')];
+    } else {
+      head = [S('My information is a snapshot from ' + fullDate(asOf) + '. Each fact shows the date of its source.', [], 'meta')];
+      if (row) { const nv = row.newest_source; head.push(S(nv ? 'For ' + name + ', the newest source is dated ' + monthYear(nv) + '.' : 'For ' + name + ', I have no dated source.', refs)); }
+      det.push(S('Events are refreshed more often than places. Always call ahead for anything important.', [], 'meta'));
+    }
+    const actions = [{ type: 'report', text: name ? 'Problem with information about ' + name + ': ' : 'Problem with information: ' }];
+    return A('answer', head, { details: det, cards, actions, call: callOf(row), sources: sourcesOf(cards) });
+  }
+
+  function evidence(row, need, ctx) {
+    const facts = pickFacts(row.facts || [], need, 1);
+    if (!facts.length) return [null, null];
+    const f = facts[0];
+    return [S(factText(f) + '. Source: ' + sourceWords(f.source) + ', ' + ageWords(f.date || '', ctx.today) + '.', [row.link_id]), f];
+  }
+
+  function list(pl, res, ctx) {
+    const r = res.length ? res[0] : null;
+    const rows = (r && r.data) || [];
+    const plain = ctx.plain;
+    const fb = r && r.meta && r.meta.fallback_need;
+    const need = fb ? fb : pl.need;
+    const where = pl.anchor && pl.anchor.name !== 'your location' ? 'near ' + pl.anchor.name : (pl.anchor ? 'near you' : '');
+    const ask = needLabel(pl.need) || R().TYPE_LABELS[pl.place_type || ''] || '';
+    if (!rows.length) {
+      let msg;
+      if (pl.args.query) msg = "I don't have anything about " + pl.args.query + (pl.need && ask ? ' with ' + ask : '') + ' in my data.';
+      else if (pl.need && ask) msg = "I don't have a place with " + ask + (where ? ' ' + where : '') + ' in my data.';
+      else msg = "I don't have a matching place" + (where ? ' ' + where : '') + ' in my data.';
+      return A('unknown', [S(msg, [], 'meta'), S("I don't know, and I would rather say so than guess.", [], 'meta')],
+        { unknown: [ask || 'that'].concat(pl.unsupported), details: [S('Try another area or another need, or call the place to ask.', [], 'meta')] });
+    }
+    const cards = rows.slice(0, MAX_CARDS).map(x => cardFor(x, need, ctx));
+    const first = rows[0], nm = first.name, refs = [first.link_id];
+    let lead;
+    if (pl.intent === 'nearest' && first.miles !== undefined && first.miles !== null) {
+      const anchorT = pl.anchor.name === 'your location' ? 'you' : pl.anchor.name;
+      const of = cards[0].distance_text + ' ' + first.direction + ' of ' + anchorT;
+      lead = pl.need ? 'The closest place I found with ' + ask + ' is ' + nm + ', ' + of + '.' : 'The closest ' + (ask || 'place') + ' I found is ' + nm + ', ' + of + '.';
+      if (pl.anchor.name === nm) lead = pl.need ? nm + ' itself has ' + ask + ' on record.' : nm + ' itself is the closest.';
+      if (plain) lead = pl.need ? 'Closest with ' + ask + ': ' + nm + ', ' + of + '.' : 'Closest: ' + nm + ', ' + of + '.';
+    } else if (pl.need) {
+      lead = rows.length > 1 ? rows.length + ' places have ' + ask + ' on record. The first is ' + nm + '.' : 'One place has ' + ask + ' on record: ' + nm + '.';
+    } else {
+      lead = rows.length > 1 ? 'I found ' + rows.length + ' places that match. The first is ' + nm + '.' : 'I found one place that matches: ' + nm + '.';
+    }
+    const derived = [String(rows.length)];
+    if (cards[0].distance_text) derived.push(cards[0].distance_text.replace(/[^0-9.]/g, ''));
+    const sents = [S(lead, refs, 'claim', derived)];
+    const [ev] = evidence(first, need, ctx);
+    if (fb) {
+      sents.push(S(plain ? 'No step-free entrance is on record here. These are listed as wheelchair accessible, not checked on site.'
+        : 'None of them has a step-free entrance on record, so these are listed as wheelchair accessible by volunteers on OpenStreetMap, not checked on site.', refs));
+    } else if (ev) sents.push(ev);
+    else sents.push(S('I have no detailed facts for it. Call before you go.', refs));
+    const det = [];
+    if (rows.length > 1) {
+      const names = rows.slice(1, 6).map(x => { const d = distanceText(x.miles); return d ? x.name + ' (' + d + ' ' + x.direction + ')' : x.name; });
+      det.push(S('Also on record: ' + names.join('; ') + '.', rows.slice(1, 6).map(x => x.link_id)));
+    }
+    if (fb && ev) det.push(ev);
+    if (pl.intent === 'nearest') det.push(S('Distances are in a straight line, not a route. Not checked on site.', [], 'meta'));
+    if (first.notice) det.push(S('Note for ' + nm + ': ' + first.notice + '.', refs));
+    const ids = rows.filter(x => x.lat !== undefined && x.lat !== null).map(x => x.link_id);
+    return A('answer', sents, { details: det, cards, unknown: pl.unsupported.slice(), call: callOf(first), actions: ids.length ? [{ type: 'show_on_map', ids }] : [], sources: sourcesOf(cards) });
+  }
+
+  function ratingLine(row) {
+    const base = (R().RATING_TEXT[row.rating] || 'No accessibility rating yet') + ' on the map.';
+    return base + (row.newest_source ? ' Newest source: ' + monthYear(row.newest_source) + '.' : '');
+  }
+  function focusSentence(row, need) {
+    const label = needLabel(need);
+    const attrs = new Set(((R().NEEDS[need] || {}).facts) || []);
+    const facts = (row.facts || []).filter(f => attrs.has(f.attribute));
+    const pos = facts.filter(positive);
+    if (pos.length) return [S('Yes, ' + row.name + ' lists ' + label + '.', [row.link_id]), pos[0]];
+    if (facts.length) return [S(row.name + ' lists ' + label + ' as: ' + factText(facts[0]) + '.', [row.link_id]), facts[0]];
+    return [S("I don't have information about " + label + ' at ' + row.name + '.', [row.link_id], 'claim'), null];
+  }
+
+  function place(pl, res, ctx) {
+    const r = dataOf(res, 'get_place'), row = r ? r.data : null;
+    if (!row) return A('unknown', [S("I don't have that place in my data.", [], 'meta'), S("I don't know, and I would rather say so than guess.", [], 'meta')], { unknown: ['that place'] });
+    const refs = [row.link_id], nm = row.name;
+    const unk = [];
+    if (!row.hours) unk.push('opening hours');
+    if (!row.phone) unk.push('phone number');
+    for (const w of pl.unsupported) unk.push(w);
+    if (pl.unmatched.length) {
+      const mism = pl.unmatched.map(titleCase).join(' ');
+      const cards = [cardFor(row, null, ctx, 4)];
+      return A('unknown', [S("I don't have " + nm + ' on ' + mism + ' in my data.', [], 'meta'),
+        S('The only ' + nm + ' I know is in ' + titleCase(row.region) + ', so it may not be the one you mean.', refs)],
+      { cards, unknown: [nm + ' on ' + mism], call: callOf(row), sources: sourcesOf(cards) });
+    }
+    let head, cards;
+    if (pl.need && pl.need !== 'listed_wheelchair_accessible') {
+      const [s1, f] = focusSentence(row, pl.need);
+      let s2;
+      if (f) s2 = S(factText(f) + '. Source: ' + sourceWords(f.source) + ', ' + ageWords(f.date || '', ctx.today) + '.', refs);
+      else { s2 = S('Here is what I do know about ' + nm + ': ' + ratingLine(row), refs); unk.unshift(needLabel(pl.need)); }
+      head = [s1, s2]; cards = [cardFor(row, pl.need, ctx, 5)];
+    } else {
+      const facts = pickFacts(row.facts || [], null, 1);
+      const s1 = S(nm + ': ' + ratingLine(row), refs);
+      const s2 = facts.length ? S(factText(facts[0]) + '. Source: ' + sourceWords(facts[0].source) + ', ' + ageWords(facts[0].date || '', ctx.today) + '.', refs)
+        : S('I have no detailed facts for it yet. Call before you go.', refs);
+      head = [s1, s2]; cards = [cardFor(row, null, ctx, 5)];
+    }
+    const det = [];
+    if (row.summary) det.push(S('About: ' + clip(row.summary, 300), refs));
+    if (row.hours) det.push(S('Hours listed: ' + row.hours + '.', refs));
+    if (row.address) det.push(S('Address: ' + row.address + '.', refs));
+    if (row.notice) det.push(S('Note: ' + row.notice + '.', refs));
+    const gt = row.getting_there || {};
+    if (gt.arrival) det.push(S('Getting there: ' + gt.arrival + ' Computed from map data, not checked on site.', refs));
+    const ev = row.events || [];
+    if (ev.length) det.push(S('Next event I have: ' + ev[0].title + ', ' + D.whenText(ev[0].start) + '.', refs));
+    const hasPt = row.lat !== undefined && row.lat !== null;
+    return A('answer', head, { details: det, cards, unknown: unk, call: callOf(row), actions: hasPt ? [{ type: 'show_on_map', ids: refs }] : [], sources: sourcesOf(cards) });
+  }
+
+  function events(pl, res, ctx, asOf) {
+    const r = dataOf(res, 'find_events'), nxt = dataOf(res, 'find_events', 'next_events');
+    const rows = (r && r.data) || [];
+    const w = pl.when || null;
+    const span = w ? D.rangeText(w) : 'in the next 30 days';
+    const label = w ? w.label : 'in the next 30 days';
+    const snap = S(ctx.plain ? 'Events data is from ' + fullDate(asOf) + '. It is a snapshot. Check with the venue.'
+      : 'Events data was last updated ' + fullDate(asOf) + '. It is a snapshot, so check with the venue.', ['tool:find_events'], 'claim');
+    const adj = pl.access.length ? joinOr(pl.access.map(a => R().ACCESS_ADJ[a] || a)) + ' ' : '';
+    const spantxt = w && w.start !== w.end ? ' (' + span + ')' : '';
+    if (!rows.length) {
+      const nrows = (nxt && nxt.data) || [];
+      const head = [S('I found no ' + adj + 'events ' + label + spantxt + '.', ['tool:find_events'], 'claim')];
+      if (nrows.length) {
+        const e = nrows[0];
+        head.push(S('The next one I have is ' + e.title + ', ' + D.whenText(e.start) + ', at ' + e.place + '.', [e.link_id]));
+        const cards = nrows.slice(0, MAX_CARDS).map(eventCard);
+        return A('unknown', head, { details: [snap], cards, unknown: ['events in that time'], sources: sourcesOf(cards) });
+      }
+      head.push(snap);
+      return A('unknown', head, { unknown: ['events in that time'] });
+    }
+    const e = rows[0];
+    const s1 = rows.length > 1 ? 'I found ' + rows.length + ' ' + adj + 'events ' + label + '. The first is ' + e.title + ', ' + D.whenText(e.start) + ', at ' + e.place + '.'
+      : 'I found one ' + adj + 'event ' + label + ': ' + e.title + ', ' + D.whenText(e.start) + ', at ' + e.place + '.';
+    const head = [S(s1, [e.link_id], 'claim', [String(rows.length)]), snap];
+    const cards = rows.slice(0, MAX_CARDS).map(eventCard);
+    const det = [];
+    for (const x of rows.slice(1, 8)) {
+      const acc = (x.access || []).map(a => R().ACCESS_WORDS[a] || a).join(', ');
+      det.push(S(x.title + ', ' + D.whenText(x.start) + ', at ' + x.place + (acc ? ' (' + acc + ').' : '.'), [x.link_id]));
+    }
+    if (e.access && e.access.length) det.unshift(S('Access for the first event: ' + e.access.map(a => R().ACCESS_WORDS[a] || a).join(', ') + '.', [e.link_id]));
+    const ids = X.unique(rows.map(x => x.link_id));
+    return A('answer', head, { details: det, cards, unknown: pl.unsupported.slice(), actions: [{ type: 'show_on_map', ids }], sources: sourcesOf(cards) });
+  }
+
+  function route(pl, res, ctx) {
+    const r = dataOf(res, 'accessible_route'), p = dataOf(res, 'get_place');
+    const row = p && p.data ? p.data : null, d = r ? r.data : null;
+    const nm = row ? row.name : pl.place.name;
+    if (!d) return A('unknown', [S("I don't have a step-free route to " + nm + ' yet.', [], 'meta'), S("I don't know, and I would rather say so than guess.", [], 'meta')], { unknown: ['a route'], call: callOf(row) });
+    const refs = [pl.place.id];
+    const s1 = S('A step-free route to ' + nm + ' from ' + d.from + ' is about ' + d.length_feet + ' feet.', refs, 'claim', [String(d.length_feet)]);
+    const s2 = S('It avoids mapped stairs and steep sections. It is computed from map data, not checked on site.', [], 'meta');
+    const det = (d.directions || []).map(x => S(x, refs, 'claim'));
+    if (d.crossings_text) det.push(S(d.crossings_text, refs));
+    if (d.compared_with_shortest) det.push(S(d.compared_with_shortest, refs));
+    const cards = row ? [cardFor(row, null, ctx, 3)] : [];
+    return A('answer', [s1, s2], { details: det, cards, call: callOf(row), actions: [{ type: 'route_to', place_id: pl.place.id, profile: pl.args.profile || 'wheelchair' }], sources: sourcesOf(cards) });
+  }
+
+  function area(pl, res, ctx) {
+    const r = dataOf(res, 'area_conditions'), d = r ? r.data : null;
+    const nm = pl.anchor ? pl.anchor.name : 'that area';
+    if (!d || !d.path_sections) return A('unknown', [S("I don't have path data around " + nm + '.', [], 'meta'), S("I don't know, and I would rather say so than guess.", [], 'meta')], { unknown: ['paths and slopes'] });
+    const T = ['tool:area_conditions'];
+    const pct = d.share_steeper_than_ramp !== null && d.share_steeper_than_ramp !== undefined ? rhu(d.share_steeper_than_ramp * 100) : null;
+    const rep = d.open_311_reports === undefined ? null : d.open_311_reports;
+    const slope = S('Around ' + nm + ', about ' + pct + '% of mapped path sections are steeper than a ramp (8.33%). There are ' + d.stairways + ' mapped stairways.', T, 'claim', [String(pct), String(d.stairways)]);
+    const unk = [], det = []; let head;
+    if (pl.topic === 'reports' && rep === null) {
+      head = [S("I don't have closure or construction information for " + nm + '.', [], 'meta'), slope];
+      unk.push('closures and construction');
+    } else if (pl.topic === 'reports') {
+      head = [S('Near ' + nm + ', ' + rep.length + ' sidewalk or curb problems are open with the city (311). Data through ' + fullDate(d['311_data_through']) + '.', T, 'claim', [String(rep.length)]),
+        S('Reports are not closures, and they are not limited to this week. Check with the city.', [], 'meta')];
+      det.push(slope);
+      for (const x of rep.slice(0, 6)) det.push(S(x.type + ', opened ' + fullDate(x.opened) + ', priority ' + x.priority.toLowerCase() + '.', T));
+    } else {
+      head = [slope, S(STANDING + ' Slopes are estimated from elevation data.', [], 'meta')];
+      if (rep !== null) det.push(S(rep.length + ' open sidewalk or curb reports to the city (311) nearby; data through ' + fullDate(d['311_data_through']) + '.', T, 'claim', [String(rep.length)]));
+    }
+    if (d.nine_in_ten_sections_at_or_below_percent !== null && d.nine_in_ten_sections_at_or_below_percent !== undefined) {
+      det.push(S('Nine in ten path sections are at or below ' + d.nine_in_ten_sections_at_or_below_percent + '% grade.', T));
+    }
+    if (d.city_curb_ramps !== null && d.city_curb_ramps !== undefined) det.push(S("The city's curb-ramp map shows " + d.city_curb_ramps + ' curb ramps within ' + d.radius_feet + ' feet.', T));
+    else unk.push('curb ramps (no curb-ramp inventory exists for this area)');
+    det.push(S(STANDING, [], 'meta'));
+    let cards = [];
+    const gp = dataOf(res, 'get_place');
+    if (gp && gp.data) {
+      const arr = (gp.data.getting_there || {}).arrival;
+      cards = [cardFor(gp.data, null, ctx, 3)];
+      if (arr) det.push(S('Getting there: ' + arr, [gp.data.link_id]));
+    }
+    return A('answer', head, { details: det, cards, unknown: unk, sources: sourcesOf(cards) });
+  }
+
+  const C = { compose, S, clip, fullDate, monthYear, sourceWords, ageWords, distanceText, fmtPhone, factText, pickFacts, cardFor, positive };
+  O.composer = C;
+  if (typeof module !== 'undefined') module.exports = C;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* Openway Assistant: the verifier (port of verify.py). Keeps only sentences tied to a record. */
+(function (g) {
+  'use strict';
+  const O = (g.Openway = g.Openway || {});
+  const X = g.Openway.text || require('./text.js');
+  const P = g.Openway.planner || require('./planner.js');
+  const { norm, tokens, stem, rhu } = X;
+  const R = () => O.rules;
+  const CONSTANT = ['911', '8.33', '30'];
+  const nn = x => (x.includes('.') ? x : (x.replace(/^0+/, '') || '0'));
+  const numbers = text => new Set((String(text).match(/\d+(?:\.\d+)?/g) || []).map(nn));
+
+  function recordIds(results) {
+    const ids = new Set();
+    for (const r of results) {
+      ids.add('tool:' + r.tool);
+      const rows = Array.isArray(r.data) ? r.data : (r.data && typeof r.data === 'object' ? [r.data] : []);
+      for (const x of rows) {
+        if (x && typeof x === 'object') {
+          if (x.link_id) ids.add(x.link_id);
+          if (x.id) ids.add(x.id);
+          for (const e of (x.events || [])) if (e.link_id) ids.add(e.link_id);
+        }
+      }
+    }
+    return ids;
+  }
+  const blob = results => JSON.stringify(results.map(r => r.data)).toLowerCase();
+  function quotesText(results) {
+    const b = blob(results), out = [];
+    const re = /"(?:quote|detail|summary|notice|title|arrival|text)":"((?:[^"\\]|\\.)*)"/g;
+    let m;
+    while ((m = re.exec(b)) !== null) out.push(norm(m[1]));
+    return out.join(' ');
+  }
+  function derivedFromResults(results) {
+    const out = new Set();
+    const walk = x => {
+      if (Array.isArray(x)) { for (const v of x) walk(v); return; }
+      if (x && typeof x === 'object') {
+        for (const k of Object.keys(x)) {
+          const v = x[k];
+          if (k === 'miles' && typeof v === 'number') { out.add(String(Math.max(50, rhu(v * 5280 / 50) * 50))); out.add((rhu(v * 10) / 10).toFixed(1)); }
+          if (k === 'share_steeper_than_ramp' && typeof v === 'number') out.add(String(rhu(v * 100)));
+          walk(v);
+        }
+      }
+    };
+    walk(results.map(r => r.data));
+    let n = 0;
+    for (const r of results) if (Array.isArray(r.data)) n += r.data.length;
+    out.add(String(n));
+    return out;
+  }
+  function allowedNumbers(results, plan, question, derived, asOf) {
+    const base = new Set([...numbers(blob(results)), ...numbers(question), ...CONSTANT, ...derived.map(nn)]);
+    for (const d of derivedFromResults(results)) base.add(nn(d));
+    if (plan && plan.when) for (const x of numbers(plan.when.start + ' ' + plan.when.end)) base.add(x);
+    if (asOf) for (const x of numbers(asOf)) base.add(x);
+    for (const x of Array.from(base)) if (/^\d+$/.test(x) && +x >= 13 && +x <= 23) base.add(String(+x - 12));
+    return base;
+  }
+  function subtokens(text) {
+    const out = new Set();
+    for (const w of tokens(text)) { out.add(stem(w)); for (const x of w.split(/[-']/)) if (x) out.add(stem(x)); }
+    return out;
+  }
+  function knownNames(results, question, planText) {
+    const r = R();
+    const out = new Set([...subtokens(blob(results)), ...subtokens(question), ...subtokens(planText)]);
+    for (const w of tokens(r.MONTHS_DAYS.concat(r.KNOWN_CAPS, r.REGION_KEYS).join(' '))) out.add(stem(w));
+    for (const [, label] of r.SOURCE_KINDS) for (const w of tokens(label)) out.add(stem(w));
+    for (const w of tokens(Object.values(r.NEED_LABELS).join(' ') + ' ' + Object.values(r.TYPE_LABELS).join(' '))) out.add(stem(w));
+    return out;
+  }
+  function checkSentence(s, ids, nums, names, quotes) {
+    const r = R();
+    for (const ref of s.refs) if (!ids.has(ref)) return 'unknown_record';
+    if (s.kind === 'claim' && !s.refs.length) return 'no_citation';
+    const t = norm(s.text);
+    if (s.kind !== 'disclaimer') for (const b of r.BANNED) if ((' ' + t + ' ').includes(' ' + norm(b) + ' ')) return 'banned_phrase';
+    for (const b of r.BANNED_WORDS) if ((' ' + t + ' ').includes(' ' + b + ' ')) return 'banned_phrase';
+    if (s.kind === 'meta' || s.kind === 'disclaimer') return null;
+    for (const x of numbers(s.text)) if (!nums.has(x)) return 'number_not_in_results';
+    const qre = /["“]([^"”]{3,})["”]/g;
+    let m;
+    while ((m = qre.exec(s.text)) !== null) if (!quotes.includes(norm(m[1]))) return 'quote_not_in_record';
+    for (const w of P.capitalized(s.text, '.?!:;(')) {
+      const k = stem(norm(w));
+      if (k && !names.has(k) && k.length > 1) return 'name_not_in_results';
+    }
+    return null;
+  }
+  function verify(a, results, plan, ctx, question) {
+    const ids = recordIds(results);
+    const derived = [];
+    for (const s of a.headline.concat(a.details)) for (const d of s.derived) derived.push(d);
+    const nums = allowedNumbers(results, plan, question || '', derived, a.as_of);
+    const names = knownNames(results, question || '', plan ? JSON.stringify(plan) : '');
+    const quotes = quotesText(results);
+    const issues = [];
+    for (const section of ['headline', 'details']) {
+      const keep = [];
+      a[section].forEach((s, i) => {
+        const bad = checkSentence(s, ids, nums, names, quotes);
+        if (bad) issues.push({ section, index: i, rule: bad, text: s.text }); else keep.push(s);
+      });
+      a[section] = keep;
+    }
+    a.cards.forEach((c, i) => { if (!ids.has(c.place_id)) issues.push({ section: 'card', index: i, rule: 'unknown_record', text: c.name }); });
+    a.cards = a.cards.filter(c => ids.has(c.place_id));
+    a.removed = issues.length;
+    if (!a.headline.length && a.kind !== 'emergency') {
+      a.kind = 'unknown';
+      a.headline = [{ text: "I'm not sure I can answer that reliably, so I'd rather say I don't know.", refs: [], kind: 'meta', derived: [] },
+        { text: 'Please call the place or check its own website.', refs: [], kind: 'meta', derived: [] }];
+      a.cards = []; a.details = [];
+    }
+    a.verified = issues.length === 0;
+    return [a, issues];
+  }
+  const V = { verify, checkSentence, numbers };
+  O.verify = V;
+  if (typeof module !== 'undefined') module.exports = V;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* Openway Assistant: engines behind one interface (see assistant_build_spec.md section 4).
+   GuidedEngine: the whole pipeline in the browser (rules + templates, no model, nothing sent anywhere).
+   LocalEngine : talks to the localhost server (model planner/composer through Ollama), with fallback.
+   ask(message, context) -> async iterator of events: clarify, text, detail, card, action, unknown, sources, meta, done, error. */
+(function (g) {
+  'use strict';
+  const O = (g.Openway = g.Openway || {});
+  const need = n => g.Openway[n] || require('./' + n + '.js');
+  const tools = need('tools'), P = need('planner'), C = need('composer'), V = need('verify');
+
+  function toEvents(a) {
+    const ev = [];
+    if (a.clarify) ev.push(Object.assign({ type: 'clarify' }, a.clarify));
+    ev.push({ type: 'text', kind: a.kind, delta: a.headline.map(s => s.text).join(' '), parts: a.headline.map(s => s.text) });
+    if (a.details.length) ev.push({ type: 'detail', items: a.details.map(s => s.text) });
+    for (const c of a.cards) ev.push({ type: 'card', card: c });
+    for (const x of a.actions) { const o = { type: 'action', action: x.type }; for (const k of Object.keys(x)) if (k !== 'type') o[k] = x[k]; ev.push(o); }
+    if (a.call) ev.push(Object.assign({ type: 'call' }, a.call));
+    if (a.unknown.length || ['unknown', 'no_data', 'out_of_area'].includes(a.kind)) ev.push({ type: 'unknown', about: a.unknown.slice(), call: a.call });
+    if (a.sources.length) ev.push({ type: 'sources', items: a.sources });
+    ev.push({ type: 'meta', as_of: a.as_of, notes: a.notes, plan: a.plan, engine: a.engine });
+    ev.push({ type: 'done', verified: a.verified, removed: a.removed });
+    return ev;
+  }
+
+  function GuidedEngine(regionFiles, rules) {
+    O.setRules(rules);
+    this.kb = tools.buildKB(regionFiles);
+    this.be = tools.Backend(this.kb, rules);
+    this.index = new P.Index(this.be.places());
+    this.name = 'guided';
+  }
+  GuidedEngine.prototype.answer = function (text, ctx) {
+    ctx = Object.assign({ today: new Date().toISOString().slice(0, 10), region: null, location: null, needs: {}, plain: false }, ctx || {});
+    const pl = P.plan(text, ctx, this.index);
+    const results = tools.execute(pl, ctx, this.be);
+    const asOf = this.be.as_of();
+    let a = C.compose(pl, results, ctx, asOf);
+    const [v, issues] = V.verify(a, results, pl, ctx, text);
+    v.engine = 'rules';
+    this.last = { issues, results, plan: pl };
+    return v;
+  };
+  GuidedEngine.prototype.ask = async function* (text, ctx) {
+    try { for (const e of toEvents(this.answer(text, ctx))) yield e; }
+    catch (err) { yield { type: 'error', message: 'Something went wrong while looking that up. Please try again or use a button.' }; }
+  };
+  GuidedEngine.prototype.info = async function () { return { engine: 'guided', model: false, as_of: this.be.as_of() }; };
+
+  /** Talks to the local server: POST /ask (server-sent events). Falls back to the guided engine when the server or model is unavailable. */
+  function LocalEngine(baseUrl, fallback) { this.base = baseUrl || ''; this.fallback = fallback || null; this.name = 'local'; }
+  LocalEngine.prototype.info = async function () {
+    try { const r = await fetch(this.base + '/api/health', { cache: 'no-store' }); return Object.assign({ engine: 'local' }, await r.json()); }
+    catch (e) { return { engine: 'local', model: false, error: 'server not reachable' }; }
+  };
+  LocalEngine.prototype.ask = async function* (text, ctx, opts) {
+    opts = opts || {};
+    let res;
+    try {
+      res = await fetch(this.base + '/api/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, context: ctx, image: opts.image || null, mode: opts.mode || 'model' }), signal: opts.signal });
+      if (!res.ok || !res.body) throw new Error('bad response');
+    } catch (err) {
+      if (err && err.name === 'AbortError') return;
+      yield { type: 'note', message: 'The local model is not reachable, so I used guided mode instead.' };
+      if (this.fallback) { for await (const e of this.fallback.ask(text, ctx)) yield e; } else yield { type: 'error', message: 'I could not reach the local server. Start it with scripts/serve_assistant.sh, or switch to Guided mode.' };
+      return;
+    }
+    const reader = res.body.getReader(), dec = new TextDecoder();
+    let buf = '';
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf('\n\n')) >= 0) {
+        const chunk = buf.slice(0, i); buf = buf.slice(i + 2);
+        const line = chunk.split('\n').find(l => l.startsWith('data:'));
+        if (line) { try { yield JSON.parse(line.slice(5).trim()); } catch (e) { /* ignore a broken chunk */ } }
+      }
+    }
+  };
+  const E = { GuidedEngine, LocalEngine, toEvents };
+  O.engine = E;
+  if (typeof module !== 'undefined') module.exports = E;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* Openway Assistant: speech in and out through the browser (feature-detected; text always works). */
+(function (g) {
+  'use strict';
+  const O = (g.Openway = g.Openway || {});
+  const w = typeof window !== 'undefined' ? window : {};
+  const SR = w.SpeechRecognition || w.webkitSpeechRecognition || null;
+  const supportsIn = () => !!SR;
+  const supportsOut = () => typeof w.speechSynthesis !== 'undefined' && typeof w.SpeechSynthesisUtterance !== 'undefined';
+
+  /** Starts listening once; returns a handle with stop(). Callbacks: onstart, onresult(text, final), onerror(words), onend. */
+  function listen(cb) {
+    if (!SR) { cb.onerror && cb.onerror("Voice input is not available in this browser. You can type your question, or use the dictation key on your keyboard or phone."); return null; }
+    let rec;
+    try { rec = new SR(); } catch (e) { cb.onerror && cb.onerror('Voice input could not start. You can type your question instead.'); return null; }
+    rec.lang = 'en-US'; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+    rec.onstart = () => cb.onstart && cb.onstart();
+    rec.onresult = ev => {
+      let text = '', final = false;
+      for (let i = ev.resultIndex; i < ev.results.length; i++) { text += ev.results[i][0].transcript; if (ev.results[i].isFinal) final = true; }
+      cb.onresult && cb.onresult(text.trim(), final);
+    };
+    rec.onerror = ev => {
+      const map = {
+        'not-allowed': 'The microphone is blocked. Allow it in your browser settings, or type your question.',
+        'service-not-allowed': 'The microphone is blocked. Allow it in your browser settings, or type your question.',
+        'no-speech': 'I did not hear anything. Try again, or type your question.',
+        'audio-capture': 'No microphone was found. You can type your question instead.',
+        'network': 'Voice input needs an internet connection in this browser. You can type your question instead.',
+      };
+      cb.onerror && cb.onerror(map[ev.error] || 'Voice input stopped. You can type your question instead.');
+    };
+    rec.onend = () => cb.onend && cb.onend();
+    try { rec.start(); } catch (e) { cb.onerror && cb.onerror('Voice input could not start. You can type your question instead.'); return null; }
+    return { stop() { try { rec.stop(); } catch (e) { /* already stopped */ } } };
+  }
+
+  let current = null;
+  function speak(text, opts) {
+    opts = opts || {};
+    if (!supportsOut()) return false;
+    stop();
+    const u = new w.SpeechSynthesisUtterance(text);
+    u.rate = opts.rate || 1; u.lang = 'en-US';
+    u.onend = u.onerror = () => { if (current === u) current = null; opts.onend && opts.onend(); };
+    current = u;
+    w.speechSynthesis.speak(u);
+    return true;
+  }
+  const stop = () => { if (supportsOut()) w.speechSynthesis.cancel(); current = null; };
+  const pause = () => { if (supportsOut()) w.speechSynthesis.pause(); };
+  const resume = () => { if (supportsOut()) w.speechSynthesis.resume(); };
+  const V = { supportsIn, supportsOut, listen, speak, stop, pause, resume };
+  O.voice = V;
+  if (typeof module !== 'undefined') module.exports = V;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* Openway Assistant: photo questions. The photo is shrunk and re-drawn on a canvas in the browser, which drops
+   all metadata (including location), and is used for one question only. Nothing is stored. */
+(function (g) {
+  'use strict';
+  const O = (g.Openway = g.Openway || {});
+  const MAX_SIDE = 768, QUALITY = 0.8;
+  async function load(file) {
+    if (typeof createImageBitmap === 'function') {
+      try { return await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch (e) { /* fall through to <img> */ }
+    }
+    return await new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file), img = new Image();
+      img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('unreadable')); };
+      img.src = url;
+    });
+  }
+  /** -> {dataUrl, width, height, bytes}. Throws an Error with a plain-words message. */
+  async function shrink(file) {
+    if (!file || !/^image\//.test(file.type)) throw new Error('That file is not a picture. Please choose a photo.');
+    let bmp;
+    try { bmp = await load(file); } catch (e) { throw new Error('I could not read that picture. Try a different photo.'); }
+    const w0 = bmp.width || bmp.naturalWidth, h0 = bmp.height || bmp.naturalHeight;
+    const k = Math.min(1, MAX_SIDE / Math.max(w0, h0));
+    const w = Math.max(1, Math.round(w0 * k)), h = Math.max(1, Math.round(h0 * k));
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    c.getContext('2d').drawImage(bmp, 0, 0, w, h);
+    if (bmp.close) bmp.close();
+    const dataUrl = c.toDataURL('image/jpeg', QUALITY);
+    return { dataUrl, width: w, height: h, bytes: Math.round(dataUrl.length * 0.75) };
+  }
+  const Ph = { shrink, MAX_SIDE };
+  O.photo = Ph;
+  if (typeof module !== 'undefined') module.exports = Ph;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+/* Openway Assistant: the chat interface (plain JavaScript, no build step).
+   Openway.chat.mount(container, options) builds the whole interface: header, settings, conversation with answer cards,
+   quick-ask tiles, "My needs", voice, photo, and the hooks to the map (window events atlas:show-places, atlas:route-to,
+   atlas:open-report). Everything is real text and landmarks; focus stays where the user left it. */
+(function (g) {
+  'use strict';
+  const O = (g.Openway = g.Openway || {});
+  const doc = g.document;
+
+  const h = (tag, props, ...kids) => {
+    const el = doc.createElement(tag);
+    for (const k of Object.keys(props || {})) {
+      const v = props[k];
+      if (v === null || v === undefined || v === false) continue;
+      if (k === 'class') el.className = v;
+      else if (k === 'text') el.textContent = v;
+      else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+      else if (v === true) el.setAttribute(k, '');
+      else el.setAttribute(k, v);
+    }
+    for (const kid of kids.flat()) if (kid !== null && kid !== undefined && kid !== false) el.append(kid.nodeType ? kid : doc.createTextNode(String(kid)));
+    return el;
+  };
+  const icon = path => { const s = doc.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('class', 'ow-i'); s.setAttribute('viewBox', '0 0 20 20'); s.setAttribute('aria-hidden', 'true'); s.setAttribute('focusable', 'false'); s.innerHTML = path; return s; };
+  const ICONS = {
+    mic: '<path d="M10 2.5a2.5 2.5 0 0 0-2.5 2.5v4a2.5 2.5 0 0 0 5 0V5A2.5 2.5 0 0 0 10 2.5zM5 9a5 5 0 0 0 10 0M10 14v3" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/>',
+    cam: '<path d="M3 6.5h3l1.2-2h5.6l1.2 2h3V16H3z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><circle cx="10" cy="11" r="3" stroke="currentColor" stroke-width="1.6" fill="none"/>',
+    gear: '<circle cx="10" cy="10" r="2.6" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    send: '<path d="M3 10l14-6-5 13-2.5-5.5z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/>',
+    speaker: '<path d="M3.5 8v4h3l4 3V5l-4 3zM13.5 7.5a3.5 3.5 0 0 1 0 5M15.5 5.5a6.5 6.5 0 0 1 0 9" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+    x: '<path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  };
+
+  const store = {
+    mem: {}, ok: null,
+    get(k) { try { const v = g.localStorage.getItem(k); this.ok = true; return v; } catch (e) { this.ok = false; return this.mem[k] === undefined ? null : this.mem[k]; } },
+    set(k, v) { this.mem[k] = v; try { g.localStorage.setItem(k, v); this.ok = true; } catch (e) { this.ok = false; } },
+    del(k) { delete this.mem[k]; try { g.localStorage.removeItem(k); } catch (e) { /* blocked */ } },
+  };
+  const readJSON = (k, d) => { try { const v = store.get(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
+
+  function deviceToday() {
+    const q = new URLSearchParams(g.location.search).get('today');
+    if (g.__OPENWAY_TODAY) return g.__OPENWAY_TODAY;
+    if (q && /^\d{4}-\d{2}-\d{2}$/.test(q)) return q;
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  const SIZES = [['1', 'Normal'], ['1.25', 'Large'], ['1.5', 'Extra large']];
+  const MOBILITY = [['manual', 'Manual wheelchair'], ['power', 'Power chair'], ['cane', 'Cane or guide'], ['other', 'Something else'], ['', 'Prefer not to say']];
+  const STEPS = [['cannot', 'No, I cannot use steps'], ['some', 'A few steps are fine'], ['', 'Not sure']];
+  const RELY = [['screen_reader', 'A screen reader'], ['large_text', 'Large text'], ['voice', 'Speaking and listening']];
+  const RATE_GLYPH = { accessible: '✓', partial: '~', not_accessible: '✕', unknown: '?' };
+
+  function mount(container, options) {
+    options = options || {};
+    const mode = options.mode || 'page';
+    const base = options.base === undefined ? 'assistant/' : options.base;
+    const S = {
+      prefs: Object.assign({ size: '1', plain: false, engine: 'guided', rate: '1' }, readJSON('openway.prefs', {})),
+      needs: readJSON('openway.needs', {}), location: null, busy: false, ctrl: null, guided: null, local: null, health: null,
+      image: null, listening: null, lastQ: null, speaking: false, opener: options.opener || null, answers: 0,
+    };
+    const uid = 'ow' + Math.random().toString(36).slice(2, 7);
+    const id = n => uid + '-' + n;
+    const root = container;
+    root.classList.add('ow', mode === 'panel' ? 'ow-panel' : 'ow-page');
+    root.textContent = '';
+    if (mode === 'panel') { root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'false'); root.setAttribute('aria-labelledby', id('title')); }
+    const applySize = () => root.style.setProperty('--ow-scale', S.prefs.size);
+    applySize();
+    const savePrefs = () => store.set('openway.prefs', JSON.stringify(S.prefs));
+
+    // ---- skeleton ----
+    const modeLabel = h('span', { class: 'ow-mode', id: id('mode') });
+    const settingsBtn = h('button', { type: 'button', 'aria-expanded': 'false', 'aria-controls': id('settings'), onclick: () => toggleSettings() }, icon(ICONS.gear), 'Settings');
+    const closeBtn = mode === 'panel' ? h('button', { type: 'button', class: 'ow-ghost', 'aria-label': 'Close the assistant', onclick: () => api.close() }, icon(ICONS.x), 'Close') : null;
+    const head = h('header', { class: 'ow-head' },
+      h(mode === 'page' ? 'h1' : 'h2', { id: id('title') }, 'Openway Assistant', h('span', { class: 'ow-sub', text: 'Questions about accessible places in Cincinnati and Oxford' })),
+      modeLabel, settingsBtn, closeBtn);
+    const settings = h('section', { class: 'ow-settings', id: id('settings'), hidden: true, 'aria-label': 'Settings' });
+    const log = h('div', { class: 'ow-log', id: id('log'), role: 'log', 'aria-live': 'off', 'aria-label': 'Conversation', tabindex: '0' });
+    const announcer = h('div', { class: 'ow-vh', role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true', id: id('announce') });
+    const status = h('p', { class: 'ow-status', id: id('status'), role: 'status', 'aria-live': 'polite' });
+    const input = h('input', { type: 'text', id: id('q'), autocomplete: 'off', enterkeyhint: 'send', placeholder: 'Ask about a restroom, parking, food, events…', 'aria-describedby': id('status') });
+    const sendBtn = h('button', { type: 'submit', class: 'ow-primary' }, icon(ICONS.send), 'Send');
+    const stopBtn = h('button', { type: 'button', hidden: true, onclick: () => cancel() }, icon(ICONS.x), 'Stop');
+    const micBtn = h('button', { type: 'button', 'aria-pressed': 'false', onclick: () => toggleListen() }, icon(ICONS.mic), 'Speak');
+    const camBtn = h('button', { type: 'button', onclick: () => pickPhoto() }, icon(ICONS.cam), 'Photo');
+    const fileInput = h('input', { type: 'file', accept: 'image/*', class: 'ow-vh', tabindex: '-1', 'aria-hidden': 'true', onchange: () => onPhoto() });
+    const attach = h('div', { class: 'ow-attach', hidden: true });
+    const miniTiles = h('ul', { class: 'ow-tiles-mini', 'aria-label': 'Quick questions', hidden: true });
+    const form = h('form', { 'aria-label': 'Ask a question', onsubmit: e => { e.preventDefault(); const q = input.value; input.value = ''; ask(q); } },
+      h('label', { class: 'ow-vh', for: id('q') }, 'Your question'), input, sendBtn);
+    const compose = h('div', { class: 'ow-compose' }, miniTiles, form, h('div', { class: 'ow-tools' }, micBtn, camBtn, stopBtn), attach, status, fileInput);
+    const needsDlg = h('dialog', { 'aria-labelledby': id('needs-h') });
+    const nav = mode === 'page' ? h('nav', { class: 'ow-topnav', 'aria-label': 'Maps' }, 'Open the map:', h('a', { href: 'cincinnati.html', text: 'Cincinnati' }), h('a', { href: 'oxford.html', text: 'Oxford' })) : null;
+    const inner = h('div', { class: 'ow-inner' }, nav, head, settings, log, compose);
+    if (mode === 'page') {
+      root.append(inner, announcer, needsDlg);
+    } else root.append(head, settings, log, compose, announcer, needsDlg);
+
+    // ---- helpers ----
+    const say = text => { announcer.textContent = ''; g.setTimeout(() => { announcer.textContent = text; }, 40); };
+    const hint = text => { status.textContent = text || ''; };
+    const rules = () => O.rules;
+    const tiles = () => (rules() && rules().HELP_TILES) || [
+      { label: 'Restroom near me', message: 'Where is the closest accessible restroom?' }, { label: 'Accessible parking', message: 'Where is accessible parking near me?' },
+      { label: 'Food with no steps', message: 'Find food with no steps at the door' }, { label: 'Step-free route', message: 'How do I get to the Cincinnati Art Museum without steps?' },
+      { label: 'Events this week', message: 'What events are on this week?' }, { label: 'Trails', message: 'What paved trails are there?' }];
+    const regionOf = pid => { const p = S.guided && S.guided.kb.byId.get(pid); return p ? p.region : (options.region || 'cincinnati'); };
+    const mapUrl = pid => regionOf(pid) + '.html#place=' + encodeURIComponent(pid);
+    const fire = (name, detail) => !g.dispatchEvent(new g.CustomEvent(name, { detail, cancelable: true }));
+    const fullDate = iso => (O.composer && iso ? O.composer.fullDate(iso) : iso || '');
+    const ctxNow = () => {
+      const n = S.needs || {};
+      const needs = {};
+      if (n.mobility) needs.mobility = n.mobility;
+      if (n.steps) needs.steps = n.steps;
+      if (n.rely && n.rely.length) needs.rely = n.rely.slice();
+      return { today: deviceToday(), region: options.region || null, location: S.location, needs, plain: !!S.prefs.plain };
+    };
+    const scrollEnd = el => { try { el.scrollIntoView({ block: 'nearest', behavior: 'auto' }); } catch (e) { /* old browser */ } };
+
+    // ---- settings ----
+    function radioGroup(name, legend, items, current, onchange, disabledMap) {
+      const fs = h('fieldset', {}, h('legend', { text: legend }));
+      const seg = h('div', { class: 'ow-seg' });
+      for (const [val, label] of items) {
+        const inp = h('input', { type: 'radio', name: id(name), value: val, checked: String(current) === String(val), disabled: disabledMap && disabledMap[val], onchange: () => onchange(val) });
+        seg.append(h('label', {}, inp, h('span', { text: label })));
+      }
+      fs.append(seg);
+      return fs;
+    }
+    function buildSettings() {
+      settings.textContent = '';
+      const localOk = !!(S.health && S.health.model);
+      const engineFs = radioGroup('engine', 'How I answer', [['guided', 'Guided (no model)'], ['local', 'Local model']], S.prefs.engine, v => { S.prefs.engine = v; savePrefs(); refreshMode(); buildSettings(); },
+        { local: !(S.health && S.health.reachable) });
+      const eh = !S.health ? 'Checking for a local model…' : !S.health.reachable ? 'The local model is not available here. Guided mode answers from the saved data on this device and sends nothing anywhere.'
+        : !S.health.model ? 'The local server is running, but no model is loaded. Start Ollama to use it. Guided mode still works.' : 'The local model runs on this computer. Answers are still checked against the data.';
+      engineFs.append(h('p', { class: 'ow-hint', text: eh }));
+      const sizeFs = radioGroup('size', 'Text size', SIZES, S.prefs.size, v => { S.prefs.size = v; applySize(); savePrefs(); });
+      const plain = h('label', { class: 'ow-switch' }, h('input', { type: 'checkbox', role: 'switch', checked: !!S.prefs.plain, onchange: e => { S.prefs.plain = e.target.checked; savePrefs(); hint(S.prefs.plain ? 'Plain language is on: shorter sentences.' : 'Plain language is off.'); } }), h('span', { text: 'Plain language (shorter sentences)' }));
+      const loc = h('label', { class: 'ow-switch' }, h('input', { type: 'checkbox', checked: !!S.location, onchange: e => { if (e.target.checked) useLocation(); else { S.location = null; hint('Location is off.'); } } }), h('span', { text: 'Use my location to sort by distance' }));
+      const gaps = readJSON('openway.gaps', []);
+      const gapRow = h('div', { class: 'ow-row' },
+        h('button', { type: 'button', onclick: () => openNeeds() }, 'My needs'),
+        h('button', { type: 'button', onclick: () => { toggleSettings(false); ask('What can you do?'); } }, 'What can I ask?'),
+        h('button', { type: 'button', onclick: () => clearChat() }, 'Clear conversation'));
+      const gapNote = h('p', { class: 'ow-hint' }, 'Nothing you type is sent anywhere in Guided mode. ',
+        gaps.length ? [gaps.length + ' question' + (gaps.length > 1 ? 's' : '') + ' I could not answer ' + (gaps.length > 1 ? 'are' : 'is') + ' saved on this device only. ', h('button', { type: 'button', class: 'ow-ghost', onclick: () => { store.del('openway.gaps'); buildSettings(); } }, 'Clear them')] : '');
+      settings.append(engineFs, sizeFs, plain, loc, gapRow, gapNote);
+    }
+    function toggleSettings(force) {
+      const open = force === undefined ? settings.hidden : force;
+      settings.hidden = !open; settingsBtn.setAttribute('aria-expanded', String(open));
+      if (open) { buildSettings(); checkHealth(); }
+    }
+    function refreshMode() {
+      const local = S.prefs.engine === 'local' && S.health && S.health.model;
+      modeLabel.textContent = local ? 'Local model' : 'Guided mode';
+      photoHint();
+    }
+    async function checkHealth() {
+      if (!S.local) S.local = new O.engine.LocalEngine(options.serverBase || '', null);
+      const info = await S.local.info();
+      S.health = { reachable: !info.error, model: !!info.model, models: info.models || [] };
+      refreshMode(); if (!settings.hidden) buildSettings();
+    }
+    function photoHint() { camBtn.title = S.prefs.engine === 'local' && S.health && S.health.model ? 'Ask about a photo' : 'Photo questions need the local model'; }
+
+    // ---- My needs ----
+    function openNeeds() {
+      const n = S.needs || {};
+      needsDlg.textContent = '';
+      const group = (name, legend, items, cur) => h('fieldset', {}, h('legend', { text: legend }), ...items.map(([v, l]) => h('label', { class: 'ow-opt' }, h('input', { type: 'radio', name: id('n-' + name), value: v, checked: String(cur || '') === String(v) }), l)));
+      const rely = h('fieldset', {}, h('legend', { text: '3. What do you rely on?' }), ...RELY.map(([v, l]) => h('label', { class: 'ow-opt' }, h('input', { type: 'checkbox', name: id('n-rely'), value: v, checked: (n.rely || []).includes(v) }), l)));
+      const fm = h('form', { method: 'dialog' },
+        h('h2', { id: id('needs-h'), text: 'My needs' }),
+        h('p', { class: 'ow-hint', text: 'Three optional questions. They change which places I suggest. Your answers stay on this device only.' }),
+        group('mobility', '1. How do you get around?', MOBILITY, n.mobility),
+        group('steps', '2. Can you use steps?', STEPS, n.steps), rely,
+        h('p', { class: 'ow-hint', id: id('needs-store') }),
+        h('div', { class: 'ow-row' },
+          h('button', { type: 'button', onclick: () => { clearNeeds(); } }, 'Clear my answers'),
+          h('button', { type: 'button', onclick: () => needsDlg.close() }, 'Skip'),
+          h('button', { type: 'submit', class: 'ow-primary', value: 'save' }, 'Save')));
+      fm.addEventListener('submit', e => { e.preventDefault(); saveNeeds(fm); });
+      needsDlg.append(fm);
+      if (needsDlg.showModal) needsDlg.showModal(); else needsDlg.setAttribute('open', '');
+      const first = fm.querySelector('input'); if (first) first.focus();
+    }
+    function saveNeeds(fm) {
+      const val = nm => { const el = fm.querySelector('input[name="' + id('n-' + nm) + '"]:checked'); return el ? el.value : ''; };
+      const rely = Array.from(fm.querySelectorAll('input[name="' + id('n-rely') + '"]:checked')).map(e => e.value);
+      S.needs = { mobility: val('mobility'), steps: val('steps'), rely };
+      store.set('openway.needs', JSON.stringify(S.needs));
+      if (rely.includes('large_text') && S.prefs.size === '1') { S.prefs.size = '1.25'; applySize(); savePrefs(); }
+      const note = store.ok === false ? 'Saved for this visit only: this browser blocks saving.' : 'Saved on this device.';
+      hint('My needs: ' + note); say('My needs ' + note.toLowerCase());
+      needsDlg.close(); if (!settings.hidden) buildSettings();
+    }
+    function clearNeeds() { S.needs = {}; store.del('openway.needs'); hint('My needs cleared.'); say('My needs cleared.'); needsDlg.close(); }
+    needsDlg.addEventListener('close', () => { settingsBtn.focus(); });
+    needsDlg.addEventListener('close', () => { if (settings.hidden) input.focus(); });
+
+    // ---- location ----
+    function useLocation(then) {
+      if (!g.navigator.geolocation) { hint('Your browser cannot share your location. Tell me an area instead, such as downtown or uptown Oxford.'); say('Location is not available in this browser.'); return; }
+      hint('Asking your browser for your location…');
+      g.navigator.geolocation.getCurrentPosition(p => { S.location = [Math.round(p.coords.latitude * 1e4) / 1e4, Math.round(p.coords.longitude * 1e4) / 1e4]; hint('Location is on. I use it only on this device to sort by distance.'); if (then) then(); },
+        () => { S.location = null; hint('I could not get your location. You can tell me an area instead, such as downtown or uptown Oxford.'); say('I could not get your location.'); }, { timeout: 10000, maximumAge: 60000 });
+    }
+
+    // ---- conversation ----
+    function welcome() {
+      log.textContent = '';
+      const list = h('ul', { class: 'ow-tiles', 'aria-label': 'Quick questions' });
+      for (const t of tiles()) list.append(h('li', {}, h('button', { type: 'button', onclick: () => ask(t.message) }, t.label)));
+      log.append(h('section', { class: 'ow-welcome', 'aria-labelledby': id('wh') },
+        h('h3', { id: id('wh'), text: 'What would you like to know?' }),
+        h('p', { text: 'Ask in your own words, or choose a button. I answer from sourced data about places in Cincinnati and Oxford, and I say so when I don’t know.' }), list));
+      miniTiles.hidden = true;
+    }
+    function fillMini() {
+      miniTiles.textContent = '';
+      for (const t of tiles()) miniTiles.append(h('li', {}, h('button', { type: 'button', onclick: () => ask(t.message) }, t.label)));
+    }
+    function clearChat() { cancel(); V().stop(); welcome(); S.answers = 0; toggleSettings(false); hint('Conversation cleared.'); input.focus(); }
+    const V = () => O.voice;
+
+    function userBubble(text, hadPhoto) { const b = h('div', { class: 'ow-me' }, h('span', { class: 'ow-who', text: 'You' }), text, hadPhoto ? ' (with a photo)' : ''); log.append(b); scrollEnd(b); }
+
+    function setBusy(b) {
+      S.busy = b; sendBtn.disabled = b; stopBtn.hidden = !b; input.setAttribute('aria-busy', String(b));
+    }
+    function cancel() { if (S.ctrl) { S.ctrl.abort(); S.ctrl = null; } if (S.busy) { setBusy(false); const t = log.querySelector('.ow-thinking'); if (t) t.remove(); hint('Stopped.'); say('Stopped.'); } }
+
+    async function ask(text, opts) {
+      text = String(text || '').trim();
+      if (S.busy) { hint('I am still working on the last question. Press Stop to cancel it.'); return; }
+      const photo = S.image;
+      if (!text && !photo) { hint('Type a question first, or choose a button.'); input.focus(); return; }
+      if (!text && photo) text = 'What does this photo show?';
+      if (!S.guided) { hint('Still loading the data. Please wait a moment and try again.'); return; }
+      const welcomeEl = log.querySelector('.ow-welcome'); if (welcomeEl) { welcomeEl.remove(); fillMini(); miniTiles.hidden = false; }
+      S.lastQ = text; userBubble(text, !!photo);
+      const thinking = h('div', { class: 'ow-thinking' }, h('span', { class: 'ow-dots', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')), h('span', { text: S.prefs.engine === 'local' && S.health && S.health.model ? 'Looking that up. The local model can take up to a minute…' : 'Looking that up…' }));
+      log.append(thinking); scrollEnd(thinking); say('Looking that up.'); setBusy(true);
+      S.ctrl = new g.AbortController();
+      const view = newAnswerView(); let events = 0;
+      try {
+        const useLocal = S.prefs.engine === 'local' && S.health && S.health.model;
+        const eng = useLocal ? S.local : S.guided;
+        if (useLocal) S.local.fallback = S.guided;
+        const gen = eng.ask(text, ctxNow(), { signal: S.ctrl.signal, image: photo ? photo.dataUrl.split(',')[1] : null });
+        for await (const ev of gen) { if (thinking.isConnected && ev.type !== 'note') thinking.remove(); events++; view.handle(ev); if (S.ctrl === null) break; }
+      } catch (err) { view.handle({ type: 'error', message: 'Something went wrong while looking that up.' }); }
+      if (thinking.isConnected) thinking.remove();
+      if (!events) view.handle({ type: 'error', message: 'I did not get an answer. Please try again.' });
+      view.finish();
+      S.ctrl = null; setBusy(false); S.image = null; renderAttach();
+    }
+
+    // ---- an answer on screen ----
+    function newAnswerView() {
+      const A = { main: '', kind: 'answer', details: [], cards: [], actions: [], unknown: null, sources: [], meta: null, clarify: null, call: null, error: null, notes: [], done: null };
+      let article = null, mainP = null, cardsUl = null, headEl = null;
+      const setMain = parts => { mainP.textContent = ''; mainP.append(h('span', { text: parts[0] })); if (parts.length > 1) mainP.append(' ', h('span', { class: 'ow-rest', text: parts.slice(1).join(' ') })); };
+      const ensure = () => {
+        if (article) return;
+        S.answers++;
+        headEl = h('h3', { tabindex: '-1', id: id('a' + S.answers), text: 'Answer' });
+        mainP = h('p', { class: 'ow-main' });
+        article = h('article', { class: 'ow-a', 'aria-labelledby': headEl.id }, headEl, mainP);
+        log.append(article); scrollEnd(article);
+      };
+      const view = {
+        handle(ev) {
+          if (ev.type === 'note') { hint(ev.message); return; }
+          ensure();
+          if (ev.type === 'text') { A.main = ev.delta; A.kind = ev.kind; setMain(ev.parts || [ev.delta]); article.classList.toggle('ow-unknown-kind', ['unknown', 'no_data', 'out_of_area'].includes(ev.kind)); article.classList.toggle('ow-emergency', ev.kind === 'emergency'); }
+          else if (ev.type === 'detail') A.details = ev.items;
+          else if (ev.type === 'card') { A.cards.push(ev.card); if (!cardsUl) { cardsUl = h('ul', { class: 'ow-cards', 'aria-label': 'Places and events' }); article.append(cardsUl); } cardsUl.append(h('li', {}, renderCard(ev.card))); }
+          else if (ev.type === 'action') A.actions.push(ev);
+          else if (ev.type === 'call') A.call = ev;
+          else if (ev.type === 'unknown') A.unknown = ev;
+          else if (ev.type === 'sources') A.sources = ev.items;
+          else if (ev.type === 'clarify') A.clarify = ev;
+          else if (ev.type === 'meta') A.meta = ev;
+          else if (ev.type === 'done') A.done = ev;
+          else if (ev.type === 'error') { A.error = ev.message; A.kind = 'error'; setMain([ev.message]); article.classList.add('ow-unknown-kind'); }
+        },
+        finish() {
+          ensure();
+          if (A.clarify) {
+            const row = h('div', { class: 'ow-clarify', role: 'group', 'aria-label': 'Choose one' });
+            for (const o of A.clarify.options || []) row.append(h('button', { type: 'button', onclick: () => { if (o.action === 'locate') useLocation(() => ask(o.message)); else ask(o.message); } }, o.label));
+            article.append(row);
+          }
+          if (A.unknown && (A.unknown.about || []).length) article.append(h('p', { class: 'ow-unknown' }, h('strong', { text: 'I don’t know: ' }), A.unknown.about.join('; ') + '.'));
+          if (A.call) article.append(h('p', { class: 'ow-call' }, 'Call ' + A.call.name + ': ', h('a', { href: 'tel:' + String(A.call.phone).replace(/[^0-9+]/g, ''), text: A.call.phone })));
+          if (A.error) article.append(h('div', { class: 'ow-row' }, h('button', { type: 'button', onclick: () => ask(S.lastQ) }, 'Try again')));
+          if (A.kind !== 'clarify') {
+            const row = h('div', { class: 'ow-row' });
+            const panels = [];
+            row.append(h('button', { type: 'button', onclick: e => readAloud(A, e.currentTarget) }, icon(ICONS.speaker), 'Read aloud'));
+            if (A.details.length) {
+              const d = h('div', { class: 'ow-detail', id: id('d' + S.answers), hidden: true }, h('ul', {}, A.details.map(t => h('li', { text: t }))));
+              const b = h('button', { type: 'button', 'aria-expanded': 'false', 'aria-controls': d.id, onclick: () => { d.hidden = !d.hidden; b.setAttribute('aria-expanded', String(!d.hidden)); b.lastChild.textContent = d.hidden ? 'More detail' : 'Less detail'; } }, h('span', { text: 'More detail' }));
+              row.append(b); panels.push(d);
+            }
+            if (A.sources.length) {
+              const d = renderSources(A.sources, 's' + S.answers);
+              const b = h('button', { type: 'button', 'aria-expanded': 'false', 'aria-controls': d.id, onclick: () => { d.hidden = !d.hidden; b.setAttribute('aria-expanded', String(!d.hidden)); b.lastChild.textContent = d.hidden ? 'Sources' : 'Hide sources'; } }, h('span', { text: 'Sources' }));
+              row.append(b); panels.push(d);
+            }
+            const ids = [].concat(...A.actions.filter(a => a.action === 'show_on_map').map(a => a.ids));
+            if (ids.length > 1) row.append(mapButton('Show all on map', ids));
+            const rep = A.actions.find(a => a.action === 'report');
+            row.append(reportButton(rep ? rep.text : 'Problem with an answer: "' + S.lastQ + '"\n'));
+            article.append(row, ...panels);
+          }
+          if (A.meta && A.meta.as_of) article.append(h('p', { class: 'ow-asof', text: 'Data snapshot: ' + fullDate(A.meta.as_of) + '. It can be out of date, so call ahead for anything important.' }));
+          if (A.done && A.done.removed) article.append(h('p', { class: 'ow-note', text: 'I removed ' + A.done.removed + ' sentence' + (A.done.removed > 1 ? 's' : '') + ' I could not check against a source.' }));
+          // announce once: the headline, then how many cards
+          const nCards = A.cards.length;
+          say((A.kind === 'emergency' ? 'Emergency. ' : '') + (A.error ? A.error : A.main + (nCards ? ' ' + nCards + (nCards > 1 ? ' places or events are listed below.' : ' place or event is listed below.') : '')));
+          if (['unknown', 'no_data'].includes(A.kind) && A.main) logGap(S.lastQ, A.unknown && A.unknown.about);
+          scrollEnd(article);
+        },
+      };
+      return view;
+    }
+    function logGap(q, about) {
+      const gaps = readJSON('openway.gaps', []);
+      gaps.push({ q: String(q).slice(0, 200), about: (about || []).slice(0, 3), t: deviceToday() });
+      store.set('openway.gaps', JSON.stringify(gaps.slice(-50)));
+    }
+    function renderSources(items, key) {
+      const ul = h('ul', {});
+      for (const s of items) {
+        const li = h('li', {}, h('strong', { text: s.label || 'Source' }), ' ' + (s.date ? '(' + (O.composer ? O.composer.monthYear(s.date) : s.date) + ') ' : '(no date) '),
+          /^https?:/.test(s.url) ? h('a', { href: s.url, target: '_blank', rel: 'noopener noreferrer', text: 'Open the source (new tab)' }) : '');
+        if (s.quote) li.append(h('blockquote', { text: '“' + s.quote + '”' }));
+        ul.append(li);
+      }
+      return h('div', { class: 'ow-sources', id: id(key), hidden: true }, h('p', { class: 'ow-note', text: 'Quotes are word for word from the source.' }), ul);
+    }
+    function mapButton(label, ids, one) {
+      const run = () => { if (!fire('atlas:show-places', { ids })) { g.location.href = mapUrl(ids[0]); } };
+      if (mode === 'page') return h('a', { class: 'ow-btn', href: mapUrl(ids[0]), onclick: e => { if (fire('atlas:show-places', { ids })) e.preventDefault(); }, text: label });
+      return h('button', { type: 'button', onclick: run, text: label });
+    }
+    function routeButton(pid) {
+      const profile = (S.needs && (S.needs.mobility === 'cane' || (S.needs.rely || []).includes('screen_reader'))) ? 'blind' : 'wheelchair';
+      if (mode === 'page') return h('a', { class: 'ow-btn', href: mapUrl(pid), onclick: e => { if (fire('atlas:route-to', { placeId: pid, profile })) e.preventDefault(); }, text: 'Route here' });
+      return h('button', { type: 'button', onclick: () => { if (!fire('atlas:route-to', { placeId: pid, profile })) g.location.href = mapUrl(pid); }, text: 'Route here' });
+    }
+    function reportButton(text) {
+      const go = () => { if (!fire('atlas:open-report', { text })) hint('To report a problem, open the place on the map and use Report a problem there.'); };
+      return h('button', { type: 'button', onclick: go, text: 'Report a problem' });
+    }
+    function renderCard(c) {
+      const el = h('section', { class: 'ow-card', 'aria-label': c.name });
+      el.append(h('h4', { text: c.name }));
+      if (c.event) {
+        el.append(h('p', { class: 'ow-meta' }, h('span', { class: 'ow-when', text: c.event.title }), h('span', { text: c.event.when_text })));
+        if (c.event.access.length) el.append(h('ul', { class: 'ow-chips', 'aria-label': 'Access at this event' }, c.event.access.map(a => h('li', { text: a }))));
+        else el.append(h('p', { class: 'ow-src', text: 'No access details in my data. Check with the venue.' }));
+      } else {
+        const meta = h('p', { class: 'ow-meta' }, h('span', { class: 'ow-rate r-' + c.rating }, h('i', { 'aria-hidden': 'true', text: RATE_GLYPH[c.rating] || '?' }), (rules() && rules().RATING_TEXT[c.rating]) || c.rating));
+        if (c.type) meta.append(h('span', { text: c.type }));
+        if (c.distance_text) meta.append(h('span', { text: c.distance_text + ' ' + c.direction }));
+        el.append(meta);
+        if (c.facts.length) el.append(h('ul', { class: 'ow-facts' }, c.facts.map(f => h('li', { class: String(f.value) === 'no' ? 'no' : '' }, h('span', { class: 'ow-g', 'aria-hidden': 'true', text: String(f.value) === 'no' ? '✕' : '✓' }), f.label + ': ' + f.value + (f.detail ? ' (' + f.detail + ')' : '')))));
+        for (const s of c.sources.slice(0, 2)) el.append(h('p', { class: 'ow-src', text: 'Source: ' + s.label + ', ' + (s.date ? O.composer.monthYear(s.date) : 'no date given') + '.' }));
+        if (c.note) el.append(h('p', { class: 'ow-note', text: 'Note: ' + c.note }));
+      }
+      const row = h('div', { class: 'ow-row' });
+      const hasPt = c.lat !== null && c.lat !== undefined;
+      if (hasPt || (S.guided && S.guided.kb.byId.get(c.place_id))) {
+        if (hasPt) row.append(routeButton(c.place_id));
+        row.append(mapButton('Show on map', [c.place_id]));
+      }
+      if (c.phone) row.append(h('a', { class: 'ow-btn', href: 'tel:' + c.phone.replace(/[^0-9+]/g, ''), text: 'Call ' + c.phone, 'aria-label': 'Call ' + c.name + ' at ' + c.phone }));
+      if (c.event && /^https?:/.test(c.event.url)) row.append(h('a', { class: 'ow-btn', href: c.event.url, target: '_blank', rel: 'noopener noreferrer', text: 'Event page (new tab)' }));
+      el.append(row);
+      return el;
+    }
+
+    // ---- read aloud ----
+    function spoken(A) {
+      const parts = [A.main];
+      for (const c of A.cards) {
+        if (c.event) parts.push(c.name + ': ' + c.event.title + ', ' + c.event.when_text + '.');
+        else parts.push(c.name + (c.distance_text ? ', ' + c.distance_text + ' ' + c.direction : '') + '. ' + c.facts.slice(0, 2).map(f => f.label + ': ' + f.value).join('. ') + '.');
+      }
+      if (A.unknown && A.unknown.about && A.unknown.about.length) parts.push('I do not know: ' + A.unknown.about.join(', ') + '.');
+      if (A.call) parts.push('Call ' + A.call.name + ' at ' + A.call.phone + '.');
+      return parts.join(' ');
+    }
+    let voiceBar = null;
+    function readAloud(A, btn) {
+      if (!V().supportsOut()) { hint('Reading aloud is not available in this browser. Your screen reader can read the answer.'); say('Reading aloud is not available in this browser.'); return; }
+      if (voiceBar) voiceBar.remove();
+      const rate = h('select', { 'aria-label': 'Speaking speed', onchange: e => { S.prefs.rate = e.target.value; savePrefs(); } },
+        [['0.8', 'Slow'], ['1', 'Normal'], ['1.3', 'Fast']].map(([v, l]) => h('option', { value: v, text: l, selected: String(S.prefs.rate) === v })));
+      let paused = false;
+      const pauseBtn = h('button', { type: 'button', onclick: () => { paused = !paused; paused ? V().pause() : V().resume(); pauseBtn.textContent = paused ? 'Resume' : 'Pause'; } }, 'Pause');
+      const stop = h('button', { type: 'button', onclick: () => { V().stop(); end(); } }, 'Stop reading');
+      const end = () => { if (voiceBar) { voiceBar.remove(); voiceBar = null; } if (btn.isConnected) btn.focus(); };
+      voiceBar = h('div', { class: 'ow-voicebar', role: 'group', 'aria-label': 'Reading controls' }, h('span', { text: 'Reading aloud.' }), pauseBtn, stop, h('label', {}, 'Speed ', rate));
+      btn.closest('.ow-a').append(voiceBar);
+      V().speak(spoken(A), { rate: parseFloat(S.prefs.rate), onend: () => { if (voiceBar && voiceBar.isConnected) { voiceBar.remove(); voiceBar = null; } } });
+    }
+
+    // ---- voice in ----
+    function toggleListen() {
+      if (S.listening) { S.listening.stop(); return; }
+      if (!V().supportsIn()) { const m = 'Voice input is not available in this browser. You can type your question, or use the dictation key on your keyboard or phone.'; hint(m); say(m); return; }
+      hint('Your browser may send your voice to its maker to turn it into text.');
+      S.listening = V().listen({
+        onstart() { micBtn.setAttribute('aria-pressed', 'true'); micBtn.lastChild.textContent = 'Listening… stop'; say('Listening. Speak your question.'); },
+        onresult(text, final) { input.value = text; if (final) { say('I heard: ' + text + '. Press Send to ask.'); } },
+        onerror(m) { hint(m); say(m); },
+        onend() { S.listening = null; micBtn.setAttribute('aria-pressed', 'false'); micBtn.lastChild.textContent = 'Speak'; input.focus(); },
+      });
+    }
+
+    // ---- photo ----
+    function localModelReady() { return S.prefs.engine === 'local' && S.health && S.health.model; }
+    function pickPhoto() {
+      if (!localModelReady()) { const m = 'Photo questions need the local model. Open Settings and choose Local model, or ask in words.'; hint(m); say(m); return; }
+      fileInput.click();
+    }
+    async function onPhoto() {
+      const f = fileInput.files && fileInput.files[0]; fileInput.value = '';
+      if (!f) return;
+      try { S.image = await O.photo.shrink(f); renderAttach(); hint('Photo ready. It is shrunk on this device and its location data is removed. Type your question, then press Send.'); input.focus(); }
+      catch (e) { hint(e.message); say(e.message); }
+    }
+    function renderAttach() {
+      attach.textContent = '';
+      if (!S.image) { attach.hidden = true; return; }
+      attach.hidden = false;
+      attach.append(h('img', { src: S.image.dataUrl, alt: 'Your photo, shown small. It is not saved.' }), h('span', { text: 'Photo attached (not saved).' }), h('button', { type: 'button', onclick: () => { S.image = null; renderAttach(); input.focus(); } }, 'Remove photo'));
+    }
+
+    // ---- keyboard ----
+    root.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      if (needsDlg.open) return;
+      if (S.speaking || (voiceBar && voiceBar.isConnected)) { V().stop(); if (voiceBar) { voiceBar.remove(); voiceBar = null; } return; }
+      if (!settings.hidden) { toggleSettings(false); settingsBtn.focus(); e.stopPropagation(); return; }
+      if (mode === 'panel') { api.close(); e.stopPropagation(); }
+    });
+    g.addEventListener('pagehide', () => V().stop());
+
+    // ---- boot ----
+    const api = {
+      ask, root,
+      open() { root.hidden = false; (opener => { S.opener = opener || S.opener; })(); input.focus(); },
+      close() { root.hidden = true; V().stop(); if (S.opener && S.opener.focus) S.opener.focus(); root.dispatchEvent(new g.CustomEvent('ow:closed')); },
+      focus() { input.focus(); },
+      state: S,
+    };
+    welcome(); refreshMode(); hint('Loading the data…'); sendBtn.disabled = true;
+    const get = async u => { const r = await fetch(u); if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); };
+    (async () => {
+      try {
+        const [rules, cinc, ox] = await Promise.all([get(base + 'rules.json'), get(base + 'cincinnati.json'), get(base + 'oxford.json')]);
+        S.guided = new O.engine.GuidedEngine([cinc, ox], rules);
+        hint(''); sendBtn.disabled = false; welcome(); root.dispatchEvent(new g.CustomEvent('ow:ready'));
+        S.guided.fromData = true;
+        if (S.prefs.engine === 'local') checkHealth();
+        else checkHealth();
+      } catch (e) {
+        hint('');
+        log.textContent = '';
+        log.append(h('div', { class: 'ow-a ow-unknown-kind', role: 'alert' }, h('h3', { text: 'Problem' }), h('p', { class: 'ow-main', text: 'I could not load the data I answer from. Check your connection, then try again.' }), h('div', { class: 'ow-row' }, h('button', { type: 'button', class: 'ow-primary', onclick: () => g.location.reload() }, 'Try again'))));
+      }
+    })();
+    return api;
+  }
+  O.chat = { mount };
+  if (typeof module !== 'undefined') module.exports = O.chat;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+(function () {
+  var root = document.getElementById('ow-root');
+  var api = Openway.chat.mount(root, {mode: 'page', base: 'assistant/'});
+  document.querySelector('.skip').addEventListener('click', function (e) { e.preventDefault(); api.focus(); });
+  window.openwayAssistant = api;
+})();
+</script></body></html>

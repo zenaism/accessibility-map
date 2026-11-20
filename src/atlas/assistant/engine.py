@@ -56,18 +56,20 @@ class Engine:
 
 
 def events(a: Answer):
-    """The event stream the chat component receives (see assistant_build_spec.md section 4)."""
+    """The event stream the chat component receives (see assistant_build_spec.md section 4):
+    clarify, text {delta, parts, kind}, detail {items}, card {card}, action {action, ...}, call {name, phone},
+    unknown {about, call}, sources {items}, meta, done {verified, removed}. Errors are {type: "error", message}."""
     if a.clarify:
         yield {"type": "clarify", **a.clarify}
-    yield {"type": "text", "kind": a.kind, "delta": " ".join(s.text for s in a.headline)}
+    yield {"type": "text", "kind": a.kind, "delta": " ".join(s.text for s in a.headline), "parts": [s.text for s in a.headline]}
     if a.details:
         yield {"type": "detail", "items": [s.text for s in a.details]}
     for c in a.cards:
-        yield {"type": "card", **c.to_dict()}
+        yield {"type": "card", "card": c.to_dict()}
     for act in a.actions:
-        yield {"type": "action", **act}
+        yield {"type": "action", "action": act["type"], **{k: v for k, v in act.items() if k != "type"}}
     if a.call:
-        yield {"type": "action", "action": "call", **{"type": "call"}, **a.call}
+        yield {"type": "call", **a.call}
     if a.unknown or a.kind in ("unknown", "no_data", "out_of_area"):
         yield {"type": "unknown", "about": list(a.unknown), "call": a.call}
     if a.sources:

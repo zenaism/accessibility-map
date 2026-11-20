@@ -11,11 +11,11 @@
   function toEvents(a) {
     const ev = [];
     if (a.clarify) ev.push(Object.assign({ type: 'clarify' }, a.clarify));
-    ev.push({ type: 'text', kind: a.kind, delta: a.headline.map(s => s.text).join(' ') });
+    ev.push({ type: 'text', kind: a.kind, delta: a.headline.map(s => s.text).join(' '), parts: a.headline.map(s => s.text) });
     if (a.details.length) ev.push({ type: 'detail', items: a.details.map(s => s.text) });
-    for (const c of a.cards) ev.push(Object.assign({ type: 'card' }, c));
-    for (const x of a.actions) ev.push(Object.assign({}, x));
-    if (a.call) ev.push(Object.assign({}, a.call, { type: 'call' }));
+    for (const c of a.cards) ev.push({ type: 'card', card: c });
+    for (const x of a.actions) { const o = { type: 'action', action: x.type }; for (const k of Object.keys(x)) if (k !== 'type') o[k] = x[k]; ev.push(o); }
+    if (a.call) ev.push(Object.assign({ type: 'call' }, a.call));
     if (a.unknown.length || ['unknown', 'no_data', 'out_of_area'].includes(a.kind)) ev.push({ type: 'unknown', about: a.unknown.slice(), call: a.call });
     if (a.sources.length) ev.push({ type: 'sources', items: a.sources });
     ev.push({ type: 'meta', as_of: a.as_of, notes: a.notes, plan: a.plan, engine: a.engine });
