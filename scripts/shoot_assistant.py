@@ -1,3 +1,4 @@
+# ruff: noqa: E501, B023
 """Save Playwright screenshots of every state of the Openway Assistant to docs/work_logs/screens/assistant/.
 
     python scripts/shoot_assistant.py
@@ -60,7 +61,9 @@ def main() -> None:
             mobile = kind == "phone"
 
             def ctx(**kw):
-                return b.new_context(viewport={"width": w, "height": h}, is_mobile=mobile, has_touch=mobile, **kw)
+                return b.new_context(
+                    viewport={"width": w, "height": h}, is_mobile=mobile, has_touch=mobile, **kw
+                )
 
             c = ctx()
             pg = c.new_page()
@@ -72,10 +75,14 @@ def main() -> None:
             pg.evaluate("document.querySelector('.ow-log').scrollTop = 0")
             save(pg, "2-answer-with-cards", kind)
             ask(pg, "Any events this weekend in Oxford?")
-            pg.evaluate("document.querySelector('.ow-log').scrollTop = document.querySelector('.ow-log').scrollHeight")
+            pg.evaluate(
+                "document.querySelector('.ow-log').scrollTop = document.querySelector('.ow-log').scrollHeight"
+            )
             save(pg, "3-events-answer", kind)
             ask(pg, "Where can I see a waterfall without stairs?")
-            pg.evaluate("document.querySelector('.ow-log').scrollTop = document.querySelector('.ow-log').scrollHeight")
+            pg.evaluate(
+                "document.querySelector('.ow-log').scrollTop = document.querySelector('.ow-log').scrollHeight"
+            )
             save(pg, "4-unknown-answer", kind)
             pg.get_by_role("button", name="Settings").click()
             save(pg, "5-settings", kind)
@@ -115,9 +122,22 @@ def main() -> None:
 
             c = ctx()
             pg = c.new_page()
-            pg.route("**/api/health", lambda r: r.fulfill(json={"reachable": True, "model": True, "models": ["qwen2.5:3b"], "vision": True}))
-            ev = [{"type": "error", "message": "Something went wrong while looking that up. Please try again."}]
-            pg.route("**/api/ask", lambda r: r.fulfill(body="".join("data: " + json.dumps(e) + "\n\n" for e in ev), content_type="text/event-stream"))
+            pg.route(
+                "**/api/health",
+                lambda r: r.fulfill(
+                    json={"reachable": True, "model": True, "models": ["qwen2.5:3b"], "vision": True}
+                ),
+            )
+            ev = [
+                {"type": "error", "message": "Something went wrong while looking that up. Please try again."}
+            ]
+            pg.route(
+                "**/api/ask",
+                lambda r: r.fulfill(
+                    body="".join("data: " + json.dumps(e) + "\n\n" for e in ev),
+                    content_type="text/event-stream",
+                ),
+            )
             ready(pg, base)
             pg.get_by_role("button", name="Settings").click()
             pg.wait_for_function("!document.querySelector('.ow-settings input[value=local]').disabled")
@@ -130,7 +150,10 @@ def main() -> None:
 
             buf = io.BytesIO()
             Image.new("RGB", (900, 600), (120, 160, 200)).save(buf, "JPEG")
-            pg.set_input_files(".ow input[type=file]", {"name": "sign.jpg", "mimeType": "image/jpeg", "buffer": buf.getvalue()})
+            pg.set_input_files(
+                ".ow input[type=file]",
+                {"name": "sign.jpg", "mimeType": "image/jpeg", "buffer": buf.getvalue()},
+            )
             pg.wait_for_selector(".ow-attach img")
             save(pg, "11-photo-attached", kind)
             c.close()

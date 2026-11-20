@@ -181,3 +181,12 @@
 .ow-tiles-mini li:nth-child(6n+3) button{border-left:6px solid #b45f06}.ow-tiles-mini li:nth-child(6n+4) button{border-left:6px solid #0f766e}
 .ow-tiles-mini li:nth-child(6n+5) button{border-left:6px solid #be185d}.ow-tiles-mini li:nth-child(6n+6) button{border-left:6px solid #15803d}
 .ow-welcome .ow-ah{color:#0a3d73}
+/* plain chat: icon-only gear, small quick-question chips */
+.ow-gear{min-width:44px;padding:.4em;justify-content:center}
+.ow-gear svg{width:1.3em;height:1.3em}
+.ow-welcome{background:none;border:0;padding:.2em 0}
+.ow-welcome .ow-ah{font-size:1.05em}
+.ow-welcome p{font-size:.88em}
+.ow .ow-tiles{display:flex;flex-wrap:wrap;gap:.4em;margin:.5em 0 0}
+.ow .ow-tiles button{width:auto;min-height:44px;padding:.3em .8em;font-size:.82em;font-weight:500;border-width:1px;border-radius:999px;background:var(--ow-brand-soft);color:#0a3d73}
+.ow .ow-tiles-mini button{font-size:.8em;min-height:44px;padding:.2em .75em}

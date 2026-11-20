@@ -37,4 +37,5 @@ data/history/
 data/map/routing/
 # axe-core for accessibility tests (npm install --no-save --prefix ./.axe)
 .axe/
+eval/results/raw_*.json
 node_modules/
