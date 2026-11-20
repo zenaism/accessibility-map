@@ -115,6 +115,9 @@ def execute(pl: Plan, ctx: Context, be) -> list[ToolResult]:
         if pl.anchor and pl.anchor.get("id"):
             out.append(ToolResult("get_place", {"name_or_id": pl.anchor["id"]}, be.get_place(pl.anchor["id"])))
     elif pl.tool == "accessible_route":
-        out.append(ToolResult("accessible_route", a, be.accessible_route(**a)))
+        route = be.accessible_route(**a)
+        if route:
+            route.pop("line", None)
+        out.append(ToolResult("accessible_route", a, route))
         out.append(ToolResult("get_place", {"name_or_id": a["to"]}, be.get_place(a["to"])))
     return out
