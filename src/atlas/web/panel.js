@@ -708,9 +708,10 @@ self.onmessage = async (e) => {
   function drawRoute(r) {
     drawPins();
     const pts = r.line.map((c) => [c[1], c[0]]);
-    L.polyline(pts, { className: 'dp-casing', color: '#ffffff', weight: 11, opacity: 1, lineCap: 'round', lineJoin: 'round', interactive: false }).addTo(layer);
+    // light-blue dots, each ringed in dark blue so they stay visible on the grey map (the ring is the "casing")
+    L.polyline(pts, { className: 'dp-casing', color: '#0b3d73', weight: 12, opacity: 1, lineCap: 'round', lineJoin: 'round', dashArray: '0.1 13', interactive: false }).addTo(layer);
     hlLine = L.polyline([], { className: 'dp-hl', color: '#f59e0b', weight: 15, opacity: 0.95, lineCap: 'round', interactive: false }).addTo(layer);
-    L.polyline(pts, { className: 'dp-line', color: '#1e40af', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round', interactive: false }).addTo(layer);
+    L.polyline(pts, { className: 'dp-line', color: '#7dd3fc', weight: 7, opacity: 1, lineCap: 'round', lineJoin: 'round', dashArray: '0.1 13', interactive: false }).addTo(layer);
     // small signs on the route for crossings and cautions; each also says so in the step text
     r.stepList.forEach((s, i) => {
       if (s.kind !== 'cross' && !s.warnings.length) return;
