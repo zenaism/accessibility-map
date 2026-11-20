@@ -56,6 +56,17 @@ class Engine:
         return ans
 
 
+def scrub_plan(plan: dict | None) -> dict | None:
+    """The plan without the user's coordinates (they are used by the tools and never echoed back)."""
+    if not plan:
+        return plan
+    out = {**plan, "args": {k: v for k, v in plan["args"].items() if k not in ("from_lat", "from_lon")}}
+    if plan.get("anchor") and plan["anchor"].get("name") == "your location":
+        out["anchor"] = {"name": "your location"}
+        out["args"] = {k: v for k, v in out["args"].items() if k not in ("lat", "lon")}
+    return out
+
+
 def events(a: Answer):
     """The event stream the chat component receives (see assistant_build_spec.md section 4):
     clarify, text {delta, parts, kind}, detail {items}, card {card}, action {action, ...}, call {name, phone},
@@ -80,5 +91,5 @@ def events(a: Answer):
         yield {"type": "unknown", "about": list(a.unknown), "call": a.call}
     if a.sources:
         yield {"type": "sources", "items": [s.to_dict() for s in a.sources]}
-    yield {"type": "meta", "as_of": a.as_of, "notes": a.notes, "plan": a.plan, "engine": a.engine}
+    yield {"type": "meta", "as_of": a.as_of, "notes": a.notes, "plan": scrub_plan(a.plan), "engine": a.engine}
     yield {"type": "done", "verified": a.verified, "removed": a.removed}

@@ -47,7 +47,7 @@
     if (has('this year')) return span('this year', d0, mk(d0.getUTCFullYear(), 12, 31));
     for (let i = 0; i < 12; i++) {
       const name = MONTHS[i];
-      if (has(name) || (name !== 'may' && has(name.slice(0, 3))) || (name === 'may' && has('in may'))) {
+      if ((name !== 'may' && (has(name) || has(name.slice(0, 3)))) || (name === 'may' && (has('in may') || has('this may') || has('next may')))) {
         const y = d0.getUTCFullYear() + (i + 1 < d0.getUTCMonth() + 1 ? 1 : 0);
         const first = mk(y, i + 1, 1);
         const start = (y === d0.getUTCFullYear() && i + 1 === d0.getUTCMonth() + 1) ? (first > d0 ? first : d0) : first;
