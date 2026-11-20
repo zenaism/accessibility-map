@@ -102,11 +102,11 @@ def short_day(iso: str) -> str:
 
 
 def time_text(iso: str) -> str:
-    """2:00 pm (empty when the record has no time)"""
+    """2:00 pm (empty when the record has no time or a suspicious one between midnight and 6 am)"""
     if len(iso) < 16:
         return ""
     h, m = int(iso[11:13]), iso[14:16]
-    if h == 0 and m == "00":
+    if h < 6:  # the source has a clutch of 00:00 to 05:59 starts that look like UTC; show no time
         return ""
     return f"{(h % 12) or 12}:{m} {'am' if h < 12 else 'pm'}"
 
