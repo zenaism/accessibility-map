@@ -43,7 +43,6 @@ REGION_WORDS = {
         "northside",
         "downtown",
         "fountain square",
-        "findlay market",
         "union terminal",
         "music hall",
         "the zoo",
@@ -564,13 +563,16 @@ def rules_json() -> str:
     """Everything the JavaScript port needs, as one JSON object."""
     import sys
 
+    from .tools import NEEDS, POSITIVE
+
     g = sys.modules[__name__]
+    g.NEEDS, g.POSITIVE = NEEDS, list(POSITIVE)
     names = [
         "REGION_KEYS", "REGION_WORDS", "AREAS", "EMERGENCY", "EMERGENCY_SOFT", "EMERGENCY_SOFT_NOT", "HELP", "TRUST",
         "OTHER_PLACES", "NO_DATA", "LIVE_INFO", "EVENT_WORDS", "EVENT_ACCESS", "EVENT_DISABILITY", "EVENT_FILLER",
         "ROUTE_WORDS", "AREA_WORDS", "NEED_WORDS", "TYPE_WORDS", "TYPE_DEFAULT_NEED", "NEED_LABELS", "TYPE_LABELS",
         "FACT_LABELS", "VALUE_WORDS", "SOURCE_KINDS", "BANNED", "BANNED_WORDS", "STOP", "NEAR_WORDS", "NEAR_ME",
-        "GENERIC_NAME_WORDS", "ALIASES", "QUERY_MAP", "QUERY_FIRST", "HELP_TILES", "CAN_ANSWER", "CANNOT_ANSWER", "EVENT_STRONG", "EVENT_ACCESS_ALL", "MONTHS_DAYS", "KNOWN_CAPS", "UNSUPPORTED",
+        "GENERIC_NAME_WORDS", "ALIASES", "QUERY_MAP", "QUERY_FIRST", "HELP_TILES", "CAN_ANSWER", "CANNOT_ANSWER", "EVENT_STRONG", "EVENT_ACCESS_ALL", "MONTHS_DAYS", "KNOWN_CAPS", "UNSUPPORTED", "RATING_TEXT", "NOISE_FACTS", "ACCESS_WORDS", "NEEDS", "POSITIVE", "ACCESS_ADJ", "LIVE_TOPICS", "FACT_PRIORITY",
     ]
     return json.dumps({n: getattr(g, n) for n in names}, ensure_ascii=False, sort_keys=True)
 
@@ -585,12 +587,44 @@ EVENT_ACCESS_ALL = ["accessibility events", "accessibility event", "accessible e
 MONTHS_DAYS = [
     "january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november",
     "december", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
+    "jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep", "oct", "nov", "dec",
 ]
-KNOWN_CAPS = ["ada", "google", "facebook", "openstreetmap", "wheelchair", "metro", "openway", "i"]
+KNOWN_CAPS = ["ada", "asl", "google", "facebook", "openstreetmap", "wheelchair", "metro", "openway", "i"]
 
 # things people ask about that our data does not hold; the answer says so instead of ignoring them
 UNSUPPORTED = [
     "outdoor seating", "patio", "brewery", "vegan", "gluten", "vegetarian", "menu", "reservation", "reservations",
     "price", "prices", "cost", "how much", "ticket price", "companion ticket", "birthday", "party of", "for 8",
     "wifi", "kid friendly", "kids", "dog friendly",
+]
+
+RATING_TEXT = {
+    "accessible": "Listed as accessible",
+    "partial": "Partly accessible",
+    "not_accessible": "Listed as not accessible",
+    "unknown": "No accessibility rating yet",
+}
+# facts that say nothing about access; shown last
+NOISE_FACTS = ["fee", "unisex", "website", "phone", "opening_hours", "access", "Notice", "Listed as"]
+ACCESS_WORDS = {
+    "audio_description": "audio description",
+    "asl": "ASL interpretation",
+    "sensory_friendly": "sensory-friendly",
+}
+
+ACCESS_ADJ = {
+    "audio_description": "audio described",
+    "asl": "ASL interpreted",
+    "sensory_friendly": "sensory-friendly",
+}
+LIVE_TOPICS = [
+    ["opening times", ["open right now", "open now", "open today", "open late", "open after", "opening hours", "what time does", "what time is", "hours today"]],
+    ["bus times", ["next bus", "bus time", "bus times", "bus schedule", "what time does the bus", "when does the bus", "when is the next", "arrival time", "real-time", "real time", "realtime"]],
+    ["the weather", ["weather", "forecast", "snow", "icy", "storm"]],
+    ["whether something is working right now", ["power outage", "outage", "elevator out", "elevator working", "elevator broken"]],
+]
+FACT_PRIORITY = [
+    "Step-free entrance", "Accessible entrance", "Accessible restroom", "Elevator / lift", "Accessible parking",
+    "Adult changing table", "Wheelchair seating", "Wheelchair loan", "Listed wheelchair accessible", "Path surface",
+    "Accessible rooms", "Getting around inside", "Audio description", "Braille", "Large print", "Service animals",
 ]

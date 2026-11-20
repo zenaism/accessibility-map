@@ -165,10 +165,10 @@ def first_need(t: str) -> str | None:
 
 
 def first_type(t: str) -> str | None:
-    for typ, words in R.TYPE_WORDS:
-        if has_any(t, words):
-            return typ
-    return None
+    """The kind of place asked for; "restroom" only when nothing else is named (a restaurant with a bathroom)."""
+    found = [typ for typ, words in R.TYPE_WORDS if has_any(t, words)]
+    other = [x for x in found if x != "restroom"]
+    return other[0] if other else (found[0] if found else None)
 
 
 def content_words(t: str, extra=()) -> list[str]:
@@ -185,20 +185,22 @@ def _anchor_place(p: dict) -> dict | None:
 _CAPS = re.compile(r"[A-Z][a-zA-Z']+")
 
 
-def capitalized(text: str) -> list[str]:
-    """Capitalised words that are not the first word of a sentence."""
+def capitalized(text: str, starts: str = ".?!") -> list[str]:
+    """Capitalised words that are not the first word of a sentence (or clause, with more `starts`)."""
     out = []
     for m in _CAPS.finditer(text):
         before = text[: m.start()].rstrip()
-        if before == "" or before[-1] in ".?!":
+        if before == "" or before[-1] in starts:
             continue
         out.append(m.group(0))
     return out
 
 
-def unmatched_names(text: str, index: Index, area_words: set[str]) -> list[str]:
-    """Capitalised names in the question that no place, area or region word explains."""
-    known = index.all_tokens | area_words | set(tokens(" ".join(R.MONTHS_DAYS + R.KNOWN_CAPS)))
+def unmatched_names(text: str, index: Index, area_words: set[str], named: dict | None = None) -> list[str]:
+    """Capitalised names in the question that no resolved place, area or region word explains."""
+    known = area_words | set(tokens(" ".join(R.MONTHS_DAYS + R.KNOWN_CAPS)))
+    if named:
+        known |= {stem(w) for w in tokens(named["name"])}
     out = []
     for w in capitalized(text):
         tk = stem(norm(w))
@@ -250,7 +252,7 @@ def _plan(text: str, ctx: Context, index: Index) -> Plan:
     named, cov = (hit[0], hit[1]) if hit else (None, 0.0)
     place_ref = {"id": named["id"], "name": named["name"]} if named else None
     area_words = _area_word_set()
-    unmatched = unmatched_names(text, index, area_words) if named else []
+    unmatched = unmatched_names(text, index, area_words, named) if named else []
 
     # 3 trust
     for intent in ("ada_trust", "conflict_trust", "reports_trust", "dates_trust"):
@@ -271,7 +273,8 @@ def _plan(text: str, ctx: Context, index: Index) -> Plan:
             return Plan("no_data", topic=cat["label"], region=region)
     # 6 live information
     if has_any(t, R.LIVE_INFO):
-        return Plan("live_info", region=region, topic=has_any(t, R.LIVE_INFO), place=place_ref,
+        topic = next((lab for lab, ph in R.LIVE_TOPICS if has_any(t, ph)), "that")
+        return Plan("live_info", region=region, topic=topic, place=place_ref,
                     tool="get_place" if named else None, args={"name_or_id": named["id"]} if named else {})
 
     when = parse_when(text, ctx.today)
@@ -323,8 +326,9 @@ def _plan(text: str, ctx: Context, index: Index) -> Plan:
 
     # 7c conditions around a point: slopes, stairs, curb ramps, open 311 reports
     if has_any(t, R.AREA_WORDS) and not (need and need not in ("step_free_entrance",)):
+        topic = "reports" if has_any(t, ["closure", "closures", "construction", "311", "road work", "sidewalk problems", "sidewalk closures"]) else "slope"
         if named and named.get("lat") is not None:
-            return Plan("area", tool="area_conditions",
+            return Plan("area", tool="area_conditions", topic=topic,
                         args={"lat": named["lat"], "lon": named["lon"], "region": named["region"]},
                         anchor={"name": named["name"], "lat": named["lat"], "lon": named["lon"], "id": named["id"]},
                         place=place_ref, region=named["region"])
@@ -335,7 +339,7 @@ def _plan(text: str, ctx: Context, index: Index) -> Plan:
             a = R.AREAS["uptown oxford" if region == "oxford" else "downtown"]
         if a is None:
             return Plan("clarify", region=region, clarify={"question": "Which area do you mean?", "options": _options_where(text)})
-        return Plan("area", tool="area_conditions",
+        return Plan("area", tool="area_conditions", topic=topic,
                     args={"lat": a["lat"], "lon": a["lon"], "region": a.get("region") or region},
                     anchor={"name": a["name"], "lat": a["lat"], "lon": a["lon"]}, region=a.get("region") or region)
 
@@ -373,7 +377,7 @@ def _plan(text: str, ctx: Context, index: Index) -> Plan:
         args = {"region": region, "place_type": use_type, "need": eff, "limit": 5}
         q = _query_map(t)
         if not q and not named:
-            miss = unmatched_names(text, index, area_words)
+            miss = unmatched_names(text, index, area_words, None)
             q = " ".join(miss) if miss else None
         if q:
             args["query"] = q
@@ -389,7 +393,7 @@ def _plan(text: str, ctx: Context, index: Index) -> Plan:
     q = _query_map(t)
     if q:
         return Plan("search", tool="search_places", args={"query": q, **({"region": region} if region else {}), "limit": 5}, region=region)
-    miss = unmatched_names(text, index, area_words)
+    miss = unmatched_names(text, index, area_words, None)
     words = miss or content_words(t)
     if words:
         return Plan("search", tool="search_places",

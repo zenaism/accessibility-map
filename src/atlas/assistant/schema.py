@@ -151,9 +151,10 @@ class ToolResult:
     tool: str
     args: dict
     data: object  # list[dict] | dict | None, exactly what the tool returned
+    meta: dict = field(default_factory=dict)  # e.g. {"fallback_need": ...}, {"role": "next_events"}
 
     def to_dict(self) -> dict:
-        return {"tool": self.tool, "args": self.args, "data": self.data}
+        return {"tool": self.tool, "args": self.args, "data": self.data, "meta": self.meta}
 
 
 @dataclass
