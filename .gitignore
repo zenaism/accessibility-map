@@ -33,3 +33,4 @@ data/cache/
 # History archives (weather, alerts): kept locally, published through a data release, not git
 data/history/
 .axe/
+eval/results/raw_*.json

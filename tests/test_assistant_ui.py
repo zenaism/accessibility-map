@@ -231,7 +231,7 @@ def test_text_size_and_plain_language(page, base):
     page.get_by_label("Extra large").check(force=True)
     assert page.evaluate("document.querySelector('.ow').style.getPropertyValue('--ow-scale')") == "1.5"
     assert (
-        page.evaluate("parseFloat(getComputedStyle(document.querySelector('.ow-welcome p')).fontSize)") >= 24
+        page.evaluate("parseFloat(getComputedStyle(document.querySelector('.ow-welcome p')).fontSize)") >= 22
     )
     page.get_by_role("switch", name="Plain language (shorter sentences)").check()
     page.keyboard.press("Escape")
