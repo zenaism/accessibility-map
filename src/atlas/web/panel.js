@@ -476,14 +476,24 @@ self.onmessage = async (e) => {
         const it = searchable[i];
         return { type: 'place', it, label: it.p.name, sub: `${ICONS[it.p.layer][0]} · ${ctx.RATINGS[it.p.access_rating][0]}`, icon: 'pin' };
       });
-      options = [...hit, ...specials()];
+      // saved places (the heart on the map) come first, so a regular trip is two taps
+      let favIds = [];
+      try { favIds = JSON.parse(store.get('atlas-favs')) || []; } catch (e) {}
+      const favs = favIds.length
+        ? searchable
+            .filter((it) => favIds.includes(it.p.link_id) && (!q.trim() || it.p.name.toLowerCase().includes(q.trim().toLowerCase())))
+            .slice(0, 5)
+            .map((it) => ({ type: 'place', it, label: it.p.name, sub: `Saved · ${ICONS[it.p.layer][0]}`, icon: 'pin' }))
+        : [];
+      const favSet = new Set(favs.map((o) => o.it));
+      options = [...favs, ...hit.filter((o) => !favSet.has(o.it)), ...specials()];
       list.innerHTML = options
         .map(
           (o, i) =>
             `<li role="option" id="dp-${id}-o${i}" data-i="${i}" aria-selected="false" class="dp-opt${o.type === 'place' ? '' : ' special'}">${svg(o.icon)}<span class="dp-opt-t"><b>${esc(o.label)}</b><small>${esc(o.sub)}</small></span></li>`
         )
         .join('');
-      if (q.trim() && !hit.length) {
+      if (q.trim() && !hit.length && !favs.length) {
         list.insertAdjacentHTML('afterbegin', `<li class="dp-none" role="presentation">No place called “${esc(q.trim())}” on this map.</li>`);
       }
       active = -1;
