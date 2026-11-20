@@ -206,14 +206,14 @@ web_venues_cincinnati:      # museum and venue accessibility pages
     - https://www.nps.gov/wiho/planyourvisit/accessibility.htm
     - https://www.visitcincy.com/blog/post/accessiblity-in-the-cincinnati-region/
     - https://www.blinkcincinnati.com/resources/accessibility
-    - https://www.blinkcincinnati.com/resources/files/assets/accessiblemaps100526.pdf
-    - https://www.blinkcincinnati.com/resources/files/assets/blink2026accessibilityfaq1-updated.pdf
-    - https://www.blinkcincinnati.com/resources/files/assets/accessiblemapsfindlaymarketzone.pdf
-    - https://www.blinkcincinnati.com/resources/files/assets/accessiblemapsbankszone.pdf
-    - https://www.blinkcincinnati.com/resources/files/assets/accessiblemapsotrzone.pdf
-    - https://www.blinkcincinnati.com/resources/files/assets/accessiblemapscovingtonzone.pdf
-    - https://www.blinkcincinnati.com/resources/files/assets/accessiblemapsfountainzone.pdf
-    - https://www.blinkcincinnati.com/resources/files/assets/accessiblemapsreadysetblink.pdf
+    - https://www.blinkcincinnati.com/files/assets/accessiblemaps100526.pdf
+    - https://www.blinkcincinnati.com/files/assets/blink2026accessibilityfaq1-updated.pdf
+    - https://www.blinkcincinnati.com/files/assets/accessiblemapsfindlaymarketzone.pdf
+    - https://www.blinkcincinnati.com/files/assets/accessiblemapsbankszone.pdf
+    - https://www.blinkcincinnati.com/files/assets/accessiblemapsotrzone.pdf
+    - https://www.blinkcincinnati.com/files/assets/accessiblemapscovingtonzone.pdf
+    - https://www.blinkcincinnati.com/files/assets/accessiblemapsfountainzone.pdf
+    - https://www.blinkcincinnati.com/files/assets/accessiblemapsreadysetblink.pdf
   follow: [https://www.cincymuseum.org/accessibility, https://cincinnatiartmuseum.org/access,
            https://www.blinkcincinnati.com/resources]
   license: public web page; cite URL
