@@ -13,6 +13,8 @@ import json
 
 import yaml
 
+from .assistant.page import css as assistant_css  # Openway Assistant panel (ASSISTANT markers below)
+from .assistant.page import js_bundle as assistant_js
 from .core import ROOT
 from .report_ui import CSS as REPORT_CSS
 from .report_ui import JS as REPORT_JS
@@ -217,6 +219,11 @@ __REPORT_CSS__
 /* ==== ROUTING START ==== */
 __ROUTING_CSS__
 /* ==== ROUTING END ==== */
+/* ==== ASSISTANT START ==== */
+__ASSISTANT_CSS__
+/* the header button that opens the panel */
+#ask-open{white-space:nowrap}
+/* ==== ASSISTANT END ==== */
 </style></head><body>
 <a class="skip" href="#list-h">Skip to the list of places</a>
 <header>
@@ -227,7 +234,14 @@ __ROUTING_CSS__
   <input id="q" type="search" placeholder="Search" autocomplete="off"></div>
  <button id="near" class="primary" type="button">
   <svg class="i" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3" fill="currentColor"/><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>Near me</button>
+ <!-- ==== ASSISTANT START ==== -->
+ <button id="ask-open" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="ow-panel">
+  <svg class="i" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 4.5h14v9H8l-4 3v-3H3z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/></svg>Ask</button>
+ <!-- ==== ASSISTANT END ==== -->
 </header>
+<!-- ==== ASSISTANT START ==== -->
+<div id="ow-panel" hidden></div>
+<!-- ==== ASSISTANT END ==== -->
 <main class="app">
  <section class="side" id="side" aria-labelledby="list-h">
   <button class="sheet-bar" id="sheet" type="button" aria-controls="side-body" aria-expanded="false"><span><span id="sheet-label">Places</span><span>Show list</span></span></button>
@@ -260,11 +274,19 @@ __ROUTING_CSS__
  </section>
 </main>
 <script>
+/* ==== ASSISTANT START ==== */
+__ASSISTANT_JS__
+/* ==== ASSISTANT END ==== */
+</script>
+<script>
 (async () => {
 const GOOGLE_ENABLED = false;
 let googleMaps = null, googleInfoWindow = null;
 const DATA = __DATA__, RATINGS = __RATINGS__, HELP = __HELP__, ICONS = __ICONS__, RATECFG = __RATECFG__;
 const PAGE = 20;
+/* ==== ASSISTANT START ==== */
+let ASSIST_IDS = null;   // place ids the assistant asked us to show (null = no filter)
+/* ==== ASSISTANT END ==== */
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const svg = (layer, colour, size=20) => `<svg aria-hidden="true" width="${size}" height="${size}" viewBox="0 0 20 20" style="color:${colour}">${ICONS[layer][1]}</svg>`;
 const badge = r => `<span class="rb"><i aria-hidden="true" style="background:${RATINGS[r][1]};color:${RATINGS[r][3]}">${RATINGS[r][2]}</i>${RATINGS[r][0]}</span>`;
@@ -480,6 +502,7 @@ function current(){
   const t = q.value.trim().toLowerCase();
   let list = ITEMS.filter(NEEDS[need.value]).filter(it => !known.checked || it.p.access_rating !== 'unknown')
                   .filter(it => !t || it.text.includes(t))
+                  .filter(it => !ASSIST_IDS || ASSIST_IDS.has(it.p.link_id))   /* ==== ASSISTANT ==== */
                   .filter(it => need.value !== 'Events' || windowEvents(it).length);
   return list.sort(SORTS[sort.value] || SORTS.access);
 }
@@ -899,6 +922,69 @@ const ROUTING = GOOGLE_ENABLED ? null : (() => {
 __ROUTING_JS__
 })();
 // ==== ROUTING END ====
+/* ==== ASSISTANT START ==== */
+// ---------- Openway Assistant: panel and hooks ----------
+// The chat dispatches cancelable window events; calling preventDefault() tells it we handled the request.
+//   atlas:show-places {ids}            highlight those places: filter the list and fit the map to them
+//   atlas:route-to {placeId, profile}  routing (window.AtlasRouting handles it when present; else the saved route, else Google Maps)
+//   atlas:open-report {text}           open the existing report form with the text filled in
+(function assistantHooks(){
+  const status = document.getElementById('status');
+  let clearBtn = null;
+  function showAssistPlaces(ids){
+    ASSIST_IDS = ids && ids.size ? ids : null;
+    if (!clearBtn){
+      clearBtn = document.createElement('button'); clearBtn.type = 'button'; clearBtn.id = 'assist-clear'; clearBtn.className = 'ghost';
+      clearBtn.style.cssText = 'border:1px solid #cfd4da;margin:0 0 6px';
+      clearBtn.onclick = () => { showAssistPlaces(null); status.textContent = 'Showing all places again.'; };
+      status.parentNode.insertBefore(clearBtn, status);
+    }
+    clearBtn.hidden = !ASSIST_IDS;
+    if (ASSIST_IDS) clearBtn.textContent = 'Showing ' + ASSIST_IDS.size + ' place' + (ASSIST_IDS.size > 1 ? 's' : '') + ' from the assistant. Show all places';
+    page = 0; render();
+    if (ASSIST_IDS) status.textContent = 'Showing ' + ASSIST_IDS.size + ' place' + (ASSIST_IDS.size > 1 ? 's' : '') + ' from the assistant.';
+  }
+  window.addEventListener('atlas:show-places', e => {
+    const want = new Set((e.detail && e.detail.ids) || []);
+    const items = ITEMS.filter(it => want.has(it.p.link_id));
+    if (!items.length) return;                 // not on this map: let the chat open the right page
+    e.preventDefault();
+    if (items.length === 1){ ASSIST_IDS = null; if (clearBtn) clearBtn.hidden = true; openCard(items[0].i); showOnMap(items[0]); return; }
+    showAssistPlaces(new Set(items.map(it => it.p.link_id)));
+    if (!GOOGLE_ENABLED){
+      const pts = items.flatMap(it => it.pts);
+      if (pts.length) map.fitBounds(L.latLngBounds(pts), {padding:[50, 50], maxZoom:16});
+    }
+    if (PHONE.matches) setSheet(true);
+  });
+  window.addEventListener('atlas:route-to', e => {
+    if (window.AtlasRouting) return;           // the routing feature handles this event itself
+    const d = e.detail || {}, it = ITEMS.find(x => x.p.link_id === d.placeId);
+    if (!it) return;
+    e.preventDefault();
+    const r = it.p.getting_there && it.p.getting_there.route;
+    if (r && r.line){ openCard(it.i); showRoute(it, d.profile === 'blind' && !!r.blind); }
+    else window.open(directions(it), '_blank', 'noopener');
+  });
+  window.addEventListener('atlas:open-report', e => {
+    if (!RATECFG){ status.textContent = 'Reporting is not set up on this copy of the map.'; return; }
+    e.preventDefault();
+    openReport(null, document.activeElement);
+    const ta = document.getElementById('rp-text');
+    if (ta && e.detail && e.detail.text){ ta.value = String(e.detail.text).slice(0, 1000); ta.dispatchEvent(new Event('input')); }
+  });
+  // the header button: build the panel on first use so the map loads as before
+  const btn = document.getElementById('ask-open'), panel = document.getElementById('ow-panel');
+  let api = null;
+  btn.onclick = () => {
+    if (!api){ api = Openway.chat.mount(panel, {mode:'panel', base:'assistant/', region:firstRegion, opener:btn});
+      panel.addEventListener('ow:closed', () => btn.setAttribute('aria-expanded', 'false')); }
+    panel.hidden = !panel.hidden;
+    btn.setAttribute('aria-expanded', String(!panel.hidden));
+    if (!panel.hidden) api.focus(); else api.close();
+  };
+})();
+/* ==== ASSISTANT END ==== */
 // ---------- legend ----------
 document.getElementById('legend-body').innerHTML = '<ul>'
   + Object.entries(RATINGS).map(([k, r]) => `<li>${badge(k)}<span>${HELP[k]}</span></li>`).join('') + '</ul><ul>'
@@ -934,6 +1020,8 @@ def render(
         .replace("__REPORT_JS__", REPORT_JS)
         .replace("__ROUTING_CSS__", ROUTING_CSS)  # ROUTING
         .replace("__ROUTING_JS__", ROUTING_JS)  # ROUTING
+        .replace("__ASSISTANT_CSS__", assistant_css())  # ASSISTANT
+        .replace("__ASSISTANT_JS__", assistant_js())  # ASSISTANT
     )
 
 
