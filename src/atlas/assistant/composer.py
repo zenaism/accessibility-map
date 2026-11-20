@@ -594,7 +594,6 @@ def _place(pl, res, ctx, as_of):
             ],
             unknown=["that place"],
         )
-    plain = ctx.plain
     refs = [row["link_id"]]
     nm = row["name"]
     unk = []
