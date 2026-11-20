@@ -695,7 +695,7 @@ def write() -> list[Path]:
         page.write_text(
             render(
                 {region: map_data[region]},
-                f"{region.title()} accessibility map",
+                f"{region.title()} Accessibility Map",
                 nav,
                 (
                     '<label class="vh" for="city">Switch map</label><select id="city" class="city">'

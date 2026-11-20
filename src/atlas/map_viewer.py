@@ -98,18 +98,19 @@ TEMPLATE = r"""<!DOCTYPE html>
  .vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
  .skip{position:absolute;left:12px;top:-80px;background:#fff;padding:10px 14px;border-radius:10px;z-index:4000;box-shadow:var(--shadow);font-weight:600}
  .skip:focus{top:10px}
- button,.btn{font:inherit;font-size:14px;line-height:1;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink);
+ button,.btn{font:inherit;font-size:13.5px;line-height:1;padding:7px 11px;border-radius:9px;border:1px solid var(--line);background:#fff;color:var(--ink);
    cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:background .15s,border-color .15s}
- button:hover,.btn:hover{background:var(--soft)} .ghost{border-color:transparent;background:transparent;padding:7px 8px;color:#374151}
+ button:hover,.btn:hover{background:var(--soft)} .ghost{border-color:transparent;background:transparent;padding:6px 8px;color:#374151}
  .primary{background:var(--accent);border-color:var(--accent);color:#fff} .primary:hover{background:#1f2937}
  svg.i{width:18px;height:18px;flex:none}
  /* top bar */
  header{height:var(--head);flex:none;display:flex;align-items:center;gap:12px;padding:0 14px;border-bottom:1px solid var(--line);background:#fff;z-index:1200}
  header{position:relative}
  .brand{min-width:0;flex:1;display:flex;align-items:center;gap:8px} header h1{flex:0 1 auto;min-width:0;font-size:16px;font-weight:650;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
- .city{font:inherit;font-size:12.5px;line-height:1;padding:5px 24px 5px 9px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--muted);cursor:pointer;min-height:0;flex:none;max-width:42vw}
- .info-btn{flex:none;width:20px;height:20px;padding:0;border-radius:50%;justify-content:center;font-size:12px;font-weight:700;color:var(--muted);border-color:var(--line);line-height:1}
- header .sub{position:absolute;left:12px;top:calc(100% + 6px);z-index:1300;margin:0;max-width:min(360px,calc(100vw - 24px));padding:10px 12px;font-size:12.5px;line-height:1.6;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+ .city{-webkit-appearance:none;appearance:none;font:inherit;font-size:16px;font-weight:650;letter-spacing:-.01em;color:var(--ink);background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236b7280' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 1px center;border:0;border-radius:6px;padding:0 15px 0 0;margin:0 5px 0 0;min-height:0;cursor:pointer;flex:none}
+ .ttl{display:flex;align-items:flex-start;gap:2px;min-width:0}
+ .info-btn{flex:none;width:13px;height:13px;min-height:0;padding:0!important;margin-top:-1px;border-radius:50%;justify-content:center;font-size:9px;font-weight:700;color:var(--muted);border-color:var(--line);line-height:1}
+ header .sub{position:absolute;left:50%;transform:translateX(-50%);top:calc(100% + 6px);z-index:1300;margin:0;max-width:min(360px,calc(100vw - 24px));padding:10px 12px;font-size:12.5px;line-height:1.6;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
  header .sub[hidden]{display:none} header .sub a{color:var(--muted);display:block}
  .search{position:relative;width:min(340px,34vw)} .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted)}
  .search input{width:100%;font:inherit;font-size:14px;padding:10px 12px 10px 36px;border-radius:10px;border:1px solid var(--line);background:var(--soft)}
@@ -186,7 +187,7 @@ TEMPLATE = r"""<!DOCTYPE html>
  @media (max-width:720px){
    :root{--head:auto}
    header{flex-wrap:wrap;padding:6px 10px;gap:6px}
-   .brand{flex:1 1 100%} header h1{font-size:14.5px}
+   .brand{flex:1 1 100%;justify-content:center} .city{font-size:14.5px} header h1{font-size:14.5px}
    header button,header .btn{padding:7px 10px;font-size:13px;gap:5px} header svg.i{width:16px;height:16px}
    header .search input{padding-top:7px;padding-bottom:7px}
    .search{flex:1 1 auto;width:auto;min-width:0}
@@ -235,8 +236,8 @@ __ASSISTANT_CSS__
 </style></head><body>
 <a class="skip" href="#list-h">Skip to the list of places</a>
 <header>
- <div class="brand"><h1>__TITLE__</h1>__SWITCH__
-  <button id="info-btn" class="info-btn" type="button" aria-label="About this map: last updated and more links" aria-expanded="false" aria-controls="info-pop">!</button>
+ <div class="brand"><div class="ttl">__SWITCH__<h1>__H1__</h1>
+  <button id="info-btn" class="info-btn" type="button" aria-label="About this map: last updated and more links" aria-expanded="false" aria-controls="info-pop">!</button></div>
   <p class="sub" id="info-pop" hidden>Data last updated <span id="asof"></span>__NAV__</p></div>
  <div class="search" role="search">
   <svg class="i" viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="m14 14 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -306,7 +307,11 @@ document.getElementById('asof').textContent = Object.values(DATA)[0].generated;
   ib.onclick = e => { e.stopPropagation(); setInfo(ip.hidden); };
   document.addEventListener('click', e => { if (!ip.hidden && !ip.contains(e.target)) setInfo(false); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !ip.hidden) { setInfo(false); ib.focus(); } });
-  const city = document.getElementById('city'); if (city) city.onchange = () => { location.href = city.value; }; }
+  const city = document.getElementById('city');
+  if (city){ city.onchange = () => { location.href = city.value; };
+    const fit = () => { const m = document.createElement('span'); m.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;font:' + getComputedStyle(city).font;
+      m.textContent = city.selectedOptions[0].text; document.body.append(m); city.style.width = (m.offsetWidth + 17) + 'px'; m.remove(); };
+    fit(); if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit); } }
 
 // ---------- map ----------
 const PHONE_EARLY = window.matchMedia('(max-width:720px)');
@@ -1059,6 +1064,7 @@ def render(
         TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False).replace("<", "\\u003c"))
         .replace("__TITLE__", title)
         .replace("__SWITCH__", switch)
+        .replace("__H1__", title.split(" ", 1)[1] if switch and " " in title else title)
         .replace("__NAV__", nav)
         .replace("__RATINGS__", json.dumps(RATINGS, ensure_ascii=False))
         .replace("__HELP__", json.dumps(RATING_HELP))

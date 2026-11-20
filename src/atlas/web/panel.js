@@ -68,7 +68,7 @@ const RouteUtil = (function () {
       `&destination=${p(toPt)}`
     );
   }
-  const PROFILE_LABEL = { wheelchair: 'Wheelchair', blind: 'Blind or low vision' };
+  const PROFILE_LABEL = { wheelchair: 'Step-free', blind: 'Clear-crossings' };
   /** The route as plain text for Copy directions. */
   function routeText(m) {
     const r = m.result;
@@ -338,9 +338,9 @@ self.onmessage = async (e) => {
       ${fieldHtml('to', 'To', 'Destination')}
     </div>
     <fieldset class="dp-profile">
-      <legend>Route type</legend>
-      <label class="dp-radio"><input type="radio" name="dp-profile" value="wheelchair"><span>Wheelchair</span></label>
-      <label class="dp-radio"><input type="radio" name="dp-profile" value="blind"><span>Blind or low vision</span></label>
+      <legend>Route preference</legend>
+      <label class="dp-radio"><input type="radio" name="dp-profile" value="wheelchair"><span>Step-free (wheelchair)</span></label>
+      <label class="dp-radio"><input type="radio" name="dp-profile" value="blind"><span>Clear crossings (low vision)</span></label>
       <p class="dp-help" id="dp-profile-help"></p>
     </fieldset>
   </div>

@@ -18,18 +18,19 @@
  .vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
  .skip{position:absolute;left:12px;top:-80px;background:#fff;padding:10px 14px;border-radius:10px;z-index:4000;box-shadow:var(--shadow);font-weight:600}
  .skip:focus{top:10px}
- button,.btn{font:inherit;font-size:14px;line-height:1;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink);
+ button,.btn{font:inherit;font-size:13.5px;line-height:1;padding:7px 11px;border-radius:9px;border:1px solid var(--line);background:#fff;color:var(--ink);
    cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:background .15s,border-color .15s}
- button:hover,.btn:hover{background:var(--soft)} .ghost{border-color:transparent;background:transparent;padding:7px 8px;color:#374151}
+ button:hover,.btn:hover{background:var(--soft)} .ghost{border-color:transparent;background:transparent;padding:6px 8px;color:#374151}
  .primary{background:var(--accent);border-color:var(--accent);color:#fff} .primary:hover{background:#1f2937}
  svg.i{width:18px;height:18px;flex:none}
  /* top bar */
  header{height:var(--head);flex:none;display:flex;align-items:center;gap:12px;padding:0 14px;border-bottom:1px solid var(--line);background:#fff;z-index:1200}
  header{position:relative}
  .brand{min-width:0;flex:1;display:flex;align-items:center;gap:8px} header h1{flex:0 1 auto;min-width:0;font-size:16px;font-weight:650;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
- .city{font:inherit;font-size:12.5px;line-height:1;padding:5px 24px 5px 9px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--muted);cursor:pointer;min-height:0;flex:none;max-width:42vw}
- .info-btn{flex:none;width:20px;height:20px;padding:0;border-radius:50%;justify-content:center;font-size:12px;font-weight:700;color:var(--muted);border-color:var(--line);line-height:1}
- header .sub{position:absolute;left:12px;top:calc(100% + 6px);z-index:1300;margin:0;max-width:min(360px,calc(100vw - 24px));padding:10px 12px;font-size:12.5px;line-height:1.6;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+ .city{-webkit-appearance:none;appearance:none;font:inherit;font-size:16px;font-weight:650;letter-spacing:-.01em;color:var(--ink);background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236b7280' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 1px center;border:0;border-radius:6px;padding:0 15px 0 0;margin:0 5px 0 0;min-height:0;cursor:pointer;flex:none}
+ .ttl{display:flex;align-items:flex-start;gap:2px;min-width:0}
+ .info-btn{flex:none;width:13px;height:13px;min-height:0;padding:0!important;margin-top:-1px;border-radius:50%;justify-content:center;font-size:9px;font-weight:700;color:var(--muted);border-color:var(--line);line-height:1}
+ header .sub{position:absolute;left:50%;transform:translateX(-50%);top:calc(100% + 6px);z-index:1300;margin:0;max-width:min(360px,calc(100vw - 24px));padding:10px 12px;font-size:12.5px;line-height:1.6;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
  header .sub[hidden]{display:none} header .sub a{color:var(--muted);display:block}
  .search{position:relative;width:min(340px,34vw)} .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted)}
  .search input{width:100%;font:inherit;font-size:14px;padding:10px 12px 10px 36px;border-radius:10px;border:1px solid var(--line);background:var(--soft)}
@@ -106,7 +107,7 @@
  @media (max-width:720px){
    :root{--head:auto}
    header{flex-wrap:wrap;padding:6px 10px;gap:6px}
-   .brand{flex:1 1 100%} header h1{font-size:14.5px}
+   .brand{flex:1 1 100%;justify-content:center} .city{font-size:14.5px} header h1{font-size:14.5px}
    header button,header .btn{padding:7px 10px;font-size:13px;gap:5px} header svg.i{width:16px;height:16px}
    header .search input{padding-top:7px;padding-bottom:7px}
    .search{flex:1 1 auto;width:auto;min-width:0}
@@ -198,9 +199,9 @@
 /* ==== ROUTING START ==== */
  /* Directions panel (src/atlas/web/panel.js). Uses the map's own tokens: --ink --muted --line --soft --focus --shadow */
  #dir-open{flex:none}
- .dirp{display:flex;flex-direction:column;background:#fff;color:var(--ink);font-size:16px;line-height:1.45;min-height:0}
+ .dirp{display:flex;flex-direction:column;background:#fff;color:var(--ink);font-size:15px;line-height:1.45;min-height:0}
  .dirp *{box-sizing:border-box}
- .dirp button,.dirp .btn{min-height:44px;font-size:16px;line-height:1.2;padding:10px 14px;border-radius:12px;justify-content:center}
+ .dirp button,.dirp .btn{min-height:36px;font-size:14px;line-height:1.2;padding:7px 12px;border-radius:10px;justify-content:center}
  .dirp button:disabled{opacity:.45;cursor:default}
  .dirp .primary{background:var(--accent);color:#fff}
  .dirp svg.i{width:20px;height:20px}
@@ -213,10 +214,10 @@
  .dp-fields{position:relative;display:grid;gap:10px;padding-right:52px}
  .dp-field label{display:block;font-weight:650;font-size:15px;margin:0 0 4px}
  .dp-combo{position:relative}
- .dp-combo input{width:100%;min-height:46px;font:inherit;font-size:16px;padding:10px 44px 10px 12px;border:1.5px solid #6b7280;border-radius:12px;background:#fff;color:var(--ink)}
+ .dp-combo input{width:100%;min-height:40px;font:inherit;font-size:15px;padding:10px 44px 10px 12px;border:1.5px solid #6b7280;border-radius:12px;background:#fff;color:var(--ink)}
  .dp-combo input:focus{outline:2.5px solid var(--focus);outline-offset:1px}
  .dp-clear{position:absolute;right:2px;top:1px;width:44px;padding:0!important;border:0!important;background:transparent!important;color:#374151}
- .dp-swap{position:absolute;right:0;top:50%;transform:translateY(-50%);width:44px;padding:0!important;margin-top:10px}
+ .dp-swap{position:absolute;right:0;top:50%;transform:translateY(-50%);width:38px;padding:0!important;margin-top:10px}
  .dp-list{position:absolute;left:0;right:-52px;top:100%;z-index:30;margin:4px 0 0;padding:4px;list-style:none;background:#fff;border:1px solid #9ca3af;border-radius:12px;box-shadow:var(--shadow);max-height:min(340px,42dvh);overflow:auto}
  .dp-opt{display:flex;align-items:center;gap:10px;padding:8px 10px;min-height:48px;border-radius:8px;cursor:pointer}
  .dp-opt svg{flex:none;color:#374151}
@@ -228,7 +229,7 @@
  .dp-profile legend{font-weight:650;font-size:15px;padding:0;margin:0 0 4px}
  .dp-radio{position:relative;display:block}
  .dp-radio input{font-size:16px;position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
- .dp-radio span{display:flex;align-items:center;justify-content:center;text-align:center;gap:6px;min-height:48px;padding:8px 10px;border:1.5px solid #6b7280;border-radius:12px;background:#fff;font-weight:600;line-height:1.2}
+ .dp-radio span{display:flex;align-items:center;justify-content:center;text-align:center;gap:6px;min-height:40px;padding:8px 10px;border:1.5px solid #6b7280;border-radius:12px;background:#fff;font-weight:600;line-height:1.2}
  .dp-radio input:checked+span{background:var(--ink);color:#fff;border-color:var(--ink)}
  .dp-radio input:checked+span::before{content:"✓";font-weight:700}
  .dp-radio input:focus-visible+span{outline:2.5px solid var(--focus);outline-offset:2px}
@@ -548,8 +549,8 @@
 </style></head><body>
 <a class="skip" href="#list-h">Skip to the list of places</a>
 <header>
- <div class="brand"><h1>Cincinnati and Oxford</h1>
-  <button id="info-btn" class="info-btn" type="button" aria-label="About this map: last updated and more links" aria-expanded="false" aria-controls="info-pop">!</button>
+ <div class="brand"><div class="ttl"><h1>Cincinnati and Oxford</h1>
+  <button id="info-btn" class="info-btn" type="button" aria-label="About this map: last updated and more links" aria-expanded="false" aria-controls="info-pop">!</button></div>
   <p class="sub" id="info-pop" hidden>Data last updated <span id="asof"></span></p></div>
  <div class="search" role="search">
   <svg class="i" viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="m14 14 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -2438,7 +2439,11 @@ document.getElementById('asof').textContent = Object.values(DATA)[0].generated;
   ib.onclick = e => { e.stopPropagation(); setInfo(ip.hidden); };
   document.addEventListener('click', e => { if (!ip.hidden && !ip.contains(e.target)) setInfo(false); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !ip.hidden) { setInfo(false); ib.focus(); } });
-  const city = document.getElementById('city'); if (city) city.onchange = () => { location.href = city.value; }; }
+  const city = document.getElementById('city');
+  if (city){ city.onchange = () => { location.href = city.value; };
+    const fit = () => { const m = document.createElement('span'); m.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;font:' + getComputedStyle(city).font;
+      m.textContent = city.selectedOptions[0].text; document.body.append(m); city.style.width = (m.offsetWidth + 17) + 'px'; m.remove(); };
+    fit(); if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit); } }
 
 // ---------- map ----------
 const PHONE_EARLY = window.matchMedia('(max-width:720px)');
@@ -3363,7 +3368,7 @@ const RouteUtil = (function () {
       `&destination=${p(toPt)}`
     );
   }
-  const PROFILE_LABEL = { wheelchair: 'Wheelchair', blind: 'Blind or low vision' };
+  const PROFILE_LABEL = { wheelchair: 'Step-free', blind: 'Clear-crossings' };
   /** The route as plain text for Copy directions. */
   function routeText(m) {
     const r = m.result;
@@ -3633,9 +3638,9 @@ self.onmessage = async (e) => {
       ${fieldHtml('to', 'To', 'Destination')}
     </div>
     <fieldset class="dp-profile">
-      <legend>Route type</legend>
-      <label class="dp-radio"><input type="radio" name="dp-profile" value="wheelchair"><span>Wheelchair</span></label>
-      <label class="dp-radio"><input type="radio" name="dp-profile" value="blind"><span>Blind or low vision</span></label>
+      <legend>Route preference</legend>
+      <label class="dp-radio"><input type="radio" name="dp-profile" value="wheelchair"><span>Step-free (wheelchair)</span></label>
+      <label class="dp-radio"><input type="radio" name="dp-profile" value="blind"><span>Clear crossings (low vision)</span></label>
       <p class="dp-help" id="dp-profile-help"></p>
     </fieldset>
   </div>
@@ -4003,9 +4008,10 @@ self.onmessage = async (e) => {
   function drawRoute(r) {
     drawPins();
     const pts = r.line.map((c) => [c[1], c[0]]);
-    L.polyline(pts, { className: 'dp-casing', color: '#ffffff', weight: 11, opacity: 1, lineCap: 'round', lineJoin: 'round', interactive: false }).addTo(layer);
+    // light-blue dots, each ringed in dark blue so they stay visible on the grey map (the ring is the "casing")
+    L.polyline(pts, { className: 'dp-casing', color: '#0b3d73', weight: 12, opacity: 1, lineCap: 'round', lineJoin: 'round', dashArray: '0.1 13', interactive: false }).addTo(layer);
     hlLine = L.polyline([], { className: 'dp-hl', color: '#f59e0b', weight: 15, opacity: 0.95, lineCap: 'round', interactive: false }).addTo(layer);
-    L.polyline(pts, { className: 'dp-line', color: '#1e40af', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round', interactive: false }).addTo(layer);
+    L.polyline(pts, { className: 'dp-line', color: '#7dd3fc', weight: 7, opacity: 1, lineCap: 'round', lineJoin: 'round', dashArray: '0.1 13', interactive: false }).addTo(layer);
     // small signs on the route for crossings and cautions; each also says so in the step text
     r.stepList.forEach((s, i) => {
       if (s.kind !== 'cross' && !s.warnings.length) return;
