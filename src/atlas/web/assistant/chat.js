@@ -68,17 +68,18 @@
     root.classList.add('ow', mode === 'panel' ? 'ow-panel' : 'ow-page');
     root.textContent = '';
     if (mode === 'panel') { root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'false'); root.setAttribute('aria-labelledby', id('title')); }
-    const applySize = () => root.style.setProperty('--ow-scale', S.prefs.size);
+    const applySize = () => { root.style.setProperty('--ow-scale', S.prefs.size); root.toggleAttribute('data-big', parseFloat(S.prefs.size) >= 1.25); };
     applySize();
     const savePrefs = () => store.set('openway.prefs', JSON.stringify(S.prefs));
 
     // ---- skeleton ----
-    const modeLabel = h('span', { class: 'ow-mode', id: id('mode') });
+    const modeLabel = h('span', { id: id('mode') });
     const settingsBtn = h('button', { type: 'button', 'aria-expanded': 'false', 'aria-controls': id('settings'), onclick: () => toggleSettings() }, icon(ICONS.gear), 'Settings');
     const closeBtn = mode === 'panel' ? h('button', { type: 'button', class: 'ow-ghost', 'aria-label': 'Close the assistant', onclick: () => api.close() }, icon(ICONS.x), 'Close') : null;
-    const head = h('header', { class: 'ow-head' },
-      h(mode === 'page' ? 'h1' : 'h2', { id: id('title') }, 'Openway Assistant', h('span', { class: 'ow-sub', text: 'Questions about accessible places in Cincinnati and Oxford' })),
-      modeLabel, settingsBtn, closeBtn);
+    const head = h('div', { class: 'ow-head' },
+      h('div', { class: 'ow-titles' }, h(mode === 'page' ? 'h1' : 'h2', { id: id('title'), text: 'Openway Assistant' }),
+        h('p', { class: 'ow-sub' }, modeLabel, ' \u00b7 Cincinnati and Oxford')),
+      settingsBtn, closeBtn);
     const settings = h('section', { class: 'ow-settings', id: id('settings'), hidden: true, 'aria-label': 'Settings' });
     const log = h('div', { class: 'ow-log', id: id('log'), role: 'log', 'aria-live': 'off', 'aria-label': 'Conversation', tabindex: '0' });
     const announcer = h('div', { class: 'ow-vh', role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true', id: id('announce') });
@@ -161,7 +162,7 @@
     }
     function refreshMode() {
       const local = S.prefs.engine === 'local' && S.health && S.health.model;
-      modeLabel.textContent = local ? 'Local model' : 'Guided mode';
+      modeLabel.textContent = local ? 'Local model' : 'Guided mode (no model)';
       photoHint();
     }
     async function checkHealth() {

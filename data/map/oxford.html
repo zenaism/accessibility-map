@@ -209,11 +209,11 @@
 .ow .ow-ghost{border-color:transparent;background:transparent}
 .ow svg.ow-i{width:1.2em;height:1.2em;flex:none}
 
-/* header */
-.ow-head{display:flex;align-items:center;gap:.6em;padding:.6em .9em;border-bottom:1px solid var(--ow-line);flex:none}
-.ow-head h1,.ow-head h2{margin:0;font-size:1.12em;font-weight:650;flex:1;letter-spacing:-.01em}
-.ow-head .ow-sub{display:block;font-size:.78em;font-weight:400;color:var(--ow-muted)}
-.ow-mode{font-size:.8em;color:var(--ow-muted);white-space:nowrap}
+/* header (a div, not <header>: the map page styles the header element) */
+.ow-head{display:flex;align-items:center;gap:.6em;padding:.6em .9em;border-bottom:1px solid var(--ow-line);flex:none;min-height:0}
+.ow-titles{flex:1;min-width:0}
+.ow-head h1,.ow-head h2{margin:0;font-size:1.12em;font-weight:650;letter-spacing:-.01em;line-height:1.25}
+.ow-sub{margin:.1em 0 0;font-size:.8em;color:var(--ow-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* settings */
 .ow-settings{border-bottom:1px solid var(--ow-line);padding:.8em .9em;background:var(--ow-soft);display:grid;gap:.9em}
@@ -233,15 +233,16 @@
 /* conversation */
 .ow-log{flex:1;min-height:0;overflow-y:auto;padding:1em .9em;display:flex;flex-direction:column;gap:1em;scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){.ow-log{scroll-behavior:auto}}
-.ow-welcome h3{margin:.1em 0 .3em;font-size:1.25em;letter-spacing:-.01em}
+.ow-welcome .ow-ah{margin:.1em 0 .3em;font-size:1.25em;letter-spacing:-.01em}
+.ow-welcome .ow-ah{margin:.1em 0 .3em;font-size:1.25em;letter-spacing:-.01em;text-transform:none;color:inherit}
 .ow-welcome p{margin:.2em 0 .8em;color:var(--ow-muted)}
 .ow-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(10.5em,1fr));gap:.55em;margin:.4em 0 0;padding:0;list-style:none}
 .ow-tiles button{width:100%;min-height:56px;text-align:left;justify-content:flex-start;font-weight:560;border-radius:14px;background:#fff;padding:.6em .8em}
 .ow-me{align-self:flex-end;max-width:88%;background:var(--ow-accent);color:#fff;padding:.6em .9em;border-radius:16px 16px 4px 16px;overflow-wrap:anywhere}
 .ow-me .ow-who{display:block;font-size:.75em;opacity:.85}
 .ow-a{align-self:stretch;border:1px solid var(--ow-line);border-radius:var(--ow-r);padding:.9em 1em;background:#fff;box-shadow:0 1px 2px rgba(17,24,39,.05)}
-.ow-a h3{margin:0 0 .3em;font-size:.8em;font-weight:650;text-transform:uppercase;letter-spacing:.05em;color:var(--ow-muted)}
-.ow-a h3:focus{outline:3px solid var(--ow-focus);outline-offset:3px}
+.ow-a .ow-ah{margin:0 0 .3em;font-size:.8em;font-weight:650;text-transform:uppercase;letter-spacing:.05em;color:var(--ow-muted)}
+.ow-a .ow-ah:focus{outline:3px solid var(--ow-focus);outline-offset:3px}
 .ow-main{margin:.1em 0 .6em;font-size:1.06em;font-weight:650;overflow-wrap:anywhere}
 .ow-main .ow-rest{font-weight:400;font-size:.95em;color:#374151}
 .ow-a.ow-unknown-kind{border-left:5px solid var(--ow-warn)}
@@ -256,7 +257,7 @@
 /* cards */
 .ow-cards{display:grid;gap:.7em;margin:.5em 0;padding:0;list-style:none}
 .ow-card{border:1px solid var(--ow-line);border-radius:12px;padding:.75em .85em;background:var(--ow-soft)}
-.ow-card h4{margin:0;font-size:1.02em;font-weight:650;line-height:1.3}
+.ow-card .ow-ch{margin:0;font-size:1.02em;font-weight:650;line-height:1.3}
 .ow-meta{display:flex;flex-wrap:wrap;gap:.3em .8em;align-items:center;margin:.25em 0 .1em;font-size:.88em;color:#374151}
 .ow-rate{display:inline-flex;align-items:center;gap:.4em;font-weight:600}
 .ow-rate i{font-style:normal;width:1.35em;height:1.35em;border-radius:50%;display:inline-grid;place-items:center;font-size:.8em;font-weight:700;color:#fff;background:#6b7280}
@@ -311,12 +312,16 @@
 /* the page version fills the window */
 .ow-page{height:100vh;height:100dvh}
 .ow-page .ow-inner{width:100%;max-width:52em;margin:0 auto;display:flex;flex-direction:column;min-height:0;flex:1;border-left:1px solid var(--ow-line);border-right:1px solid var(--ow-line)}
-@media (max-width:720px){.ow-page .ow-inner{border:0}}
+@media (max-width:720px){.ow-page .ow-inner{border:0}.ow-topnav{padding:.2em .9em;gap:1em}}
 .ow-topnav{display:flex;gap:.8em;align-items:center;padding:.5em .9em;border-bottom:1px solid var(--ow-line);font-size:.9em;flex:none}
 .ow-topnav a{color:var(--ow-ink);min-height:44px;display:inline-flex;align-items:center}
 @media (forced-colors:active){.ow button,.ow .ow-btn,.ow-card,.ow-a,.ow-me{border:1px solid ButtonText}.ow .ow-primary{background:ButtonFace;color:ButtonText;border:2px solid ButtonText}
   .ow-seg input:checked+span{outline:3px solid Highlight}.ow-rate i{border:1px solid ButtonText;background:Canvas;color:CanvasText}}
 @media print{.ow-compose,.ow-settings{display:none}}
+
+/* big text leaves little room: the quick questions are in the welcome list and in Settings > What can I ask? */
+.ow[data-big] .ow-tiles-mini{display:none}
+@media (max-height:640px){.ow-tiles-mini{display:none}}
 
 /* the header button that opens the panel */
 #ask-open{white-space:nowrap}
@@ -477,7 +482,7 @@
     if (has('this year')) return span('this year', d0, mk(d0.getUTCFullYear(), 12, 31));
     for (let i = 0; i < 12; i++) {
       const name = MONTHS[i];
-      if (has(name) || (name !== 'may' && has(name.slice(0, 3))) || (name === 'may' && has('in may'))) {
+      if ((name !== 'may' && (has(name) || has(name.slice(0, 3)))) || (name === 'may' && (has('in may') || has('this may') || has('next may')))) {
         const y = d0.getUTCFullYear() + (i + 1 < d0.getUTCMonth() + 1 ? 1 : 0);
         const first = mk(y, i + 1, 1);
         const start = (y === d0.getUTCFullYear() && i + 1 === d0.getUTCMonth() + 1) ? (first > d0 ? first : d0) : first;
@@ -512,6 +517,8 @@
   const COMPASS = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'];
   const RATING_ORDER = { accessible: 0, partial: 1, not_accessible: 2, unknown: 3 };
   const FALLBACK_NEED = { step_free_entrance: 'listed_wheelchair_accessible' };
+  const RESTROOM_NEEDS = ['accessible_restroom', 'adult_changing_table'];
+  const NOT_PUBLIC = ['private', 'no'];
   const nz = v => (v === undefined || v === '' ? null : v);
 
   /** KB from the region files: rows shaped like the DuckDB `places` rows. */
@@ -677,19 +684,27 @@
   const enrich = (rows, be) => { for (const r of rows) { r.facts = be.facts(r.link_id); const c = be.coords(r.link_id); r.lat = c[0]; r.lon = c[1]; } return rows; };
   const upcoming = (be, args, today) => be.find_events(Object.assign({}, args, { limit: args.limit || 10 })).filter(e => e.start.slice(0, 10) >= today);
 
+  function fetchRows(fn, a, be) {
+    const limit = a.limit || 5;
+    if (!RESTROOM_NEEDS.includes(a.need)) return [enrich(fn(a), be), {}];
+    const rows = enrich(fn(Object.assign({}, a, { limit: limit * 4 })), be);
+    const keep = rows.filter(r => !r.facts.some(f => f.attribute === 'access' && NOT_PUBLIC.includes(f.value)));
+    const removed = rows.length - keep.length;
+    return [keep.slice(0, limit), removed ? { private_removed: removed } : {}];
+  }
   function execute(pl, ctx, be) {
     const out = [];
     const a = Object.assign({}, pl.args);
     const R = (tool, args, data, meta) => ({ tool, args, data, meta: meta || {} });
     if (pl.tool === 'search_places' || pl.tool === 'nearest') {
       const fn = pl.tool === 'search_places' ? be.search_places : be.nearest;
-      let rows = fn(a), meta = {};
+      let [rows, meta] = fetchRows(fn, a, be);
       if (!rows.length && FALLBACK_NEED[a.need]) {
         const a2 = Object.assign({}, a, { need: FALLBACK_NEED[a.need] });
-        rows = fn(a2);
-        if (rows.length) meta = { fallback_need: a2.need, wanted: a.need };
+        const [rows2, meta2] = fetchRows(fn, a2, be);
+        if (rows2.length) { rows = rows2; meta = Object.assign({}, meta2, { fallback_need: a2.need, wanted: a.need }); }
       }
-      out.push(R(pl.tool, a, enrich(rows, be), meta));
+      out.push(R(pl.tool, a, rows, meta));
     } else if (pl.tool === 'get_place') {
       const p = be.get_place(a.name_or_id);
       if (p) { p.events = upcoming(be, { link_id: p.link_id, start: ctx.today, end: D.plusDays(ctx.today, 365) }, ctx.today); const c = be.coords(p.link_id); p.lat = c[0]; p.lon = c[1]; }
@@ -1217,6 +1232,7 @@
       det.push(S('Also on record: ' + names.join('; ') + '.', rows.slice(1, 6).map(x => x.link_id)));
     }
     if (fb && ev) det.push(ev);
+    if (r.meta && r.meta.private_removed) { const n = r.meta.private_removed; det.push(S('I left out ' + n + ' restroom' + (n > 1 ? 's' : '') + ' that OpenStreetMap marks as private.', ['tool:' + r.tool], 'claim', [String(n)])); }
     if (pl.intent === 'nearest') det.push(S('Distances are in a straight line, not a route. Not checked on site.', [], 'meta'));
     if (first.notice) det.push(S('Note for ' + nm + ': ' + first.notice + '.', refs));
     const ids = rows.filter(x => x.lat !== undefined && x.lat !== null).map(x => x.link_id);
@@ -1509,6 +1525,13 @@
   const need = n => g.Openway[n] || require('./' + n + '.js');
   const tools = need('tools'), P = need('planner'), C = need('composer'), V = need('verify');
 
+  function scrubPlan(pl) {
+    if (!pl) return pl;
+    const out = Object.assign({}, pl, { args: Object.assign({}, pl.args) });
+    delete out.args.from_lat; delete out.args.from_lon;
+    if (pl.anchor && pl.anchor.name === 'your location') { out.anchor = { name: 'your location' }; delete out.args.lat; delete out.args.lon; }
+    return out;
+  }
   function toEvents(a) {
     const ev = [];
     if (a.clarify) ev.push(Object.assign({ type: 'clarify' }, a.clarify));
@@ -1519,7 +1542,7 @@
     if (a.call) ev.push(Object.assign({ type: 'call' }, a.call));
     if (a.unknown.length || ['unknown', 'no_data', 'out_of_area'].includes(a.kind)) ev.push({ type: 'unknown', about: a.unknown.slice(), call: a.call });
     if (a.sources.length) ev.push({ type: 'sources', items: a.sources });
-    ev.push({ type: 'meta', as_of: a.as_of, notes: a.notes, plan: a.plan, engine: a.engine });
+    ev.push({ type: 'meta', as_of: a.as_of, notes: a.notes, plan: scrubPlan(a.plan), engine: a.engine });
     ev.push({ type: 'done', verified: a.verified, removed: a.removed });
     return ev;
   }
@@ -1580,7 +1603,7 @@
       }
     }
   };
-  const E = { GuidedEngine, LocalEngine, toEvents };
+  const E = { GuidedEngine, LocalEngine, toEvents, scrubPlan };
   O.engine = E;
   if (typeof module !== 'undefined') module.exports = E;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
@@ -1741,22 +1764,24 @@
       image: null, listening: null, lastQ: null, speaking: false, opener: options.opener || null, answers: 0,
     };
     const uid = 'ow' + Math.random().toString(36).slice(2, 7);
-    const id = n => uid + '-' + n;
+    const id = n => (n === 'q' && options.inputId) ? options.inputId : uid + '-' + n;
+    const HL = mode === 'page' ? 'h2' : 'h3', CH = mode === 'page' ? 'h3' : 'h4';   // heading levels step down one at a time
     const root = container;
     root.classList.add('ow', mode === 'panel' ? 'ow-panel' : 'ow-page');
     root.textContent = '';
     if (mode === 'panel') { root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'false'); root.setAttribute('aria-labelledby', id('title')); }
-    const applySize = () => root.style.setProperty('--ow-scale', S.prefs.size);
+    const applySize = () => { root.style.setProperty('--ow-scale', S.prefs.size); root.toggleAttribute('data-big', parseFloat(S.prefs.size) >= 1.25); };
     applySize();
     const savePrefs = () => store.set('openway.prefs', JSON.stringify(S.prefs));
 
     // ---- skeleton ----
-    const modeLabel = h('span', { class: 'ow-mode', id: id('mode') });
+    const modeLabel = h('span', { id: id('mode') });
     const settingsBtn = h('button', { type: 'button', 'aria-expanded': 'false', 'aria-controls': id('settings'), onclick: () => toggleSettings() }, icon(ICONS.gear), 'Settings');
     const closeBtn = mode === 'panel' ? h('button', { type: 'button', class: 'ow-ghost', 'aria-label': 'Close the assistant', onclick: () => api.close() }, icon(ICONS.x), 'Close') : null;
-    const head = h('header', { class: 'ow-head' },
-      h(mode === 'page' ? 'h1' : 'h2', { id: id('title') }, 'Openway Assistant', h('span', { class: 'ow-sub', text: 'Questions about accessible places in Cincinnati and Oxford' })),
-      modeLabel, settingsBtn, closeBtn);
+    const head = h('div', { class: 'ow-head' },
+      h('div', { class: 'ow-titles' }, h(mode === 'page' ? 'h1' : 'h2', { id: id('title'), text: 'Openway Assistant' }),
+        h('p', { class: 'ow-sub' }, modeLabel, ' \u00b7 Cincinnati and Oxford')),
+      settingsBtn, closeBtn);
     const settings = h('section', { class: 'ow-settings', id: id('settings'), hidden: true, 'aria-label': 'Settings' });
     const log = h('div', { class: 'ow-log', id: id('log'), role: 'log', 'aria-live': 'off', 'aria-label': 'Conversation', tabindex: '0' });
     const announcer = h('div', { class: 'ow-vh', role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true', id: id('announce') });
@@ -1839,7 +1864,7 @@
     }
     function refreshMode() {
       const local = S.prefs.engine === 'local' && S.health && S.health.model;
-      modeLabel.textContent = local ? 'Local model' : 'Guided mode';
+      modeLabel.textContent = local ? 'Local model' : 'Guided mode (no model)';
       photoHint();
     }
     async function checkHealth() {
@@ -1899,7 +1924,7 @@
       const list = h('ul', { class: 'ow-tiles', 'aria-label': 'Quick questions' });
       for (const t of tiles()) list.append(h('li', {}, h('button', { type: 'button', onclick: () => ask(t.message) }, t.label)));
       log.append(h('section', { class: 'ow-welcome', 'aria-labelledby': id('wh') },
-        h('h3', { id: id('wh'), text: 'What would you like to know?' }),
+        h(HL, { id: id('wh'), class: 'ow-ah', text: 'What would you like to know?' }),
         h('p', { text: 'Ask in your own words, or choose a button. I answer from sourced data about places in Cincinnati and Oxford, and I say so when I don’t know.' }), list));
       miniTiles.hidden = true;
     }
@@ -1951,7 +1976,7 @@
       const ensure = () => {
         if (article) return;
         S.answers++;
-        headEl = h('h3', { tabindex: '-1', id: id('a' + S.answers), text: 'Answer' });
+        headEl = h(HL, { tabindex: '-1', class: 'ow-ah', id: id('a' + S.answers), text: 'Answer' });
         mainP = h('p', { class: 'ow-main' });
         article = h('article', { class: 'ow-a', 'aria-labelledby': headEl.id }, headEl, mainP);
         log.append(article); scrollEnd(article);
@@ -2044,7 +2069,7 @@
     }
     function renderCard(c) {
       const el = h('section', { class: 'ow-card', 'aria-label': c.name });
-      el.append(h('h4', { text: c.name }));
+      el.append(h(CH, { class: 'ow-ch', text: c.name }));
       if (c.event) {
         el.append(h('p', { class: 'ow-meta' }, h('span', { class: 'ow-when', text: c.event.title }), h('span', { text: c.event.when_text })));
         if (c.event.access.length) el.append(h('ul', { class: 'ow-chips', 'aria-label': 'Access at this event' }, c.event.access.map(a => h('li', { text: a }))));
@@ -2159,7 +2184,7 @@
       } catch (e) {
         hint('');
         log.textContent = '';
-        log.append(h('div', { class: 'ow-a ow-unknown-kind', role: 'alert' }, h('h3', { text: 'Problem' }), h('p', { class: 'ow-main', text: 'I could not load the data I answer from. Check your connection, then try again.' }), h('div', { class: 'ow-row' }, h('button', { type: 'button', class: 'ow-primary', onclick: () => g.location.reload() }, 'Try again'))));
+        log.append(h('div', { class: 'ow-a ow-unknown-kind', role: 'alert' }, h(HL, { class: 'ow-ah', text: 'Problem' }), h('p', { class: 'ow-main', text: 'I could not load the data I answer from. Check your connection, then try again.' }), h('div', { class: 'ow-row' }, h('button', { type: 'button', class: 'ow-primary', onclick: () => g.location.reload() }, 'Try again'))));
       }
     })();
     return api;

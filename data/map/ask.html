@@ -31,11 +31,11 @@ main{height:100%}
 .ow .ow-ghost{border-color:transparent;background:transparent}
 .ow svg.ow-i{width:1.2em;height:1.2em;flex:none}
 
-/* header */
-.ow-head{display:flex;align-items:center;gap:.6em;padding:.6em .9em;border-bottom:1px solid var(--ow-line);flex:none}
-.ow-head h1,.ow-head h2{margin:0;font-size:1.12em;font-weight:650;flex:1;letter-spacing:-.01em}
-.ow-head .ow-sub{display:block;font-size:.78em;font-weight:400;color:var(--ow-muted)}
-.ow-mode{font-size:.8em;color:var(--ow-muted);white-space:nowrap}
+/* header (a div, not <header>: the map page styles the header element) */
+.ow-head{display:flex;align-items:center;gap:.6em;padding:.6em .9em;border-bottom:1px solid var(--ow-line);flex:none;min-height:0}
+.ow-titles{flex:1;min-width:0}
+.ow-head h1,.ow-head h2{margin:0;font-size:1.12em;font-weight:650;letter-spacing:-.01em;line-height:1.25}
+.ow-sub{margin:.1em 0 0;font-size:.8em;color:var(--ow-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* settings */
 .ow-settings{border-bottom:1px solid var(--ow-line);padding:.8em .9em;background:var(--ow-soft);display:grid;gap:.9em}
@@ -134,12 +134,16 @@ main{height:100%}
 /* the page version fills the window */
 .ow-page{height:100vh;height:100dvh}
 .ow-page .ow-inner{width:100%;max-width:52em;margin:0 auto;display:flex;flex-direction:column;min-height:0;flex:1;border-left:1px solid var(--ow-line);border-right:1px solid var(--ow-line)}
-@media (max-width:720px){.ow-page .ow-inner{border:0}}
+@media (max-width:720px){.ow-page .ow-inner{border:0}.ow-topnav{padding:.2em .9em;gap:1em}}
 .ow-topnav{display:flex;gap:.8em;align-items:center;padding:.5em .9em;border-bottom:1px solid var(--ow-line);font-size:.9em;flex:none}
 .ow-topnav a{color:var(--ow-ink);min-height:44px;display:inline-flex;align-items:center}
 @media (forced-colors:active){.ow button,.ow .ow-btn,.ow-card,.ow-a,.ow-me{border:1px solid ButtonText}.ow .ow-primary{background:ButtonFace;color:ButtonText;border:2px solid ButtonText}
   .ow-seg input:checked+span{outline:3px solid Highlight}.ow-rate i{border:1px solid ButtonText;background:Canvas;color:CanvasText}}
 @media print{.ow-compose,.ow-settings{display:none}}
+
+/* big text leaves little room: the quick questions are in the welcome list and in Settings > What can I ask? */
+.ow[data-big] .ow-tiles-mini{display:none}
+@media (max-height:640px){.ow-tiles-mini{display:none}}
 
 </style></head><body>
 <nav aria-label="Skip link"><a class="skip" href="#ow-skip">Skip to the question box</a></nav>
@@ -1539,17 +1543,18 @@ main{height:100%}
     root.classList.add('ow', mode === 'panel' ? 'ow-panel' : 'ow-page');
     root.textContent = '';
     if (mode === 'panel') { root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'false'); root.setAttribute('aria-labelledby', id('title')); }
-    const applySize = () => root.style.setProperty('--ow-scale', S.prefs.size);
+    const applySize = () => { root.style.setProperty('--ow-scale', S.prefs.size); root.toggleAttribute('data-big', parseFloat(S.prefs.size) >= 1.25); };
     applySize();
     const savePrefs = () => store.set('openway.prefs', JSON.stringify(S.prefs));
 
     // ---- skeleton ----
-    const modeLabel = h('span', { class: 'ow-mode', id: id('mode') });
+    const modeLabel = h('span', { id: id('mode') });
     const settingsBtn = h('button', { type: 'button', 'aria-expanded': 'false', 'aria-controls': id('settings'), onclick: () => toggleSettings() }, icon(ICONS.gear), 'Settings');
     const closeBtn = mode === 'panel' ? h('button', { type: 'button', class: 'ow-ghost', 'aria-label': 'Close the assistant', onclick: () => api.close() }, icon(ICONS.x), 'Close') : null;
-    const head = h('header', { class: 'ow-head' },
-      h(mode === 'page' ? 'h1' : 'h2', { id: id('title') }, 'Openway Assistant', h('span', { class: 'ow-sub', text: 'Questions about accessible places in Cincinnati and Oxford' })),
-      modeLabel, settingsBtn, closeBtn);
+    const head = h('div', { class: 'ow-head' },
+      h('div', { class: 'ow-titles' }, h(mode === 'page' ? 'h1' : 'h2', { id: id('title'), text: 'Openway Assistant' }),
+        h('p', { class: 'ow-sub' }, modeLabel, ' \u00b7 Cincinnati and Oxford')),
+      settingsBtn, closeBtn);
     const settings = h('section', { class: 'ow-settings', id: id('settings'), hidden: true, 'aria-label': 'Settings' });
     const log = h('div', { class: 'ow-log', id: id('log'), role: 'log', 'aria-live': 'off', 'aria-label': 'Conversation', tabindex: '0' });
     const announcer = h('div', { class: 'ow-vh', role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true', id: id('announce') });
@@ -1632,7 +1637,7 @@ main{height:100%}
     }
     function refreshMode() {
       const local = S.prefs.engine === 'local' && S.health && S.health.model;
-      modeLabel.textContent = local ? 'Local model' : 'Guided mode';
+      modeLabel.textContent = local ? 'Local model' : 'Guided mode (no model)';
       photoHint();
     }
     async function checkHealth() {

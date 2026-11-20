@@ -1,0 +1,75 @@
+# Extra questions for the assistant evaluation (scripts/eval_agent.py). Written after the first tools-only baseline, so
+# the same caveat applies: the expectations were written by someone who had seen the data's shape; they check behaviour
+# (right kind of answer, honest "unknown", dates, no past events), not independent correctness of the places.
+#
+# expect.intent    plan intents that count as understanding the question (any of)
+# expect.kind      answer kinds that count (any of): answer | unknown | no_data | out_of_area | emergency | help | clarify
+# expect.names     at least one of these names must be among the top 5 results (retrieval)
+# expect.include   substrings (case-insensitive) every answer must contain
+# expect.exclude   substrings no answer may contain
+# today            fixed "today" for dates in words (default 2026-11-20)
+
+# ---- events with a fixed today, relative dates, empty results, past events
+- {id: ev-tonight, category: events, question: "What's on tonight in Oxford?", today: "2026-11-21", expect: {intent: [events], kind: [answer, unknown], include: ["snapshot", "13 November 2026"]}}
+- {id: ev-weekend-cinc, category: events, question: "Anything happening this weekend in Cincinnati?", today: "2026-11-20", expect: {intent: [events], include: ["snapshot"]}}
+- {id: ev-next-sat, category: events, question: "Any audio described performances next Saturday?", today: "2026-11-20", expect: {intent: [events], include: ["Saturday 28 November"]}}
+- {id: ev-asl-dec, category: events, question: "ASL interpreted shows in December", today: "2026-11-20", expect: {intent: [events], names: ["Cincinnati Playhouse in the Park", "Cincinnati Shakespeare Company"], include: ["ASL"]}}
+- {id: ev-sensory-month, category: events, question: "Sensory-friendly performances this month", today: "2026-11-20", expect: {intent: [events], include: ["sensory-friendly"]}}
+- {id: ev-this-month-oxford, category: events, question: "What events are happening in Oxford this month?", today: "2026-11-20", expect: {intent: [events], kind: [answer]}}
+- {id: ev-empty-week, category: events, question: "Any events this week?", today: "2027-07-02", expect: {intent: [events], kind: [unknown], include: ["I found no events"], exclude: ["Christmas Carol"]}}
+- {id: ev-past-hidden, category: events, question: "Events on Friday in Oxford", today: "2026-11-27", expect: {intent: [events], exclude: ["Friday Public Skate, Saturday 21 November", "Story Hour"]}}
+- {id: ev-end-of-data, category: events, question: "Anything on this week?", today: "2027-06-20", expect: {intent: [events]}}
+- {id: ev-tomorrow, category: events, question: "Any events tomorrow?", today: "2026-11-20", expect: {intent: [events], include: ["snapshot"]}}
+- {id: ev-next-weekend, category: events, question: "What is on next weekend?", today: "2026-11-20", expect: {intent: [events], include: ["Saturday 28 November"]}}
+- {id: ev-next-month, category: events, question: "Events next month", today: "2026-11-20", expect: {intent: [events], kind: [answer]}}
+- {id: ev-venue, category: events, question: "What events are at the Taft Theatre?", today: "2026-11-20", expect: {intent: [events], names: ["Taft Theatre"]}}
+- {id: ev-disability, category: events, question: "Any disability events in Cincinnati this month?", today: "2026-11-20", expect: {intent: [events]}}
+- {id: ev-adaptive-december, category: events, question: "Adaptive sports in December", today: "2026-11-20", expect: {intent: [events], names: ["Manuel D. & Rhoda Mayerson JCC"]}}
+- {id: ev-on-friday, category: events, question: "Is anything on on Friday?", today: "2026-11-20", expect: {intent: [events]}}
+- {id: ev-plain, category: events, question: "Any events this weekend?", today: "2026-11-20", context: {plain: true, region: oxford}, expect: {intent: [events], include: ["snapshot"]}}
+
+# ---- places and needs (behaviour checks)
+- {id: pl-elevator, category: places, question: "Does the Taft Theatre have an elevator?", expect: {intent: [place], names: ["Taft Theatre"]}}
+- {id: pl-braille, category: places, question: "Which museums have braille?", expect: {intent: [search, nearest]}}
+- {id: pl-large-print, category: places, question: "Which places have large print guides?", expect: {intent: [search, nearest]}}
+- {id: pl-service-animals, category: places, question: "Are service animals allowed at the Cincinnati Art Museum?", expect: {intent: [place], names: ["Cincinnati Art Museum"]}}
+- {id: pl-ramp-aronoff, category: places, question: "Is there a ramp at the Aronoff Center?", expect: {intent: [place], names: ["Aronoff Center for the Arts"]}}
+- {id: pl-parking-aronoff, category: places, question: "Where is accessible parking near the Aronoff?", context: {location: [39.1085, -84.5125]}, expect: {intent: [nearest, place], names: ["Aronoff Center for the Arts"]}}
+- {id: pl-hours-art, category: places, question: "What are the hours at the Cincinnati Art Museum?", expect: {intent: [place, live_info], names: ["Cincinnati Art Museum"]}}
+- {id: pl-park-restroom, category: places, question: "Is there an accessible restroom at Smale Riverfront Park?", expect: {intent: [place]}}
+- {id: pl-oxford-library, category: places, question: "Is the King Library at Miami University step-free?", expect: {intent: [place], names: ["King Library"]}}
+- {id: pl-near-me, category: places, question: "Closest accessible restroom", context: {location: [39.5103, -84.7425]}, expect: {intent: [nearest], kind: [answer], include: ["closest place I found"]}}
+- {id: pl-near-me-no-loc, category: places, question: "Where is the nearest accessible restroom?", expect: {intent: [clarify], kind: [clarify]}}
+- {id: pl-steps-need, category: places, question: "Find food near downtown", context: {needs: {steps: cannot}}, expect: {intent: [nearest], kind: [answer]}}
+- {id: pl-lodging, category: places, question: "Accessible hotel rooms in Cincinnati", expect: {intent: [search]}}
+- {id: pl-trail-oxford, category: places, question: "Paved trails in Oxford", expect: {intent: [search], names: ["Oxford Area Trails (OATS), Miami University portion"]}}
+- {id: pl-route-art, category: routes, question: "How do I get to the Cincinnati Art Museum without steps?", expect: {intent: [route], kind: [answer], include: ["step-free route", "not checked on site"]}}
+- {id: pl-route-blind, category: routes, question: "Directions to the Cincinnati Museum Center", context: {needs: {mobility: cane}}, expect: {intent: [route], kind: [answer]}}
+- {id: pl-steep-otr, category: routes, question: "Is Over-the-Rhine hilly?", expect: {intent: [area], include: ["not checked on site"]}}
+- {id: pl-closures, category: routes, question: "Any sidewalk closures near Fountain Square?", expect: {intent: [area], include: ["311"]}}
+
+# ---- categories without data and the honest answer
+- {id: nd-housing, category: housing, question: "Where can I find accessible apartments to rent in Cincinnati?", expect: {intent: [no_data], kind: [no_data], include: ["I don't have information"]}}
+- {id: nd-vote, category: civic, question: "Is my polling place accessible?", expect: {intent: [no_data], kind: [no_data]}}
+- {id: nd-shelter, category: emergencies, question: "Where is the nearest warming center?", expect: {intent: [no_data], kind: [no_data]}}
+- {id: nd-worship, category: worship, question: "Which churches in Oxford are wheelchair accessible?", expect: {intent: [no_data], kind: [no_data]}}
+- {id: nd-shade, category: comfort, question: "Is there shade on the trail?", expect: {intent: [no_data], kind: [no_data]}}
+- {id: nd-weather, category: temporary, question: "Will it snow this weekend?", expect: {intent: [live_info], kind: [unknown], include: ["snapshot"]}}
+- {id: nd-bus, category: transit, question: "When is the next bus to the zoo?", expect: {intent: [live_info], kind: [unknown]}}
+- {id: nd-open-now, category: hours, question: "Is the Art Museum open right now?", expect: {intent: [live_info], kind: [unknown], include: ["not live"]}}
+
+# ---- out of area, safety, help
+- {id: oa-columbus, category: area, question: "Where is an accessible restroom in Columbus?", expect: {intent: [out_of_area], kind: [out_of_area], include: ["I only cover Cincinnati and Oxford for now"]}}
+- {id: oa-dayton, category: area, question: "Accessible trails in Dayton", expect: {intent: [out_of_area], kind: [out_of_area]}}
+- {id: sf-ambulance, category: safety, question: "I need an ambulance, I fell out of my chair", expect: {intent: [emergency], kind: [emergency], include: ["911"]}}
+- {id: sf-bleeding, category: safety, question: "My friend is bleeding, what do I do", expect: {intent: [emergency], kind: [emergency]}}
+- {id: hp-help, category: help, question: "What can you do?", expect: {intent: [help], kind: [help]}}
+- {id: hp-hello, category: help, question: "Hello", expect: {intent: [help], kind: [help]}}
+- {id: hp-gibberish, category: help, question: "qwerty asdfgh zxcvb", expect: {kind: [unknown]}}
+
+# ---- misspellings, plain words, other phrasing
+- {id: ph-typo, category: phrasing, question: "does the cincinati art musuem lend wheelchars", expect: {intent: [place, search], names: ["Cincinnati Art Museum"]}}
+- {id: ph-short, category: phrasing, question: "bathroom downtown", expect: {intent: [nearest]}}
+- {id: ph-slang, category: phrasing, question: "where can i pee near fountain square", expect: {kind: [answer, unknown, clarify]}}
+- {id: ph-caps, category: phrasing, question: "IS MUSIC HALL ACCESSIBLE", expect: {intent: [place], names: ["Music Hall"]}}
+- {id: ph-long, category: phrasing, question: "I use a power chair and my friend is blind and we want to go somewhere nice for lunch near Over-the-Rhine on Saturday, any ideas where we can both get in easily", expect: {kind: [answer, unknown, clarify]}}
