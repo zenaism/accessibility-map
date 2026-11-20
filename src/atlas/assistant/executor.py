@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Runs the tool call a Plan asks for (plus the small follow-ups every answer needs) and returns the
 records. No model is involved. Results carry their evidence (facts with source, date and quote).
 
@@ -30,7 +31,9 @@ class KBBackend:
     def places(self) -> list[dict]:
         if self._places is None:
             con = T._con()
-            cur = con.execute("SELECT link_id AS id, name, layer, region, rating, lat, lon FROM places ORDER BY link_id")
+            cur = con.execute(
+                "SELECT link_id AS id, name, layer, region, rating, lat, lon FROM places ORDER BY link_id"
+            )
             cols = [d[0] for d in cur.description]
             self._places = [dict(zip(cols, r, strict=True)) for r in cur.fetchall()]
         return self._places
@@ -41,7 +44,8 @@ class KBBackend:
 
     def facts(self, link_id: str) -> list[dict]:
         cur = T._con().execute(
-            "SELECT attribute, value, detail, quote, source, date FROM facts WHERE link_id = ? ORDER BY rowid", [link_id]
+            "SELECT attribute, value, detail, quote, source, date FROM facts WHERE link_id = ? ORDER BY rowid",
+            [link_id],
         )
         cols = [d[0] for d in cur.description]
         return [dict(zip(cols, r, strict=True)) for r in cur.fetchall()]
@@ -97,7 +101,11 @@ def execute(pl: Plan, ctx: Context, be) -> list[ToolResult]:
     elif pl.tool == "get_place":
         p = be.get_place(a["name_or_id"])
         if p is not None:
-            p["events"] = _events(be, {"link_id": p["link_id"], "start": ctx.today, "end": _plus_days(ctx.today, 365)}, ctx.today)
+            p["events"] = _events(
+                be,
+                {"link_id": p["link_id"], "start": ctx.today, "end": _plus_days(ctx.today, 365)},
+                ctx.today,
+            )
         if p is not None:
             p["lat"], p["lon"] = be.coords(p["link_id"])
         out.append(ToolResult("get_place", a, p))
@@ -113,7 +121,9 @@ def execute(pl: Plan, ctx: Context, be) -> list[ToolResult]:
     elif pl.tool == "area_conditions":
         out.append(ToolResult("area_conditions", a, be.area_conditions(a["lat"], a["lon"], a.get("region"))))
         if pl.anchor and pl.anchor.get("id"):
-            out.append(ToolResult("get_place", {"name_or_id": pl.anchor["id"]}, be.get_place(pl.anchor["id"])))
+            out.append(
+                ToolResult("get_place", {"name_or_id": pl.anchor["id"]}, be.get_place(pl.anchor["id"]))
+            )
     elif pl.tool == "accessible_route":
         route = be.accessible_route(**a)
         if route:

@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Rules planner: question + context -> Plan. No model, no network, deterministic.
 
 The JavaScript port (src/atlas/web/assistant/planner.js) follows the same steps in the same order and
@@ -274,8 +275,14 @@ def _plan(text: str, ctx: Context, index: Index) -> Plan:
     # 6 live information
     if has_any(t, R.LIVE_INFO):
         topic = next((lab for lab, ph in R.LIVE_TOPICS if has_any(t, ph)), "that")
-        return Plan("live_info", region=region, topic=topic, place=place_ref,
-                    tool="get_place" if named else None, args={"name_or_id": named["id"]} if named else {})
+        return Plan(
+            "live_info",
+            region=region,
+            topic=topic,
+            place=place_ref,
+            tool="get_place" if named else None,
+            args={"name_or_id": named["id"]} if named else {},
+        )
 
     when = parse_when(text, ctx.today)
     area = detect_area(t)
@@ -287,7 +294,12 @@ def _plan(text: str, ctx: Context, index: Index) -> Plan:
         access = ["audio_description", "asl", "sensory_friendly"]
     qfirst = next((q for phrases, q in R.QUERY_MAP[: R.QUERY_FIRST] if has_any(t, phrases)), None)
     if qfirst and not named:
-        return Plan("search", tool="search_places", args={"query": qfirst, **({"region": region} if region else {}), "limit": 5}, region=region)
+        return Plan(
+            "search",
+            tool="search_places",
+            args={"query": qfirst, **({"region": region} if region else {}), "limit": 5},
+            region=region,
+        )
 
     # 7a events
     strong = has_any(t, R.EVENT_STRONG)
@@ -311,37 +323,81 @@ def _plan(text: str, ctx: Context, index: Index) -> Plan:
             args["link_id"] = ev_named["id"]
         elif words and not access:
             args["query"] = " ".join(words[:3])
-        return Plan("events", tool="find_events", args=args, region=region, when=when, access=access,
-                    place=place_ref if ev_named else None)
+        return Plan(
+            "events",
+            tool="find_events",
+            args=args,
+            region=region,
+            when=when,
+            access=access,
+            place=place_ref if ev_named else None,
+        )
 
     # 7b route
     if has_any(t, R.ROUTE_WORDS):
         if not named:
-            return Plan("clarify", region=region, clarify={"question": "Which place do you want to go to?", "options": []})
-        blind = ctx.needs.get("mobility") in ("cane", "guide") or "screen_reader" in (ctx.needs.get("rely") or [])
+            return Plan(
+                "clarify",
+                region=region,
+                clarify={"question": "Which place do you want to go to?", "options": []},
+            )
+        blind = ctx.needs.get("mobility") in ("cane", "guide") or "screen_reader" in (
+            ctx.needs.get("rely") or []
+        )
         args = {"to": named["id"], "profile": "blind" if blind else "wheelchair"}
         if ctx.location:
             args["from_lat"], args["from_lon"] = ctx.location[0], ctx.location[1]
-        return Plan("route", tool="accessible_route", args=args, region=region or named["region"], place=place_ref)
+        return Plan(
+            "route", tool="accessible_route", args=args, region=region or named["region"], place=place_ref
+        )
 
     # 7c conditions around a point: slopes, stairs, curb ramps, open 311 reports
     if has_any(t, R.AREA_WORDS) and not (need and need not in ("step_free_entrance",)):
-        topic = "reports" if has_any(t, ["closure", "closures", "construction", "311", "road work", "sidewalk problems", "sidewalk closures"]) else "slope"
+        topic = (
+            "reports"
+            if has_any(
+                t,
+                [
+                    "closure",
+                    "closures",
+                    "construction",
+                    "311",
+                    "road work",
+                    "sidewalk problems",
+                    "sidewalk closures",
+                ],
+            )
+            else "slope"
+        )
         if named and named.get("lat") is not None:
-            return Plan("area", tool="area_conditions", topic=topic,
-                        args={"lat": named["lat"], "lon": named["lon"], "region": named["region"]},
-                        anchor={"name": named["name"], "lat": named["lat"], "lon": named["lon"], "id": named["id"]},
-                        place=place_ref, region=named["region"])
+            return Plan(
+                "area",
+                tool="area_conditions",
+                topic=topic,
+                args={"lat": named["lat"], "lon": named["lon"], "region": named["region"]},
+                anchor={"name": named["name"], "lat": named["lat"], "lon": named["lon"], "id": named["id"]},
+                place=place_ref,
+                region=named["region"],
+            )
         a = area
         if a is None and ctx.location:
             a = {"name": "your location", "lat": ctx.location[0], "lon": ctx.location[1], "region": region}
         if a is None and region:
             a = R.AREAS["uptown oxford" if region == "oxford" else "downtown"]
         if a is None:
-            return Plan("clarify", region=region, clarify={"question": "Which area do you mean?", "options": _options_where(text)})
-        return Plan("area", tool="area_conditions", topic=topic,
-                    args={"lat": a["lat"], "lon": a["lon"], "region": a.get("region") or region},
-                    anchor={"name": a["name"], "lat": a["lat"], "lon": a["lon"]}, region=a.get("region") or region)
+            return Plan(
+                "clarify",
+                region=region,
+                clarify={"question": "Which area do you mean?", "options": _options_where(text)},
+            )
+        return Plan(
+            "area",
+            tool="area_conditions",
+            topic=topic,
+            args={"lat": a["lat"], "lon": a["lon"], "region": a.get("region") or region},
+            anchor={"name": a["name"], "lat": a["lat"], "lon": a["lon"]},
+            region=a.get("region") or region,
+        )
 
     # 8 needs and types
     near_phrase = has_any(t, R.NEAR_WORDS) or has_any(t, R.NEAR_ME)
@@ -365,15 +421,39 @@ def _plan(text: str, ctx: Context, index: Index) -> Plan:
         wants_near = bool(has_any(t, R.NEAR_ME))
         if anchor is None and ctx.location and (wants_near or region is None):
             anchor = {"name": "your location", "lat": ctx.location[0], "lon": ctx.location[1]}
-        nearish = eff in ("accessible_restroom", "adult_changing_table", "accessible_parking") or use_type == "food_drink"
+        nearish = (
+            eff in ("accessible_restroom", "adult_changing_table", "accessible_parking")
+            or use_type == "food_drink"
+        )
         if anchor is None and wants_near and region is None and nearish:
-            return Plan("clarify", need=eff, place_type=use_type, region=region,
-                        clarify={"question": "Where are you? I use your location only to sort places by distance.",
-                                 "options": _options_where(text)})
+            return Plan(
+                "clarify",
+                need=eff,
+                place_type=use_type,
+                region=region,
+                clarify={
+                    "question": "Where are you? I use your location only to sort places by distance.",
+                    "options": _options_where(text),
+                },
+            )
         if anchor is not None and (eff or use_type) and not qfirst:
-            return Plan("nearest", tool="nearest",
-                        args={"lat": anchor["lat"], "lon": anchor["lon"], "need": eff, "place_type": use_type, "max_miles": 5.0, "limit": 5},
-                        need=eff, place_type=use_type, anchor=anchor, region=region, place=place_ref)
+            return Plan(
+                "nearest",
+                tool="nearest",
+                args={
+                    "lat": anchor["lat"],
+                    "lon": anchor["lon"],
+                    "need": eff,
+                    "place_type": use_type,
+                    "max_miles": 5.0,
+                    "limit": 5,
+                },
+                need=eff,
+                place_type=use_type,
+                anchor=anchor,
+                region=region,
+                place=place_ref,
+            )
         args = {"region": region, "place_type": use_type, "need": eff, "limit": 5}
         q = _query_map(t)
         if not q and not named:
@@ -381,24 +461,46 @@ def _plan(text: str, ctx: Context, index: Index) -> Plan:
             q = " ".join(miss) if miss else None
         if q:
             args["query"] = q
-        return Plan("search", tool="search_places", args={k: v for k, v in args.items() if v is not None},
-                    need=eff, place_type=use_type, region=region)
+        return Plan(
+            "search",
+            tool="search_places",
+            args={k: v for k, v in args.items() if v is not None},
+            need=eff,
+            place_type=use_type,
+            region=region,
+        )
 
     # 9 a named place
     if named:
-        return Plan("place", tool="get_place", args={"name_or_id": named["id"]}, need=need, place=place_ref,
-                    region=region or named["region"], unmatched=unmatched)
+        return Plan(
+            "place",
+            tool="get_place",
+            args={"name_or_id": named["id"]},
+            need=need,
+            place=place_ref,
+            region=region or named["region"],
+            unmatched=unmatched,
+        )
 
     # 10 phrases that map to a fixed lookup, then names and content words
     q = _query_map(t)
     if q:
-        return Plan("search", tool="search_places", args={"query": q, **({"region": region} if region else {}), "limit": 5}, region=region)
+        return Plan(
+            "search",
+            tool="search_places",
+            args={"query": q, **({"region": region} if region else {}), "limit": 5},
+            region=region,
+        )
     miss = unmatched_names(text, index, area_words, None)
     words = miss or content_words(t)
     if words:
-        return Plan("search", tool="search_places",
-                    args={"query": " ".join(words[:4]), **({"region": region} if region else {}), "limit": 5},
-                    region=region, topic="words")
+        return Plan(
+            "search",
+            tool="search_places",
+            args={"query": " ".join(words[:4]), **({"region": region} if region else {}), "limit": 5},
+            region=region,
+            topic="words",
+        )
     return Plan("unknown", region=region)
 
 

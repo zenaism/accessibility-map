@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Builds data/map/ask.html: the Openway Assistant as its own page (one self-contained file: the page, the
 styles and the JavaScript; the data files are loaded from assistant/ next to it).
 

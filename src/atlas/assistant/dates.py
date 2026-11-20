@@ -16,7 +16,20 @@ import re
 from datetime import date, timedelta
 
 WEEKDAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"]
+MONTHS = [
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
+]
 DEFAULT_DAYS = 30
 
 
@@ -80,7 +93,11 @@ def parse_when(text: str, today: str) -> dict | None:
         if has(name) or (name != "may" and has(name[:3])) or (name == "may" and has("in may")):
             y = d0.year + (i + 1 < d0.month)
             first = date(y, i + 1, 1)
-            return _span(name.title(), max(first, d0) if y == d0.year and i + 1 == d0.month else first, _last_of_month(y, i + 1))
+            return _span(
+                name.title(),
+                max(first, d0) if y == d0.year and i + 1 == d0.month else first,
+                _last_of_month(y, i + 1),
+            )
     return None
 
 

@@ -67,7 +67,12 @@ def _blob(results: list[ToolResult]) -> str:
 
 
 def _quotes(results: list[ToolResult]) -> str:
-    return " ".join(norm(x) for x in re.findall(r'"((?:quote|detail|summary|notice|title|arrival|text)": "(?:[^"\\]|\\.)*")', _blob(results)))
+    return " ".join(
+        norm(x)
+        for x in re.findall(
+            r'"((?:quote|detail|summary|notice|title|arrival|text)": "(?:[^"\\]|\\.)*")', _blob(results)
+        )
+    )
 
 
 def _derived_from_results(results) -> set[str]:
@@ -94,7 +99,9 @@ def _derived_from_results(results) -> set[str]:
     return out
 
 
-def allowed_numbers(results, plan: Plan | None, question: str, derived: list[str], as_of: str | None) -> set[str]:
+def allowed_numbers(
+    results, plan: Plan | None, question: str, derived: list[str], as_of: str | None
+) -> set[str]:
     base = numbers(_blob(results)) | numbers(question) | set(CONSTANT_NUMBERS) | {_n(d) for d in derived}
     base |= {_n(d) for d in _derived_from_results(results)}
     if plan and plan.when:
@@ -119,11 +126,15 @@ def known_name_tokens(results, question: str, plan_text: str = "") -> set[str]:
     out = _subtokens(_blob(results)) | _subtokens(question) | _subtokens(plan_text)
     out |= {stem(w) for w in tokens(" ".join(R.MONTHS_DAYS + R.KNOWN_CAPS + list(R.REGION_KEYS)))}
     out |= {stem(w) for _, label in R.SOURCE_KINDS for w in tokens(label)}
-    out |= {stem(w) for w in tokens(" ".join(R.NEED_LABELS.values()) + " " + " ".join(R.TYPE_LABELS.values()))}
+    out |= {
+        stem(w) for w in tokens(" ".join(R.NEED_LABELS.values()) + " " + " ".join(R.TYPE_LABELS.values()))
+    }
     return out
 
 
-def check_sentence(s: Sentence, results, ids: set[str], nums: set[str], names: set[str], quotes: str) -> str | None:
+def check_sentence(
+    s: Sentence, results, ids: set[str], nums: set[str], names: set[str], quotes: str
+) -> str | None:
     """The first rule the sentence breaks, or None."""
     for r in s.refs:
         if r not in ids:
@@ -153,11 +164,15 @@ def check_sentence(s: Sentence, results, ids: set[str], nums: set[str], names: s
     return None
 
 
-def verify(a: Answer, results: list[ToolResult], plan: Plan | None, ctx: Context, question: str = "") -> tuple[Answer, list[Issue]]:
+def verify(
+    a: Answer, results: list[ToolResult], plan: Plan | None, ctx: Context, question: str = ""
+) -> tuple[Answer, list[Issue]]:
     ids = _record_ids(results)
     derived = [d for s in [*a.headline, *a.details] for d in s.derived]
     nums = allowed_numbers(results, plan, question, derived, a.as_of)
-    names = known_name_tokens(results, question, json.dumps(plan.to_dict(), ensure_ascii=False) if plan else "")
+    names = known_name_tokens(
+        results, question, json.dumps(plan.to_dict(), ensure_ascii=False) if plan else ""
+    )
     quotes = _quotes(results)
     issues: list[Issue] = []
     for section in ("headline", "details"):
@@ -176,8 +191,10 @@ def verify(a: Answer, results: list[ToolResult], plan: Plan | None, ctx: Context
     a.removed = len(issues)
     if not a.headline and a.kind not in ("emergency",):
         a.kind = "unknown"
-        a.headline = [Sentence("I'm not sure I can answer that reliably, so I'd rather say I don't know.", [], "meta"),
-                      Sentence("Please call the place or check its own website.", [], "meta")]
+        a.headline = [
+            Sentence("I'm not sure I can answer that reliably, so I'd rather say I don't know.", [], "meta"),
+            Sentence("Please call the place or check its own website.", [], "meta"),
+        ]
         a.cards, a.details = [], []
     a.verified = not issues
     return a, issues
