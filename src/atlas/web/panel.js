@@ -209,7 +209,7 @@ function initRoutingPanel(ctx) {
     return { kind: 'place', it, pt: it.pts[0], door: false, noDoorKnown: !!(r && noDoor) };
   }
   const nameOf = (sel) =>
-    !sel ? '' : sel.kind === 'place' ? sel.it.p.name : sel.kind === 'here' ? 'My location' : 'The point you picked on the map';
+    !sel ? '' : sel.kind === 'place' ? sel.it.p.name : sel.kind === 'here' ? 'My location' : 'Point on the map';
   const routable = (it) => enabledRegions.has(it.p.region) && it.p.layer !== 'event';
   const searchable = ITEMS.filter(routable);
   const searchNames = searchable.map((it) => it.p.name);
