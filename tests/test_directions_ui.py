@@ -683,3 +683,28 @@ def test_axe_on_phone_sheet(phone, view):
 def test_axe_on_a_card_with_route_here(page):
     page.locator("#list [data-a=det]").first.click()
     axe_check(page, "#list")
+
+
+# ------------------------------------------------------------------------------------------ loading and popups
+def test_graph_is_not_downloaded_until_the_panel_is_used(browser, cdn, site):
+    p = _new_page(browser, cdn, viewport={"width": 1280, "height": 800})
+    graph_requests = []
+    p.on("request", lambda r: graph_requests.append(r.url) if r.url.endswith(".graph.json") else None)
+    p.goto(f"{site}/oxford.html")
+    p.wait_for_selector("#list .card", state="attached")
+    assert graph_requests == []  # nothing yet
+    p.hover("#dir-open")  # hovering the button starts the download (prefetch)
+    p.wait_for_function("AtlasRouting.isReady()")
+    assert len(graph_requests) == 1
+    p.click("#dir-open")  # opening the panel does not download it again
+    assert len(graph_requests) == 1
+    p.context.close()
+
+
+def test_route_here_in_the_map_popup(page):
+    page.locator("#list [data-a=map]").first.click()
+    page.wait_for_selector(".leaflet-popup .dp-route-btn")
+    name = page.inner_text(".leaflet-popup h3")
+    page.click(".leaflet-popup .dp-route-btn")
+    wait_state(page, "locate-ask")
+    assert page.input_value("#dp-to") == name
