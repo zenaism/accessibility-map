@@ -19,7 +19,8 @@ import json
 from pathlib import Path
 
 WEB = Path(__file__).with_name("web")
-ROUTING_REGIONS = ["oxford"]  # Cincinnati stays on the per-place routes until measured (see docs/routing_usage.md)
+# Cincinnati stays on the per-place routes until measured (see docs/routing_usage.md)
+ROUTING_REGIONS = ["oxford"]
 GRAPH_BASE = "routing/"
 
 
