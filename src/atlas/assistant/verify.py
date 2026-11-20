@@ -146,11 +146,14 @@ def check_sentence(
         for b in R.BANNED:
             if f" {norm(b)} " in f" {t} ":
                 return "banned_phrase"
-    for b in R.BANNED_WORDS:
-        if f" {b} " in f" {t} ":
-            return "banned_phrase"
+    if s.kind != "disclaimer":
+        for b in R.BANNED_WORDS:
+            if f" {b} " in f" {t} ":
+                return "banned_phrase"
     if s.kind == "meta" or s.kind == "disclaimer":
         return None
+    if re.search(r"[a-z]+_[a-z]+", s.text):
+        return "internal_identifier"
     for x in numbers(s.text):
         if x not in nums:
             return "number_not_in_results"

@@ -79,8 +79,9 @@
     if (s.kind === 'claim' && !s.refs.length) return 'no_citation';
     const t = norm(s.text);
     if (s.kind !== 'disclaimer') for (const b of r.BANNED) if ((' ' + t + ' ').includes(' ' + norm(b) + ' ')) return 'banned_phrase';
-    for (const b of r.BANNED_WORDS) if ((' ' + t + ' ').includes(' ' + b + ' ')) return 'banned_phrase';
+    if (s.kind !== 'disclaimer') for (const b of r.BANNED_WORDS) if ((' ' + t + ' ').includes(' ' + b + ' ')) return 'banned_phrase';
     if (s.kind === 'meta' || s.kind === 'disclaimer') return null;
+    if (/[a-z]+_[a-z]+/.test(s.text)) return 'internal_identifier';
     for (const x of numbers(s.text)) if (!nums.has(x)) return 'number_not_in_results';
     const qre = /["“]([^"”]{3,})["”]/g;
     let m;

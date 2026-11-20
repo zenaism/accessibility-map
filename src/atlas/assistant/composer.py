@@ -351,7 +351,11 @@ def _trust(pl, res, ctx, as_of):
     det = []
     if pl.intent == "ada_trust":
         head = [
-            S("I can't say whether a place is ADA compliant. That takes a formal survey.", [], "disclaimer"),
+            S(
+                "I can't say whether a place is ADA compliant or safe. That takes a formal survey.",
+                [],
+                "disclaimer",
+            ),
             S(
                 f"Here is what public sources say about {name}."
                 if name

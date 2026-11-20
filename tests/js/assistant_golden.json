@@ -4426,7 +4426,7 @@
 "Map rating for Music Hall: listed as accessible, from the facts on the card."
 ],
 "headline": [
-"I can't say whether a place is ADA compliant. That takes a formal survey.",
+"I can't say whether a place is ADA compliant or safe. That takes a formal survey.",
 "Here is what public sources say about Music Hall."
 ],
 "kind": "answer",
@@ -5868,7 +5868,7 @@
 "Map rating for Aronoff Center for the Arts: listed as accessible, from the facts on the card."
 ],
 "headline": [
-"I can't say whether a place is ADA compliant. That takes a formal survey.",
+"I can't say whether a place is ADA compliant or safe. That takes a formal survey.",
 "Here is what public sources say about Aronoff Center for the Arts."
 ],
 "kind": "answer",
@@ -5910,10 +5910,8 @@
 "expected": {
 "actions": [
 {
-"ids": [
-"cincinnati-art-museum-f8e14"
-],
-"type": "show_on_map"
+"text": "Problem with information about Cincinnati Art Museum: ",
+"type": "report"
 }
 ],
 "as_of": "2026-11-13",
@@ -5970,14 +5968,11 @@
 }
 ],
 "details": [
-"About: Accessible restroom (First Floor, northwest corner of Great Hall; Ground Floor has the most); adult changing table (adjustable universal changing station, Ground Floor (adult size implied, not stated)); elevator / lift (Elevators A-D; A links floors G-2 near Cincinnati Wing); wheelchair loan (free…",
-"Hours listed: Tu-We,Fr-Su 11:00-17:00; Th 11:00-20:00.",
-"Address: 953 Eden Park Drive, Cincinnati.",
-"Getting there: From the Art Museum Dr & Mt Adams Dr bus stop, the place is about 450 feet to the north, in a straight line. A step-free route from that stop is about 830 feet (directions in Details). Computed from map data, not checked on site."
+"Map rating for Cincinnati Art Museum: partly accessible, from the facts on the card."
 ],
 "headline": [
-"Cincinnati Art Museum: Partly accessible on the map. Newest source: Nov 2026.",
-"Accessible restroom: yes (First Floor, northwest corner of Great Hall; Ground Floor has the most). Source: the website cincinnatiartmuseum.org, 11 Nov 2026."
+"I can't say whether a place is ADA compliant or safe. That takes a formal survey.",
+"Here is what public sources say about Cincinnati Art Museum."
 ],
 "kind": "answer",
 "plan": {
@@ -5987,14 +5982,14 @@
 "name_or_id": "cincinnati-art-museum-f8e14"
 },
 "clarify": null,
-"intent": "place",
+"intent": "ada_trust",
 "need": null,
 "place": {
 "id": "cincinnati-art-museum-f8e14",
 "name": "Cincinnati Art Museum"
 },
 "place_type": null,
-"region": "cincinnati",
+"region": null,
 "source": "rules",
 "tool": "get_place",
 "topic": null,
@@ -6228,7 +6223,7 @@
 "Map rating for Music Hall: listed as accessible, from the facts on the card."
 ],
 "headline": [
-"I can't say whether a place is ADA compliant. That takes a formal survey.",
+"I can't say whether a place is ADA compliant or safe. That takes a formal survey.",
 "Here is what public sources say about Music Hall."
 ],
 "kind": "answer",

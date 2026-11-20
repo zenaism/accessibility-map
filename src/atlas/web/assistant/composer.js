@@ -154,7 +154,7 @@
     const refs = row ? [row.link_id] : [];
     const det = []; let head;
     if (pl.intent === 'ada_trust') {
-      head = [S("I can't say whether a place is ADA compliant. That takes a formal survey.", [], 'disclaimer'),
+      head = [S("I can't say whether a place is ADA compliant or safe. That takes a formal survey.", [], 'disclaimer'),
         S(name ? 'Here is what public sources say about ' + name + '.' : 'I only collect what public sources say, with dates.', refs, 'meta')];
       if (row) det.push(S('Map rating for ' + name + ': ' + R().RATING_TEXT[row.rating].toLowerCase() + ', from the facts on the card.', refs));
     } else if (pl.intent === 'conflict_trust') {
