@@ -482,6 +482,22 @@
 }
 @media (max-width:480px){.ow-tiles{grid-template-columns:1fr 1fr}.ow-tiles button{padding:.5em .6em;font-size:.9em}.ow-tiles .ow-tile-i{width:1.8em;height:1.8em}}
 
+/* ---- more colour (integration pass): answers read at a glance, rating colours as on the map ---- */
+.ow-me{background:linear-gradient(135deg,#0b5cad,#0f766e);box-shadow:0 1px 3px rgba(11,92,173,.3)}
+.ow-a .ow-ah{display:inline-block;padding:.15em .7em;border-radius:999px;background:#e0f2ef;color:#0b4f49;letter-spacing:.06em}
+.ow-card:has(.r-accessible){background:#eef5fd}
+.ow-card:has(.r-partial){background:#fff6e8;border-color:#f0d2a4}
+.ow-card:has(.r-not_accessible){background:#fff0e8;border-color:#f0b999}
+.ow-card:has(.r-unknown){background:#f3f4f6}
+.ow-rate.r-unknown i{background:#4b5563}
+.ow-rate.r-partial{color:#7a4000}.ow-rate.r-not_accessible{color:#8f3400}
+.ow-card .ow-row>:first-child{background:var(--ow-brand);border-color:var(--ow-brand);color:#fff}
+.ow-card .ow-row>:first-child:hover{background:var(--ow-brand-dark)}
+.ow-tiles-mini li:nth-child(6n+1) button{border-left:6px solid #0b5cad}.ow-tiles-mini li:nth-child(6n+2) button{border-left:6px solid #6d28d9}
+.ow-tiles-mini li:nth-child(6n+3) button{border-left:6px solid #b45f06}.ow-tiles-mini li:nth-child(6n+4) button{border-left:6px solid #0f766e}
+.ow-tiles-mini li:nth-child(6n+5) button{border-left:6px solid #be185d}.ow-tiles-mini li:nth-child(6n+6) button{border-left:6px solid #15803d}
+.ow-welcome .ow-ah{color:#0a3d73}
+
 /* the header button that opens the panel */
 #ask-open{white-space:nowrap}
 /* ==== ASSISTANT END ==== */
