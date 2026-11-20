@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from atlas import export_routing, routing
+from atlas import export_routing, routing, routing_ui
 from atlas.core import ROOT
 from atlas.map_viewer import render
 
@@ -68,15 +68,17 @@ def site(tmp_path_factory):
                     FIRST_CINCINNATI.setdefault(
                         "pt", [f["geometry"]["coordinates"][1], f["geometry"]["coordinates"][0]]
                     )
-    # a page where only Oxford has the panel (Cincinnati places then have no walking graph)
+    # pages with an explicit list of regions that have the panel (whatever ROUTING_REGIONS is today)
     from atlas import map_viewer
 
     data, title, nav = _page_data("index")
-    patched = map_viewer.ROUTING_JS.replace('"regions": ["oxford", "cincinnati"]', '"regions": ["oxford"]')
-    assert patched != map_viewer.ROUTING_JS
-    saved, map_viewer.ROUTING_JS = map_viewer.ROUTING_JS, patched
+    marker = json.dumps(routing_ui.config())
+    assert marker in map_viewer.ROUTING_JS
+    saved = map_viewer.ROUTING_JS
     try:
-        (root / "oxford_only.html").write_text(render(data, title, nav))
+        for name, regions in (("oxford_only", ["oxford"]), ("both_cities", ["oxford", "cincinnati"])):
+            map_viewer.ROUTING_JS = saved.replace(marker, json.dumps({**routing_ui.config(), "regions": regions}))
+            (root / f"{name}.html").write_text(render(data, title, nav))
     finally:
         map_viewer.ROUTING_JS = saved
     graph = ROOT / "data" / "map" / "routing" / "oxford.graph.json"
