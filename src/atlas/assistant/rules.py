@@ -1,0 +1,596 @@
+"""All the wording rules the planner, composer and verifier use, as plain data.
+
+The same data is exported to JSON (`rules_json`) for the JavaScript guided mode, so the two
+implementations read one vocabulary and cannot drift apart on what a word means. Only the
+algorithms are written twice (and checked against each other by golden tests).
+
+Order matters wherever a list is used: the first match wins.
+"""
+
+from __future__ import annotations
+
+import json
+
+REGION_KEYS = ("cincinnati", "oxford")
+
+
+def region_label(key: str) -> str:
+    return key.title()
+
+
+# words that name a region; the first group wins when both appear
+REGION_WORDS = {
+    "oxford": [
+        "oxford",
+        "uptown",
+        "miami university",
+        "miami u",
+        "hueston woods",
+        "high street",
+        "mcguffey",
+        "farmer",
+        "armstrong student center",
+    ],
+    "cincinnati": [
+        "cincinnati",
+        "cincy",
+        "otr",
+        "over-the-rhine",
+        "over the rhine",
+        "mt adams",
+        "mt. adams",
+        "mount adams",
+        "northside",
+        "downtown",
+        "fountain square",
+        "findlay market",
+        "union terminal",
+        "music hall",
+        "the zoo",
+        "ball park",
+        "ballpark",
+        "smale",
+        "sharon woods",
+    ],
+}
+
+# named areas people use as "where I am": [lat, lon] of a central point (approximate)
+AREAS = {
+    "fountain square": {"name": "Fountain Square", "lat": 39.1016, "lon": -84.5126, "region": "cincinnati"},
+    "downtown": {"name": "downtown Cincinnati", "lat": 39.1016, "lon": -84.5126, "region": "cincinnati"},
+    "over-the-rhine": {"name": "Over-the-Rhine", "lat": 39.1140, "lon": -84.5150, "region": "cincinnati"},
+    "over the rhine": {"name": "Over-the-Rhine", "lat": 39.1140, "lon": -84.5150, "region": "cincinnati"},
+    "otr": {"name": "Over-the-Rhine", "lat": 39.1140, "lon": -84.5150, "region": "cincinnati"},
+    "mt adams": {"name": "Mt. Adams", "lat": 39.1095, "lon": -84.4985, "region": "cincinnati"},
+    "mt. adams": {"name": "Mt. Adams", "lat": 39.1095, "lon": -84.4985, "region": "cincinnati"},
+    "mount adams": {"name": "Mt. Adams", "lat": 39.1095, "lon": -84.4985, "region": "cincinnati"},
+    "northside": {"name": "Northside", "lat": 39.1590, "lon": -84.5430, "region": "cincinnati"},
+    "uptown oxford": {"name": "Uptown Oxford", "lat": 39.5103, "lon": -84.7425, "region": "oxford"},
+    "uptown": {"name": "Uptown Oxford", "lat": 39.5103, "lon": -84.7425, "region": "oxford"},
+    "miami university": {"name": "Miami University", "lat": 39.5070, "lon": -84.7330, "region": "oxford"},
+}
+
+EMERGENCY = [
+    "911",
+    "ambulance",
+    "heart attack",
+    "chest pain",
+    "can't breathe",
+    "cannot breathe",
+    "cant breathe",
+    "bleeding",
+    "overdose",
+    "unconscious",
+    "i am hurt",
+    "i'm hurt",
+    "im hurt",
+    "someone is hurt",
+    "i fell",
+    "on fire",
+    "call for help",
+    "suicide",
+    "suicidal",
+    "having a seizure",
+]
+# "emergency" alone is an emergency unless it is about planning
+EMERGENCY_SOFT = "emergency"
+EMERGENCY_SOFT_NOT = ["shelter", "plan", "exit", "preparedness", "kit", "evacuation", "room", "contact"]
+
+HELP = [
+    "what can you do",
+    "what can you answer",
+    "what do you know",
+    "how do you work",
+    "how does this work",
+    "help me use",
+    "who are you",
+    "what are you",
+    "hello",
+    "hi",
+    "hey",
+]
+
+TRUST = {
+    "ada_trust": ["ada compliant", "ada-compliant", "compliant", "complies", "meets ada", "ada certified", "legal"],
+    "conflict_trust": [
+        "google says",
+        "why does google",
+        "google maps says",
+        "but you say",
+        "you say it isn't",
+        "you say it isnt",
+        "disagree",
+        "conflict",
+        "contradict",
+    ],
+    "reports_trust": [
+        "people on facebook",
+        "on facebook",
+        "people say",
+        "people said",
+        "someone said",
+        "i heard",
+        "reddit",
+        "is that true",
+        "reviews say",
+        "complain",
+    ],
+    "dates_trust": [
+        "up to date",
+        "up-to-date",
+        "how old",
+        "how recent",
+        "how current",
+        "how fresh",
+        "when was this",
+        "last updated",
+        "last checked",
+        "is this info",
+        "is this information",
+        "is this data",
+        "still true",
+        "still accurate",
+        "can i trust",
+        "how reliable",
+        "how accurate",
+    ],
+}
+
+# cities and areas we do not cover; question must not also name a covered region
+OTHER_PLACES = [
+    "columbus",
+    "dayton",
+    "cleveland",
+    "toledo",
+    "akron",
+    "indianapolis",
+    "louisville",
+    "lexington",
+    "chicago",
+    "new york",
+    "nyc",
+    "boston",
+    "washington dc",
+    "washington, dc",
+    "baltimore",
+    "philadelphia",
+    "pittsburgh",
+    "detroit",
+    "atlanta",
+    "miami beach",
+    "los angeles",
+    "san francisco",
+    "seattle",
+    "portland",
+    "denver",
+    "austin",
+    "dallas",
+    "houston",
+    "phoenix",
+    "nashville",
+    "st louis",
+    "st. louis",
+    "kansas city",
+    "minneapolis",
+    "milwaukee",
+    "london",
+    "paris",
+    "tokyo",
+]
+
+# categories without data (config/categories.yaml status "none"): honest "not yet" answers
+NO_DATA = [
+    {
+        "topic": "housing",
+        "label": "Accessible housing",
+        "words": ["apartment", "housing", "rent an", "rental unit", "landlord", "accessible home", "lease"],
+    },
+    {
+        "topic": "civic_government",
+        "label": "Government, voting and civic services",
+        "words": ["voting", "vote", "polling", "ballot", "register to vote", "dmv", "bmv", "city hall", "permit", "passport"],
+    },
+    {
+        "topic": "emergency_safety",
+        "label": "Emergencies, shelters and safety",
+        "words": ["shelter", "evacuat", "disaster", "tornado", "emergency plan", "warming center", "cooling center"],
+    },
+    {
+        "topic": "worship_community",
+        "label": "Places of worship and community centers",
+        "words": ["church", "mosque", "synagogue", "temple", "worship", "place of worship", "chapel"],
+    },
+    {
+        "topic": "comfort_environment",
+        "label": "Rest, shade, lighting and noise",
+        "words": ["shade", "shaded", "shady", "noise level", "noisy", "loud", "well lit", "lighting", "benches", "places to sit"],
+    },
+    {
+        "topic": "health_care",
+        "label": "Hospitals, clinics and care",
+        "words": ["hospital", "clinic", "doctor", "dentist", "pharmacy", "urgent care", "therapist"],
+    },
+]
+
+LIVE_INFO = [
+    "next bus",
+    "bus time",
+    "bus times",
+    "bus schedule",
+    "what time does the bus",
+    "when does the bus",
+    "when is the next",
+    "arrival time",
+    "real-time",
+    "real time",
+    "realtime",
+    "weather",
+    "forecast",
+    "snow",
+    "icy",
+    "storm",
+    "power outage",
+    "outage",
+    "elevator out",
+    "elevator working",
+    "elevator broken",
+    "open right now",
+    "open now",
+    "open today",
+    "open late",
+    "open after",
+    "opening hours",
+    "what time does",
+    "what time is",
+    "hours today",
+]
+
+EVENT_WORDS = [
+    "event",
+    "events",
+    "happening",
+    "what's on",
+    "whats on",
+    "things to do",
+    "something to do",
+    "anything fun",
+    "to do this",
+    "to do tonight",
+    "show",
+    "shows",
+    "concert",
+    "performance",
+    "festival",
+    "play",
+    "movie",
+    "exhibit",
+    "tonight",
+    "this weekend",
+    "next weekend",
+    "when is",
+    "sensory-friendly",
+    "sensory friendly",
+    "sensory hours",
+    "audio described",
+    "audio description",
+    "asl",
+    "sign language",
+    "open captioned",
+    "relaxed performance",
+    "tickets",
+    "leagues",
+    "league",
+    "support group",
+    "support groups",
+    "class",
+    "classes",
+    "workshop",
+    "meetup",
+]
+# words that look like an event word but are about something else when a need is present
+EVENT_ACCESS = {
+    "audio_description": ["audio described", "audio description", "audio-described", "described performance"],
+    "asl": ["asl", "sign language", "interpreted", "interpreter"],
+    "sensory_friendly": ["sensory-friendly", "sensory friendly", "sensory hours", "relaxed performance", "low sensory", "sensory"],
+}
+EVENT_DISABILITY = ["disability", "adaptive", "accessibility event", "accessibility events", "inclusive", "wheelchair basketball"]
+# words never used as an event title search
+EVENT_FILLER = [
+    "anything", "fun", "do", "doing", "wheelchair", "friendly", "accessible", "happening", "going", "event", "events",
+    "show", "shows", "this", "that", "week", "weekend", "month", "year", "today", "tonight", "tomorrow", "next", "when",
+    "there", "any", "some", "something", "things", "thing", "to", "what", "whats", "s", "on", "are", "can", "i", "join",
+    "like", "leagues", "league", "groups", "group", "new", "users", "user", "sensory", "hours", "audio", "description",
+    "asl", "tickets", "ticket", "museum", "museums", "cincinnati", "oxford", "uptown", "downtown", "near", "me", "around",
+    "here", "happen", "fun", "good", "great", "best", "disability", "adaptive", "accessibility", "inclusive", "sign",
+    "language", "described", "interpreted", "open", "captioned", "relaxed", "performance", "performances", "concert",
+    "concerts", "festival", "festivals", "play", "plays", "movie", "movies", "exhibit", "exhibits", "class", "classes",
+    "workshop", "workshops", "meetup", "meetups", "wheelchair", "chair", "use", "using", "sports", "sport", "that's", "thats",
+]
+
+ROUTE_WORDS = [
+    "how do i get to",
+    "how can i get to",
+    "how to get to",
+    "route to",
+    "route from",
+    "step-free route",
+    "step free route",
+    "accessible route",
+    "directions",
+    "way to get to",
+    "get from",
+    "walk to",
+    "roll to",
+    "navigate",
+    "get there",
+    "path to",
+]
+
+AREA_WORDS = [
+    "too steep",
+    "steep",
+    "hilly",
+    "hills",
+    "hill",
+    "slope",
+    "curb ramp",
+    "curb ramps",
+    "curb cuts",
+    "sidewalk",
+    "sidewalks",
+    "closure",
+    "closures",
+    "construction",
+    "311",
+    "road work",
+    "stairways",
+    "stairs around",
+]
+
+# need -> phrases (first match wins); keys are tool NEEDS keys
+NEED_WORDS = [
+    ["adult_changing_table", ["changing table", "changing station", "adult changing"]],
+    ["accessible_restroom", ["restroom", "restrooms", "bathroom", "bathrooms", "toilet", "toilets", "washroom", "loo", "wc"]],
+    ["accessible_parking", ["parking", "park my van", "park my car", "drop-off", "drop off", "dropoff"]],
+    ["elevator", ["elevator", "elevators", "lift"]],
+    ["braille", ["braille"]],
+    ["audio_description", ["audio description", "audio described", "audio-described"]],
+    ["large_print", ["large print", "large-print"]],
+    ["touch", ["tactile", "touch tour", "touch exhibit"]],
+    ["sensory_friendly", ["sensory", "quiet room", "low sensory"]],
+    ["all_terrain_chair", ["all-terrain", "all terrain", "track chair", "off-road chair"]],
+    ["wheelchair_loan", ["lend", "lends", "borrow", "loan", "loaner", "wheelchair rental", "rent a wheelchair", "scooter"]],
+    ["accessible_lodging", ["roll-in", "roll in shower", "accessible room", "accessible rooms"]],
+    ["wheelchair_seating", ["wheelchair seat", "wheelchair seats", "wheelchair seating", "wheelchair space", "viewing area", "viewing areas"]],
+    ["paratransit", ["paratransit", "para-transit", "metro access"]],
+    ["service_animals", ["service animal", "service animals", "service dog", "service dogs"]],
+    ["mobility_service", ["fixed", "repair", "van", "mobility equipment", "wheelchair repair"]],
+    ["step_free_entrance", ["no steps", "step-free", "step free", "stairs", "steps", "ramp", "ramps", "entrance", "entrances", "get into", "get in", "power chair", "automatic door", "door"]],
+    ["accessible_path", ["paved", "flat", "smooth", "surface", "manual chair", "hard-packed"]],
+    ["listed_wheelchair_accessible", ["wheelchair accessible", "wheelchair friendly", "wheelchair-friendly", "accessible"]],
+]
+
+# type words -> map layer
+TYPE_WORDS = [
+    ["restroom", ["restroom", "restrooms", "bathroom", "bathrooms", "toilet", "toilets", "washroom"]],
+    ["food_drink", ["coffee", "cafe", "café", "restaurant", "restaurants", "food", "eat", "dinner", "lunch", "breakfast", "brunch", "brewery", "bar", "pub", "bakery", "pizza", "drink", "drinks", "diner"]],
+    ["trail", ["trail", "trails", "hike", "hiking", "loop", "greenway", "walking path", "bike path", "paved path"]],
+    ["lodging", ["hotel", "hotels", "motel", "lodging", "inn", "stay overnight", "places to stay"]],
+    ["culture", ["museum", "museums", "theater", "theatre", "theaters", "library", "libraries", "gallery", "galleries", "concert hall", "attraction", "attractions", "zoo"]],
+    ["park", ["park", "parks", "garden", "gardens", "playground", "nature preserve"]],
+    ["service", ["repair", "van rental", "rent a van", "rental", "shop", "store"]],
+    ["building", ["building", "buildings", "campus", "classroom", "hall", "halls"]],
+]
+# type -> need to use when the question names none
+TYPE_DEFAULT_NEED = {
+    "food_drink": "listed_wheelchair_accessible",
+    "trail": "accessible_path",
+    "lodging": "accessible_lodging",
+}
+NEED_LABELS = {
+    "accessible_restroom": "an accessible restroom",
+    "adult_changing_table": "an adult changing table",
+    "step_free_entrance": "a step-free entrance",
+    "elevator": "an elevator or lift",
+    "accessible_parking": "accessible parking",
+    "wheelchair_seating": "wheelchair seating",
+    "wheelchair_loan": "wheelchair loan",
+    "all_terrain_chair": "an all-terrain wheelchair",
+    "accessible_path": "an accessible path",
+    "accessible_lodging": "accessible rooms",
+    "braille": "braille",
+    "audio_description": "audio description",
+    "large_print": "large print",
+    "touch": "touch or tactile features",
+    "service_animals": "service animals welcome",
+    "sensory_friendly": "sensory-friendly options",
+    "listed_wheelchair_accessible": "a wheelchair-accessible listing",
+    "mobility_service": "mobility equipment service",
+    "paratransit": "paratransit",
+}
+TYPE_LABELS = {
+    "restroom": "restroom",
+    "food_drink": "place to eat or drink",
+    "trail": "trail",
+    "lodging": "place to stay",
+    "culture": "museum, theater or attraction",
+    "park": "park",
+    "service": "shop or service",
+    "building": "building",
+    "event": "event venue",
+    "organization": "organization",
+    "adaptive_recreation": "adaptive recreation place",
+}
+
+# raw map attribute names (OpenStreetMap tags) -> plain words
+FACT_LABELS = {
+    "wheelchair": "Listed wheelchair accessible",
+    "access": "Public access",
+    "changing_table": "Changing table",
+    "toilets:wheelchair": "Accessible toilets",
+    "unisex": "Unisex",
+    "fee": "Fee",
+    "opening_hours": "Opening hours",
+    "phone": "Phone",
+    "website": "Website",
+    "entrance:wheelchair": "Step-free entrance",
+}
+VALUE_WORDS = {"yes": "yes", "no": "no", "limited": "limited", "designated": "designated", "partly": "partly"}
+
+# where a source URL's host says how far to trust it, in plain words
+SOURCE_KINDS = [
+    ["openstreetmap.org", "OpenStreetMap (volunteer map data, not checked on site)"],
+    ["google", "Google Maps"],
+    ["traillink.com", "TrailLink (trail site)"],
+    ["nps.gov", "National Park Service website"],
+    ["cincinnati-oh.gov", "City of Cincinnati website"],
+    ["miamioh.edu", "Miami University website"],
+]
+
+BANNED = [
+    "ada compliant",
+    "ada-compliant",
+    "guaranteed",
+    "guarantee",
+    "100% accessible",
+    "completely accessible",
+    "totally accessible",
+    "no barriers",
+]
+BANNED_WORDS = ["safe", "safely", "safest"]
+
+STOP = [
+    "the", "a", "an", "of", "in", "at", "and", "is", "to", "for", "on", "my", "me", "near", "i", "it", "do", "does",
+    "can", "get", "any", "are", "there", "you", "your", "with", "have", "has", "that", "this", "what", "where", "how",
+    "which", "who", "when", "or", "be", "am", "im", "i'm", "s", "so", "that's", "thats", "it's", "what's", "where's", "how's", "there's", "if", "from", "into", "by", "about", "like",
+    "some", "somewhere", "anywhere", "find", "show", "tell", "please", "closest", "nearest", "around", "close", "much",
+    "good", "chair", "wheelchair", "accessible", "access", "use", "right", "now", "here", "also", "really", "just",
+]
+
+# phrases that make a question about a place into "near <place>" rather than "about <place>"
+NEAR_WORDS = [
+    "near", "nearby", "around", "close to", "next to", "outside", "i'm at", "im at", "i am at", "i'm in", "im in",
+    "i am in", "i'm near", "im near", "standing at", "we're at", "were at", "by the",
+]
+# "near me": the question needs the user's location
+NEAR_ME = ["near me", "closest", "nearest", "nearby", "around here", "right now", "close to me", "close by", "near here"]
+
+# words that name the kind of thing, never one particular place (so "museums in Cincinnati" does not
+# mean "Cincinnati Museum Center")
+GENERIC_NAME_WORDS = [
+    "the", "a", "an", "of", "in", "at", "and", "for", "on", "&", "to", "museum", "museums", "park", "parks", "trail", "trails", "theatre", "theater",
+    "center", "centre", "hall", "restroom", "near", "cincinnati", "oxford", "building", "library", "garden",
+    "gardens", "market", "church", "street", "avenue", "ave", "st", "st.", "road", "rd", "lodge", "hotel", "inn", "house", "area",
+    "path", "loop", "preserve", "woods", "campus", "university", "college", "company", "corp", "inc", "llc", "oh", "festival", "market",
+]
+
+ALIASES = [
+    ["ball park", "great american ball park"],
+    ["ballpark", "great american ball park"],
+    ["union terminal", "cincinnati museum center"],
+    ["museum center", "cincinnati museum center"],
+    ["the zoo", "cincinnati zoo & botanical garden"],
+    ["art museum", "cincinnati art museum"],
+    ["freedom center", "national underground railroad freedom center"],
+    ["the aronoff", "aronoff center for the arts"],
+    ["aronoff", "aronoff center for the arts"],
+]
+
+# questions answered by searching for a fixed phrase (organisation or service lookups)
+QUERY_MAP = [
+    [["report a", "report broken", "who do i call", "311", "report curb"], "311"],
+    [["paratransit", "metro access", "para-transit"], "paratransit"],
+    [["support group", "support groups"], "support group"],
+    [["waterfall", "waterfalls"], "waterfall"],
+    [["scenic view", "overlook", "scenic overlook"], "overlook"],
+    [["swimming pool", "swimming", "pool"], "pool"],
+    [["playground", "playgrounds"], "playground"],
+    [["splash pad"], "splash pad"],
+    [["kayak", "canoe", "kayaking"], "kayak"],
+    [["camping", "campground"], "camping"],
+    [["fishing"], "fishing"],
+]
+# the first two QUERY_MAP entries are looked up before anything else
+QUERY_FIRST = 2
+
+HELP_TILES = [
+    {"label": "Restroom near me", "message": "Where is the closest accessible restroom?"},
+    {"label": "Accessible parking", "message": "Where is accessible parking near me?"},
+    {"label": "Food with no steps", "message": "Find food with no steps at the door"},
+    {"label": "Step-free route", "message": "How do I get to the Cincinnati Art Museum without steps?"},
+    {"label": "Events this week", "message": "What events are on this week?"},
+    {"label": "Trails", "message": "What paved trails are there?"},
+]
+
+# what the sentences say when a section is unknown / what we can answer today (shown in Help)
+CAN_ANSWER = [
+    "accessible restrooms and changing tables near you",
+    "accessible parking and drop-off",
+    "places to eat with no steps",
+    "step-free routes to a place",
+    "events, including audio described, signed or sensory-friendly shows",
+    "trails and parks",
+    "what we know about one place: entrance, restroom, elevator, hours, phone",
+]
+CANNOT_ANSWER = [
+    "live information: bus times, weather, closures today",
+    "housing, voting and civic services, places of worship, shelters",
+    "whether a place is legally ADA compliant",
+    "emergencies: call 911",
+]
+
+
+def rules_json() -> str:
+    """Everything the JavaScript port needs, as one JSON object."""
+    import sys
+
+    g = sys.modules[__name__]
+    names = [
+        "REGION_KEYS", "REGION_WORDS", "AREAS", "EMERGENCY", "EMERGENCY_SOFT", "EMERGENCY_SOFT_NOT", "HELP", "TRUST",
+        "OTHER_PLACES", "NO_DATA", "LIVE_INFO", "EVENT_WORDS", "EVENT_ACCESS", "EVENT_DISABILITY", "EVENT_FILLER",
+        "ROUTE_WORDS", "AREA_WORDS", "NEED_WORDS", "TYPE_WORDS", "TYPE_DEFAULT_NEED", "NEED_LABELS", "TYPE_LABELS",
+        "FACT_LABELS", "VALUE_WORDS", "SOURCE_KINDS", "BANNED", "BANNED_WORDS", "STOP", "NEAR_WORDS", "NEAR_ME",
+        "GENERIC_NAME_WORDS", "ALIASES", "QUERY_MAP", "QUERY_FIRST", "HELP_TILES", "CAN_ANSWER", "CANNOT_ANSWER", "EVENT_STRONG", "EVENT_ACCESS_ALL", "MONTHS_DAYS", "KNOWN_CAPS", "UNSUPPORTED",
+    ]
+    return json.dumps({n: getattr(g, n) for n in names}, ensure_ascii=False, sort_keys=True)
+
+# event words that mean "events" even when a place is named; the rest only count with no named place
+EVENT_STRONG = [
+    "event", "events", "happening", "what's on", "whats on", "things to do", "something to do", "anything fun",
+    "tonight", "this weekend", "next weekend", "when is", "leagues", "league", "support group", "support groups",
+    "festival", "concert", "performance", "performances",
+]
+
+EVENT_ACCESS_ALL = ["accessibility events", "accessibility event", "accessible events", "accessible event"]
+MONTHS_DAYS = [
+    "january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november",
+    "december", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
+]
+KNOWN_CAPS = ["ada", "google", "facebook", "openstreetmap", "wheelchair", "metro", "openway", "i"]
+
+# things people ask about that our data does not hold; the answer says so instead of ignoring them
+UNSUPPORTED = [
+    "outdoor seating", "patio", "brewery", "vegan", "gluten", "vegetarian", "menu", "reservation", "reservations",
+    "price", "prices", "cost", "how much", "ticket price", "companion ticket", "birthday", "party of", "for 8",
+    "wifi", "kid friendly", "kids", "dog friendly",
+]
