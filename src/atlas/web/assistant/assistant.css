@@ -1,7 +1,7 @@
 /* Openway Assistant: styles. Everything is under .ow so it can sit inside the map page without clashing.
    Colours follow the map's tokens (--ink, --muted, --line, --soft, --focus) with safe fallbacks. */
 .ow{--ow-ink:var(--ink,#111827);--ow-muted:#4b5563;--ow-line:#d9dde3;--ow-soft:#f3f4f6;--ow-bg:#fff;--ow-focus:var(--focus,#2563eb);
-  --ow-accent:#111827;--ow-accent-ink:#fff;--ow-good:#0b5cad;--ow-warn:#8a4b00;--ow-bad:#a63c00;--ow-scale:1;--ow-r:14px;
+  --ow-brand:#0b5cad;--ow-brand-dark:#084a8c;--ow-brand-soft:#e8f1fb;--ow-teal:#0f766e;--ow-accent:#0b5cad;--ow-accent-ink:#fff;--ow-good:#0b5cad;--ow-warn:#8a4b00;--ow-bad:#a63c00;--ow-scale:1;--ow-r:14px;
   display:flex;flex-direction:column;min-height:0;height:100%;background:var(--ow-bg);color:var(--ow-ink);
   font:calc(17px*var(--ow-scale))/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   -webkit-font-smoothing:antialiased;box-sizing:border-box}
@@ -15,7 +15,7 @@
 .ow button:hover,.ow .ow-btn:hover{background:var(--ow-soft)}
 .ow button[disabled]{opacity:.55;cursor:not-allowed}
 .ow .ow-primary{background:var(--ow-accent);border-color:var(--ow-accent);color:var(--ow-accent-ink)}
-.ow .ow-primary:hover{background:#1f2937}
+.ow .ow-primary:hover{background:var(--ow-brand-dark)}
 .ow .ow-ghost{border-color:transparent;background:transparent}
 .ow svg.ow-i{width:1.2em;height:1.2em;flex:none}
 
@@ -132,3 +132,36 @@
 /* big text leaves little room: the quick questions are in the welcome list and in Settings > What can I ask? */
 .ow[data-big] .ow-tiles-mini{display:none}
 @media (max-height:640px){.ow-tiles-mini{display:none}}
+
+/* ---- colour and friendliness ---- */
+.ow-head{background:linear-gradient(135deg,#e8f1fb 0%,#e6f6f3 100%);border-bottom:1px solid #c9dcef}
+.ow-head h1,.ow-head h2{color:#0a3d73}
+.ow-topnav{background:#f6f9fd}.ow-topnav a{color:var(--ow-brand);font-weight:600}
+.ow-me{background:var(--ow-brand)}
+.ow-a{border-left:6px solid var(--ow-brand)}
+.ow-a.ow-unknown-kind{border-left-color:var(--ow-warn)}
+.ow-card{background:#f5f9fe;border-color:#cfe0f3;border-left:5px solid #9aa3af}
+.ow-card:has(.r-accessible){border-left-color:#0b5cad}.ow-card:has(.r-partial){border-left-color:#b45f06}
+.ow-card:has(.r-not_accessible){border-left-color:#a63c00}
+.ow-tiles button{border:2px solid #c9dcef;background:#fff;gap:.7em}
+.ow-tiles button:hover{background:var(--ow-brand-soft);border-color:var(--ow-brand)}
+.ow-tiles .ow-tile-i{flex:none;width:2.1em;height:2.1em;border-radius:50%;display:grid;place-items:center;color:#fff}
+.ow-tiles .ow-tile-i svg{width:1.2em;height:1.2em}
+.ow-tiles li:nth-child(1) .ow-tile-i{background:#0b5cad}.ow-tiles li:nth-child(2) .ow-tile-i{background:#6d28d9}
+.ow-tiles li:nth-child(3) .ow-tile-i{background:#b45f06}.ow-tiles li:nth-child(4) .ow-tile-i{background:#0f766e}
+.ow-tiles li:nth-child(5) .ow-tile-i{background:#be185d}.ow-tiles li:nth-child(6) .ow-tile-i{background:#15803d}
+.ow-tiles-mini button{border-color:#c9dcef;background:var(--ow-brand-soft);color:#0a3d73;font-weight:560}
+.ow-compose{background:#f6f9fd}
+.ow-compose input[type=text]{border-color:#5b7fa6}
+.ow-row button,.ow-row .ow-btn{border-color:#8fb0d3;color:#0a3d73;background:#fff}
+.ow-row button:hover,.ow-row .ow-btn:hover{background:var(--ow-brand-soft)}
+.ow-seg input:checked+span{background:var(--ow-brand);border-color:var(--ow-brand)}
+.ow-welcome{background:linear-gradient(180deg,#f6f9fd,#fff);border-radius:16px;padding:1em;border:1px solid #dbe8f6}
+/* tablets: a little larger, three tiles across, comfortable side margins */
+@media (min-width:721px) and (max-width:1100px){
+  .ow{font-size:calc(18px*var(--ow-scale))}
+  .ow-tiles{grid-template-columns:repeat(3,1fr)}
+  .ow-page .ow-inner{max-width:none;border:0}
+  .ow-log{padding:1.2em 1.4em}.ow-compose,.ow-head,.ow-topnav{padding-left:1.4em;padding-right:1.4em}
+}
+@media (max-width:480px){.ow-tiles{grid-template-columns:1fr 1fr}.ow-tiles button{padding:.5em .6em;font-size:.9em}.ow-tiles .ow-tile-i{width:1.8em;height:1.8em}}
