@@ -328,6 +328,7 @@ self.onmessage = async (e) => {
   <div class="dp-top">
     <button type="button" class="ghost dp-back" id="dp-back">${svg('back')}<span class="dp-back-d">Back to places</span><span class="dp-back-p">Close</span></button>
     <h2 id="dp-title" tabindex="-1">Directions</h2>
+    <button type="button" class="ghost dp-min" id="dp-min" aria-expanded="true" aria-controls="dp-scroll">${svg('down')}<span>Hide</span></button>
   </div>
   <div class="dp-scroll" id="dp-scroll">
   <div class="dp-form" id="dp-form">
@@ -938,7 +939,20 @@ self.onmessage = async (e) => {
     S.height = S.height === 'full' ? 'steps' : 'full';
     setSteps(true);
   };
+  // phone: drop the sheet down to a thin bar so the whole map shows; tap again to bring it back
+  function setMin(on) {
+    root.classList.toggle('min', on);
+    const b = el('dp-min');
+    b.setAttribute('aria-expanded', String(!on));
+    b.querySelector('span').textContent = on ? 'Show' : 'Hide';
+    b.querySelector('svg').innerHTML = on ? ICON.up : ICON.down;
+    const r = S.result;
+    el('dp-title').textContent = on && r && root.dataset.state === 'route' ? `${U.timeText(r.length_feet)} · ${U.distText(r.length_feet).replace(/ \(.*$/, '')}` : 'Directions';
+    if (PHONE.matches && r) requestAnimationFrame(() => fit(r.line.map((c) => [c[1], c[0]])));
+  }
+  el('dp-min').onclick = () => setMin(!root.classList.contains('min'));
   el('dp-change').onclick = () => {
+    if (root.classList.contains('min')) setMin(false);
     root.dataset.height = 'form';
     root.classList.add('editing');
     fieldEls.from.focus();
@@ -1106,6 +1120,7 @@ self.onmessage = async (e) => {
     const wasOpen = S.open;
     if (!wasOpen) S.opener = o.opener || document.activeElement;
     S.open = true;
+    if (root.classList.contains('min')) setMin(false);
     root.hidden = false;
     dirBtn.setAttribute('aria-expanded', 'true');
     document.body.classList.add('dp-open');
