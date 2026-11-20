@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """The executor on a small synthetic knowledge base (so the results do not depend on today's data)."""
 
 import pytest
@@ -44,7 +45,9 @@ def test_event_access_filter_and_disability_focus(kb):
 
 
 def test_empty_events_also_looks_for_the_next_one(kb):
-    pl, res = run(kb, "any events tomorrow in Oxford")  # nothing on 21 Nov in this synthetic set except Sensory Saturday
+    pl, res = run(
+        kb, "any events tomorrow in Oxford"
+    )  # nothing on 21 Nov in this synthetic set except Sensory Saturday
     assert titles(res) == ["Sensory Saturday"]
     pl, res = run(kb, "any events on Monday in Oxford")
     assert res[0].data == [] and res[1].meta["role"] == "next_events"
@@ -76,3 +79,10 @@ def test_get_place_returns_facts_with_evidence_and_only_future_events(kb):
 def test_unknown_things_return_empty_not_made_up(kb):
     pl, res = run(kb, "Where is the waterfall?")
     assert res[0].data == []
+
+
+def test_private_restrooms_are_left_out_and_counted(kb):
+    pl, res = run(kb, "closest accessible restroom", location=[39.5101, -84.7421])
+    ids = [r["link_id"] for r in res[0].data]
+    assert "rr-2" not in ids and ids[0] in ("lib-1", "rr-1")
+    assert res[0].meta["private_removed"] == 1

@@ -1,4 +1,7 @@
+# ruff: noqa: E501
 """The rules planner: which tool and arguments each kind of question gets."""
+
+from pathlib import Path
 
 import pytest
 import yaml
@@ -23,7 +26,7 @@ def plan(index, text, **ctx):
 
 def test_bank_questions_pick_the_expected_tool(index):
     """Every question in eval/questions.yaml gets the tool the bank expects (or one that also runs it)."""
-    qs = yaml.safe_load(open("eval/questions.yaml"))
+    qs = yaml.safe_load(Path("eval/questions.yaml").read_text())
     wrong = []
     for q in qs:
         loc = None
@@ -31,10 +34,15 @@ def test_bank_questions_pick_the_expected_tool(index):
         if "lat" in a and q["call"]["tool"] == "nearest":
             loc = [a["lat"], a["lon"]]
         pl = P.plan(q["question"], Context(today=TODAY, location=loc), index)
-        ok = pl.tool == q["call"]["tool"] or (
-            pl.tool == "area_conditions" and q["call"]["tool"] == "get_place"
-        ) or pl.intent in ("ada_trust", "conflict_trust", "reports_trust", "dates_trust", "live_info", "clarify") or (
-            pl.tool in ("search_places", "get_place", "find_events", "nearest") and q["call"]["tool"] in ("search_places", "get_place", "find_events", "nearest")
+        ok = (
+            pl.tool == q["call"]["tool"]
+            or (pl.tool == "area_conditions" and q["call"]["tool"] == "get_place")
+            or pl.intent
+            in ("ada_trust", "conflict_trust", "reports_trust", "dates_trust", "live_info", "clarify")
+            or (
+                pl.tool in ("search_places", "get_place", "find_events", "nearest")
+                and q["call"]["tool"] in ("search_places", "get_place", "find_events", "nearest")
+            )
         )
         if not ok:
             wrong.append((q["id"], pl.intent, pl.tool, q["call"]["tool"]))
@@ -62,7 +70,10 @@ def test_live_information_is_refused_not_guessed(index):
 
 def test_trust_questions(index):
     assert plan(index, "Is Music Hall ADA compliant?").intent == "ada_trust"
-    assert plan(index, "Why does Google say Thomson Hall is accessible but you say it isn't?").intent == "conflict_trust"
+    assert (
+        plan(index, "Why does Google say Thomson Hall is accessible but you say it isn't?").intent
+        == "conflict_trust"
+    )
     assert plan(index, "I heard the ramp at Hall Auditorium is broken").intent == "reports_trust"
     assert plan(index, "how current is your data").intent == "dates_trust"
 
@@ -81,7 +92,11 @@ def test_near_me_needs_a_location_or_asks_once(index):
     p = plan(index, "Where is the closest accessible restroom?")
     assert p.intent == "clarify" and any(o.get("action") == "locate" for o in p.clarify["options"])
     p = plan(index, "Where is the closest accessible restroom?", location=[39.1016, -84.5126])
-    assert p.tool == "nearest" and p.args["need"] == "accessible_restroom" and p.anchor["name"] == "your location"
+    assert (
+        p.tool == "nearest"
+        and p.args["need"] == "accessible_restroom"
+        and p.anchor["name"] == "your location"
+    )
     p = plan(index, "Where is the closest accessible restroom near downtown?")
     assert p.tool == "nearest" and p.anchor["name"] == "downtown Cincinnati"
 
@@ -89,7 +104,9 @@ def test_near_me_needs_a_location_or_asks_once(index):
 def test_place_names_are_matched_fuzzily_but_not_wildly(index):
     assert plan(index, "does the art museum lend wheelchairs").place["name"] == "Cincinnati Art Museum"
     assert plan(index, "is the Taft Theatre accessible").place["name"] == "Taft Theatre"
-    assert plan(index, "which museums in Cincinnati are accessible").place is None  # a kind of place, not one place
+    assert (
+        plan(index, "which museums in Cincinnati are accessible").place is None
+    )  # a kind of place, not one place
     p = plan(index, "Can I get my power chair into Skyline on Ludlow?")
     assert p.intent == "place" and p.unmatched == ["ludlow"]  # the Skyline we know is not on Ludlow
 
