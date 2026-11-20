@@ -12,6 +12,7 @@ Writes eval/results/agent_<date>.md.
 from __future__ import annotations
 
 import argparse
+import json
 import resource
 import statistics
 import subprocess
@@ -287,10 +288,13 @@ def main():
         print(f"variant {v}: {len(use)} questions", flush=True)
         t = time.time()
         out[v] = (run_variant(v, use, a.today), len(use), time.time() - t)
+        # keep the raw per-question results the moment a variant ends, so a later crash cannot lose them
+        (ROOT / f"eval/results/raw_{v}{a.out}.json").write_text(json.dumps(out[v][0], default=str))
         if v != "A":
             ps = subprocess.run(["ollama", "ps"], capture_output=True, text=True).stdout.strip().splitlines()
             out[v] += ("; ".join(" ".join(x.split()[:4]) for x in ps[1:]) or "unloaded",)
             llm.unload()
+    first = next(iter(out))
     L = [
         f"# Assistant evaluation, variants A to D ({date.today().isoformat()})",
         "",
@@ -341,11 +345,11 @@ def main():
         + "; ".join(f"{v}: {out[v][3]}" for v in out if len(out[v]) > 3)
         + ". qwen2.5:3b takes about 2.3 GB.",
         "",
-        "## Failures in variant A",
+        f"## Failures in variant {first}",
         "",
     ]
     qmap = {q["id"]: q for q in qs}
-    for r in out["A"][0]:
+    for r in out[first][0]:
         bad = [
             k
             for k in ("tool_ok", "intent_ok", "retrieval", "honest", "kind_ok", "content_ok", "trap")
