@@ -546,6 +546,16 @@ def _list(pl, res, ctx, as_of):
         det.append(S("Also on record: " + "; ".join(names) + ".", [x["link_id"] for x in rows[1:6]]))
     if r.meta.get("fallback_need") and ev:
         det.append(ev)
+    if r.meta.get("private_removed"):
+        n = r.meta["private_removed"]
+        det.append(
+            S(
+                f"I left out {n} restroom{'s' if n > 1 else ''} that OpenStreetMap marks as private.",
+                ["tool:" + r.tool],
+                "claim",
+                [str(n)],
+            )
+        )
     if pl.intent == "nearest":
         det.append(S("Distances are in a straight line, not a route. Not checked on site.", [], "meta"))
     if first.get("notice"):

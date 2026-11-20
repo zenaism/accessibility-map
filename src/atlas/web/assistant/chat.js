@@ -62,7 +62,8 @@
       image: null, listening: null, lastQ: null, speaking: false, opener: options.opener || null, answers: 0,
     };
     const uid = 'ow' + Math.random().toString(36).slice(2, 7);
-    const id = n => uid + '-' + n;
+    const id = n => (n === 'q' && options.inputId) ? options.inputId : uid + '-' + n;
+    const HL = mode === 'page' ? 'h2' : 'h3', CH = mode === 'page' ? 'h3' : 'h4';   // heading levels step down one at a time
     const root = container;
     root.classList.add('ow', mode === 'panel' ? 'ow-panel' : 'ow-page');
     root.textContent = '';
@@ -220,7 +221,7 @@
       const list = h('ul', { class: 'ow-tiles', 'aria-label': 'Quick questions' });
       for (const t of tiles()) list.append(h('li', {}, h('button', { type: 'button', onclick: () => ask(t.message) }, t.label)));
       log.append(h('section', { class: 'ow-welcome', 'aria-labelledby': id('wh') },
-        h('h3', { id: id('wh'), text: 'What would you like to know?' }),
+        h(HL, { id: id('wh'), class: 'ow-ah', text: 'What would you like to know?' }),
         h('p', { text: 'Ask in your own words, or choose a button. I answer from sourced data about places in Cincinnati and Oxford, and I say so when I don’t know.' }), list));
       miniTiles.hidden = true;
     }
@@ -272,7 +273,7 @@
       const ensure = () => {
         if (article) return;
         S.answers++;
-        headEl = h('h3', { tabindex: '-1', id: id('a' + S.answers), text: 'Answer' });
+        headEl = h(HL, { tabindex: '-1', class: 'ow-ah', id: id('a' + S.answers), text: 'Answer' });
         mainP = h('p', { class: 'ow-main' });
         article = h('article', { class: 'ow-a', 'aria-labelledby': headEl.id }, headEl, mainP);
         log.append(article); scrollEnd(article);
@@ -365,7 +366,7 @@
     }
     function renderCard(c) {
       const el = h('section', { class: 'ow-card', 'aria-label': c.name });
-      el.append(h('h4', { text: c.name }));
+      el.append(h(CH, { class: 'ow-ch', text: c.name }));
       if (c.event) {
         el.append(h('p', { class: 'ow-meta' }, h('span', { class: 'ow-when', text: c.event.title }), h('span', { text: c.event.when_text })));
         if (c.event.access.length) el.append(h('ul', { class: 'ow-chips', 'aria-label': 'Access at this event' }, c.event.access.map(a => h('li', { text: a }))));
@@ -480,7 +481,7 @@
       } catch (e) {
         hint('');
         log.textContent = '';
-        log.append(h('div', { class: 'ow-a ow-unknown-kind', role: 'alert' }, h('h3', { text: 'Problem' }), h('p', { class: 'ow-main', text: 'I could not load the data I answer from. Check your connection, then try again.' }), h('div', { class: 'ow-row' }, h('button', { type: 'button', class: 'ow-primary', onclick: () => g.location.reload() }, 'Try again'))));
+        log.append(h('div', { class: 'ow-a ow-unknown-kind', role: 'alert' }, h(HL, { class: 'ow-ah', text: 'Problem' }), h('p', { class: 'ow-main', text: 'I could not load the data I answer from. Check your connection, then try again.' }), h('div', { class: 'ow-row' }, h('button', { type: 'button', class: 'ow-primary', onclick: () => g.location.reload() }, 'Try again'))));
       }
     })();
     return api;

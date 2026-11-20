@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """The exported assistant data (what guided mode runs on in the browser)."""
 
 import json
@@ -43,12 +44,31 @@ def test_facts_keep_quote_source_and_date(data):
 def test_only_public_fields_and_no_private_paths(data):
     blob = json.dumps(data)
     assert "/Users/" not in blob and "data/private" not in blob and "google_places" not in blob.lower()
-    assert set(data["oxford"]["places"][0]) <= {"id", "name", "layer", "rating", "lat", "lon", "summary", "notice", "keys",
-                                               "newest_source", "address", "phone", "website", "hours", "arrival", "route", "page"}
+    assert set(data["oxford"]["places"][0]) <= {
+        "id",
+        "name",
+        "layer",
+        "rating",
+        "lat",
+        "lon",
+        "summary",
+        "notice",
+        "keys",
+        "newest_source",
+        "address",
+        "phone",
+        "website",
+        "hours",
+        "arrival",
+        "route",
+        "page",
+    }
 
 
 def test_conditions_are_precomputed_for_every_named_area(data):
     from atlas.assistant.export_assistant_data_keys import key_of  # noqa: F401
+
+
 def test_conditions_are_precomputed_for_every_named_area(data):
     from atlas.assistant import rules as R
     from atlas.export_assistant_data import key_of
@@ -59,5 +79,15 @@ def test_conditions_are_precomputed_for_every_named_area(data):
 
 def test_rules_json_carries_what_the_port_needs():
     rules = json.loads((OUT / "rules.json").read_text())
-    for k in ("NEED_WORDS", "TYPE_WORDS", "AREAS", "NEEDS", "POSITIVE", "BANNED", "EVENT_STRONG", "HELP_TILES", "RATING_TEXT"):
+    for k in (
+        "NEED_WORDS",
+        "TYPE_WORDS",
+        "AREAS",
+        "NEEDS",
+        "POSITIVE",
+        "BANNED",
+        "EVENT_STRONG",
+        "HELP_TILES",
+        "RATING_TEXT",
+    ):
         assert k in rules, k

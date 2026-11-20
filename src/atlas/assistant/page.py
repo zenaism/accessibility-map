@@ -37,14 +37,14 @@ PAGE = """<!DOCTYPE html>
 main{height:100%}
 __CSS__
 </style></head><body>
-<a class="skip" href="#ow-skip">Skip to the question box</a>
+<nav aria-label="Skip link"><a class="skip" href="#ow-skip">Skip to the question box</a></nav>
 <main id="ow-root" aria-label="Openway Assistant"></main>
 <noscript><p style="padding:1em">The Openway Assistant needs JavaScript. You can still use the <a href="cincinnati.html">Cincinnati map</a> or the <a href="oxford.html">Oxford map</a>, which list every place as text.</p></noscript>
 <script>
 __JS__
 (function () {
   var root = document.getElementById('ow-root');
-  var api = Openway.chat.mount(root, {mode: 'page', base: 'assistant/'});
+  var api = Openway.chat.mount(root, {mode: 'page', base: 'assistant/', inputId: 'ow-skip'});
   document.querySelector('.skip').addEventListener('click', function (e) { e.preventDefault(); api.focus(); });
   window.openwayAssistant = api;
 })();

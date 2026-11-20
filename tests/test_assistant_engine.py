@@ -1,4 +1,7 @@
+# ruff: noqa: E501
 """The whole pipeline on the real knowledge base: every bank question gets a verified, short, sourced answer."""
+
+from pathlib import Path
 
 import pytest
 import yaml
@@ -15,7 +18,7 @@ def eng():
 
 
 def test_all_bank_questions_give_verified_answers(eng):
-    qs = yaml.safe_load(open("eval/questions.yaml"))
+    qs = yaml.safe_load(Path("eval/questions.yaml").read_text())
     for q in qs:
         a = eng.answer(q["question"], Context(today=TODAY))
         assert isinstance(a, Answer) and a.headline, q["id"]
@@ -57,7 +60,11 @@ def test_a_failing_model_falls_back_to_rules(eng):
 def test_a_composer_that_lies_is_overruled_by_the_verifier(eng):
     def liar(pl, results, ctx, as_of, template):
         template.headline = [
-            Sentence("Everything there is ADA compliant and open until 11 pm.", [results[0].data[0]["link_id"]] if isinstance(results[0].data, list) else [], "claim"),
+            Sentence(
+                "Everything there is ADA compliant and open until 11 pm.",
+                [results[0].data[0]["link_id"]] if isinstance(results[0].data, list) else [],
+                "claim",
+            ),
             Sentence("Totally safe for wheelchairs.", [], "claim"),
         ]
         return template

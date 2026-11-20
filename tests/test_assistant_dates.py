@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Dates in words with an injected today."""
 
 import pytest
