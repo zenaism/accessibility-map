@@ -35,7 +35,8 @@ def main() -> None:
             if r:
                 r = {k: v for k, v in r.items() if k not in ("line", "note")}
             out.append({"from": pa, "to": pb, "profile": prof, "result": r})
-    json.dump(out, open(a.out, "w"))
+    with open(a.out, "w") as f:
+        json.dump(out, f)
     print(len(out), "cases ->", a.out)
 
 
