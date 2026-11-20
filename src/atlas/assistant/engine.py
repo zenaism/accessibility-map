@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """The four-step pipeline: plan -> run tools -> compose -> verify, and its event stream.
 
     eng = Engine()                       # rules planner + template composer (variant A)
@@ -61,7 +62,12 @@ def events(a: Answer):
     unknown {about, call}, sources {items}, meta, done {verified, removed}. Errors are {type: "error", message}."""
     if a.clarify:
         yield {"type": "clarify", **a.clarify}
-    yield {"type": "text", "kind": a.kind, "delta": " ".join(s.text for s in a.headline), "parts": [s.text for s in a.headline]}
+    yield {
+        "type": "text",
+        "kind": a.kind,
+        "delta": " ".join(s.text for s in a.headline),
+        "parts": [s.text for s in a.headline],
+    }
     if a.details:
         yield {"type": "detail", "items": [s.text for s in a.details]}
     for c in a.cards:

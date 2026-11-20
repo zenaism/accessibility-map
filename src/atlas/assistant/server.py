@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Local server for the Openway Assistant: static map files, the chat page, and the /api/ask endpoint.
 
     python -m atlas.assistant.server [--port 8002]     (or scripts/serve_assistant.sh)
@@ -17,7 +18,6 @@ import json
 import mimetypes
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
 from urllib.parse import urlsplit
 
 from ..core import ROOT
@@ -65,7 +65,12 @@ def run_ask(body: dict):
             with _lock:
                 text = llm.describe_photo(image, message)
             yield {"type": "text", "kind": "answer", "delta": text}
-            yield {"type": "detail", "items": ["This describes what is visible in your photo. It does not tell you whether a place is accessible."]}
+            yield {
+                "type": "detail",
+                "items": [
+                    "This describes what is visible in your photo. It does not tell you whether a place is accessible."
+                ],
+            }
             yield {"type": "meta", "as_of": None, "notes": [], "plan": None, "engine": "vision"}
             yield {"type": "done", "verified": False, "removed": 0}
             return
@@ -178,8 +183,15 @@ def main(argv=None) -> None:
     build()
     srv = serve(a.port, a.verbose)
     info = llm.health()
-    print(f"Openway Assistant is running.\n  Chat page : http://localhost:{a.port}/ask.html\n  Cincinnati: http://localhost:{a.port}/cincinnati.html\n  Oxford    : http://localhost:{a.port}/oxford.html")
-    print("  Local model:", "ready (" + ", ".join(info["models"]) + ")" if info["model"] else "not available (guided mode still works; start Ollama for the model)")
+    print(
+        f"Openway Assistant is running.\n  Chat page : http://localhost:{a.port}/ask.html\n  Cincinnati: http://localhost:{a.port}/cincinnati.html\n  Oxford    : http://localhost:{a.port}/oxford.html"
+    )
+    print(
+        "  Local model:",
+        "ready (" + ", ".join(info["models"]) + ")"
+        if info["model"]
+        else "not available (guided mode still works; start Ollama for the model)",
+    )
     print("Press Ctrl+C to stop. The server does not log what you ask.")
     try:
         srv.serve_forever()

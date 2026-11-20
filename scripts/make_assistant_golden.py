@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Write tests/js/assistant_golden.json: for each case in eval/golden_cases.yaml, the plan and answer the
 Python assistant gives. The JavaScript port (tests/js/assistant.test.js) must reproduce it exactly.
 
@@ -25,14 +26,24 @@ def view(a, plan) -> dict:
         "details": [s.text for s in a.details],
         "cards": [
             {
-                "place_id": c.place_id, "name": c.name, "rating": c.rating, "distance_text": c.distance_text,
-                "direction": c.direction, "phone": c.phone, "event": c.event,
+                "place_id": c.place_id,
+                "name": c.name,
+                "rating": c.rating,
+                "distance_text": c.distance_text,
+                "direction": c.direction,
+                "phone": c.phone,
+                "event": c.event,
                 "facts": [[f.label, f.value, f.detail, f.source, f.date] for f in c.facts],
             }
             for c in a.cards
         ],
-        "unknown": a.unknown, "call": a.call, "actions": a.actions, "as_of": a.as_of,
-        "sources": [s.url for s in a.sources], "verified": a.verified, "removed": a.removed,
+        "unknown": a.unknown,
+        "call": a.call,
+        "actions": a.actions,
+        "as_of": a.as_of,
+        "sources": [s.url for s in a.sources],
+        "verified": a.verified,
+        "removed": a.removed,
         "plan": plan.to_dict(),
     }
 
@@ -48,7 +59,9 @@ def main() -> None:
     dest = ROOT / "tests/js/assistant_golden.json"
     dest.write_text(json.dumps(out, ensure_ascii=False, indent=0, sort_keys=True))
     bad = [c["q"] for c, o in zip(cases, out, strict=True) if o["expected"]["removed"]]
-    print(f"{len(out)} cases -> {dest.relative_to(ROOT)} ({dest.stat().st_size // 1024} KB); verifier removed sentences in {len(bad)}: {bad}")
+    print(
+        f"{len(out)} cases -> {dest.relative_to(ROOT)} ({dest.stat().st_size // 1024} KB); verifier removed sentences in {len(bad)}: {bad}"
+    )
 
 
 if __name__ == "__main__":

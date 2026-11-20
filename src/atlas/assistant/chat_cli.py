@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Terminal chat for development:  python -m atlas.assistant.chat_cli [--today YYYY-MM-DD] [--region oxford]
 
 Commands:  :loc LAT LON   set a location   :plain   toggle plain language   :detail   toggle details
@@ -24,12 +25,18 @@ def render(a, detail: bool = True) -> str:
     for c in a.cards:
         out.append("")
         if c.event:
-            out.append(f"[{c.name}] {c.event['title']}, {c.event['when_text']}  ({', '.join(c.event['access']) or 'no access info'})")
+            out.append(
+                f"[{c.name}] {c.event['title']}, {c.event['when_text']}  ({', '.join(c.event['access']) or 'no access info'})"
+            )
             continue
         extra = f", {c.distance_text} {c.direction}" if c.distance_text else ""
         out.append(f"[{c.name}] {c.rating}{extra}")
         for f in c.facts:
-            out.append(f"   - {f.label}: {f.value}" + (f" ({f.detail})" if f.detail else "") + f"  [{f.source or 'no source'} {f.date}]")
+            out.append(
+                f"   - {f.label}: {f.value}"
+                + (f" ({f.detail})" if f.detail else "")
+                + f"  [{f.source or 'no source'} {f.date}]"
+            )
     if a.unknown:
         out += ["", "Not known: " + "; ".join(a.unknown)]
     if a.call:

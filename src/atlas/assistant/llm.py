@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Optional local-model helpers (Ollama on this machine). Nothing here is needed for guided mode.
 
 The model never answers from memory and never writes facts:
@@ -23,14 +24,23 @@ import time
 import requests
 
 from . import rules as R
-from .planner import Index, has, norm, plan as rules_plan
+from .planner import Index, has, norm
+from .planner import plan as rules_plan
 from .schema import Answer, Context, Plan, Sentence, ToolResult
 
 OLLAMA = os.environ.get("OLLAMA_HOST_URL", "http://localhost:11434")
 TEXT_MODEL = os.environ.get("OPENWAY_TEXT_MODEL", "qwen2.5:3b")
 VISION_MODEL = os.environ.get("OPENWAY_VISION_MODEL", "llava-phi3")
 KEEP_ALIVE = "20s"
-STATS = {"calls": 0, "seconds": 0.0, "plan_used": 0, "plan_rejected": 0, "compose_used": 0, "compose_rejected": 0, "errors": 0}
+STATS = {
+    "calls": 0,
+    "seconds": 0.0,
+    "plan_used": 0,
+    "plan_rejected": 0,
+    "compose_used": 0,
+    "compose_rejected": 0,
+    "errors": 0,
+}
 _health = {"t": 0.0, "v": None}
 
 
@@ -39,9 +49,16 @@ def health() -> dict:
     if time.time() - _health["t"] < 5 and _health["v"] is not None:
         return _health["v"]
     try:
-        names = [m["name"].removesuffix(":latest") for m in requests.get(f"{OLLAMA}/api/tags", timeout=2).json().get("models", [])]
-        v = {"model": TEXT_MODEL in names, "models": [n for n in names if n in (TEXT_MODEL, VISION_MODEL)],
-             "vision": VISION_MODEL in names, "text_model": TEXT_MODEL}
+        names = [
+            m["name"].removesuffix(":latest")
+            for m in requests.get(f"{OLLAMA}/api/tags", timeout=2).json().get("models", [])
+        ]
+        v = {
+            "model": TEXT_MODEL in names,
+            "models": [n for n in names if n in (TEXT_MODEL, VISION_MODEL)],
+            "vision": VISION_MODEL in names,
+            "text_model": TEXT_MODEL,
+        }
     except (requests.RequestException, ValueError):
         v = {"model": False, "models": [], "vision": False, "text_model": TEXT_MODEL}
     _health.update(t=time.time(), v=v)
@@ -52,10 +69,21 @@ def available() -> bool:
     return bool(health()["model"])
 
 
-def chat(messages: list[dict], schema: dict | None = None, model: str | None = None, timeout: float = 90, num_ctx: int = 2048) -> str:
+def chat(
+    messages: list[dict],
+    schema: dict | None = None,
+    model: str | None = None,
+    timeout: float = 90,
+    num_ctx: int = 2048,
+) -> str:
     model = model or TEXT_MODEL
-    body = {"model": model, "messages": messages, "stream": False, "keep_alive": KEEP_ALIVE,
-            "options": {"temperature": 0, "num_ctx": num_ctx}}
+    body = {
+        "model": model,
+        "messages": messages,
+        "stream": False,
+        "keep_alive": KEEP_ALIVE,
+        "options": {"temperature": 0, "num_ctx": num_ctx},
+    }
     if schema:
         body["format"] = schema
     t = time.time()
@@ -101,12 +129,23 @@ PLAN_SYSTEM = (
     "area (slopes, curb ramps, sidewalks), other. need: the access feature asked about, or null. place_name: the "
     "place named in the question, copied from it, or null. date_words: words about when (tonight, this weekend, "
     "next Saturday, this month), copied from the question, or null. region: cincinnati or oxford only if the question says so.\n"
-    "Examples:\nQ: Where can I park my van near the ball park? -> {\"intent\":\"parking\",\"need\":\"accessible_parking\",\"place_type\":null,\"region\":null,\"place_name\":\"ball park\",\"date_words\":null}\n"
-    "Q: anything on next Saturday in Oxford? -> {\"intent\":\"events\",\"need\":null,\"place_type\":null,\"region\":\"oxford\",\"place_name\":null,\"date_words\":\"next Saturday\"}\n"
-    "Q: does the Taft Theatre have an elevator? -> {\"intent\":\"place_details\",\"need\":\"elevator\",\"place_type\":null,\"region\":null,\"place_name\":\"Taft Theatre\",\"date_words\":null}\n"
-    "Q: how do I get to the zoo? -> {\"intent\":\"route\",\"need\":null,\"place_type\":null,\"region\":null,\"place_name\":\"zoo\",\"date_words\":null}"
+    'Examples:\nQ: Where can I park my van near the ball park? -> {"intent":"parking","need":"accessible_parking","place_type":null,"region":null,"place_name":"ball park","date_words":null}\n'
+    'Q: anything on next Saturday in Oxford? -> {"intent":"events","need":null,"place_type":null,"region":"oxford","place_name":null,"date_words":"next Saturday"}\n'
+    'Q: does the Taft Theatre have an elevator? -> {"intent":"place_details","need":"elevator","place_type":null,"region":null,"place_name":"Taft Theatre","date_words":null}\n'
+    'Q: how do I get to the zoo? -> {"intent":"route","need":null,"place_type":null,"region":null,"place_name":"zoo","date_words":null}'
 )
-SAFE_FIRST = ("emergency", "help", "ada_trust", "conflict_trust", "reports_trust", "dates_trust", "out_of_area", "no_data", "live_info", "clarify")
+SAFE_FIRST = (
+    "emergency",
+    "help",
+    "ada_trust",
+    "conflict_trust",
+    "reports_trust",
+    "dates_trust",
+    "out_of_area",
+    "no_data",
+    "live_info",
+    "clarify",
+)
 
 
 def _phrase(table: list, key: str | None) -> str:
@@ -133,7 +172,9 @@ def canonical(slots: dict, index: Index, ctx: Context) -> str | None:
     where = f" in {region.title()}" if region else ""
     nphrase, tphrase = _phrase(R.NEED_WORDS, need), _phrase(R.TYPE_WORDS, ptype)
     if intent == "events":
-        return f"What events are happening {dw or ''}{where}{' at ' + pname if pname else ''}?".replace("  ", " ")
+        return f"What events are happening {dw or ''}{where}{' at ' + pname if pname else ''}?".replace(
+            "  ", " "
+        )
     if intent == "route":
         return f"How do I get to {pname}?" if pname else None
     if intent == "place_details":
@@ -141,7 +182,13 @@ def canonical(slots: dict, index: Index, ctx: Context) -> str | None:
     if intent == "area":
         return f"Is the area around {pname} too steep?" if pname else None
     if intent in ("restroom", "parking", "food", "trails"):
-        thing = nphrase or tphrase or {"restroom": "restroom", "parking": "parking", "food": "restaurants", "trails": "trails"}[intent]
+        thing = (
+            nphrase
+            or tphrase
+            or {"restroom": "restroom", "parking": "parking", "food": "restaurants", "trails": "trails"}[
+                intent
+            ]
+        )
         near = f" near {pname}" if pname else ""
         return f"Where is the closest {thing}{near}{where}?"
     return None
@@ -152,7 +199,11 @@ def model_planner(text: str, ctx: Context, index: Index) -> Plan | None:
     if rp.intent in SAFE_FIRST:
         return rp  # safety, trust and honesty routes are decided by rules, never by the model
     try:
-        raw = chat([{"role": "system", "content": PLAN_SYSTEM}, {"role": "user", "content": f"Q: {text}"}], SLOT_SCHEMA, timeout=60)
+        raw = chat(
+            [{"role": "system", "content": PLAN_SYSTEM}, {"role": "user", "content": f"Q: {text}"}],
+            SLOT_SCHEMA,
+            timeout=60,
+        )
         slots = json.loads(raw)
     except (requests.RequestException, ValueError, KeyError):
         return None
@@ -179,8 +230,20 @@ COMPOSE_SYSTEM = (
 )
 COMPOSE_SCHEMA = {
     "type": "object",
-    "properties": {"sentences": {"type": "array", "maxItems": 2, "items": {"type": "object", "properties": {
-        "text": {"type": "string"}, "refs": {"type": "array", "items": {"type": "string"}}}, "required": ["text", "refs"]}}},
+    "properties": {
+        "sentences": {
+            "type": "array",
+            "maxItems": 2,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "text": {"type": "string"},
+                    "refs": {"type": "array", "items": {"type": "string"}},
+                },
+                "required": ["text", "refs"],
+            },
+        }
+    },
     "required": ["sentences"],
 }
 
@@ -191,27 +254,73 @@ def _compact(results: list[ToolResult], limit: int = 4) -> list[dict]:
         rows = r.data if isinstance(r.data, list) else ([r.data] if r.data else [])
         for x in rows[:limit]:
             if "title" in x and "start" in x:
-                out.append({"id": x["link_id"], "event": x["title"], "start": x["start"], "place": x["place"], "access": x.get("access")})
+                out.append(
+                    {
+                        "id": x["link_id"],
+                        "event": x["title"],
+                        "start": x["start"],
+                        "place": x["place"],
+                        "access": x.get("access"),
+                    }
+                )
             elif "link_id" in x:
-                out.append({"id": x["link_id"], "name": x["name"], "rating": x["rating"], "miles": x.get("miles"),
-                            "direction": x.get("direction"), "hours": x.get("hours"),
-                            "facts": [{"label": f["attribute"], "value": f["value"], "detail": (f.get("detail") or "")[:80]}
-                                      for f in (x.get("facts") or [])[:4]]})
+                out.append(
+                    {
+                        "id": x["link_id"],
+                        "name": x["name"],
+                        "rating": x["rating"],
+                        "miles": x.get("miles"),
+                        "direction": x.get("direction"),
+                        "hours": x.get("hours"),
+                        "facts": [
+                            {
+                                "label": f["attribute"],
+                                "value": f["value"],
+                                "detail": (f.get("detail") or "")[:80],
+                            }
+                            for f in (x.get("facts") or [])[:4]
+                        ],
+                    }
+                )
             elif "share_steeper_than_ramp" in x:
-                out.append({"id": "tool:area_conditions", **{k: x[k] for k in ("share_steeper_than_ramp", "stairways", "city_curb_ramps") if k in x}})
+                out.append(
+                    {
+                        "id": "tool:area_conditions",
+                        **{
+                            k: x[k]
+                            for k in ("share_steeper_than_ramp", "stairways", "city_curb_ramps")
+                            if k in x
+                        },
+                    }
+                )
     return out
 
 
-def model_composer(pl: Plan, results: list[ToolResult], ctx: Context, as_of, template: Answer) -> Answer | None:
+def model_composer(
+    pl: Plan, results: list[ToolResult], ctx: Context, as_of, template: Answer
+) -> Answer | None:
     if template.kind not in ("answer",) or not template.cards:
         return None  # nothing to improve: unknown, help, trust and event-empty answers stay as written
-    q = (pl.args.get("query") or "") or " ".join(filter(None, [pl.intent, pl.need or "", pl.place_type or ""]))
+    q = (pl.args.get("query") or "") or " ".join(
+        filter(None, [pl.intent, pl.need or "", pl.place_type or ""])
+    )
     prompt = f"QUESTION: {q}\nRESULTS: {json.dumps(_compact(results), ensure_ascii=False)}"
     try:
-        sents = json.loads(chat([{"role": "system", "content": COMPOSE_SYSTEM}, {"role": "user", "content": prompt}], COMPOSE_SCHEMA, timeout=90, num_ctx=3072))["sentences"]
+        sents = json.loads(
+            chat(
+                [{"role": "system", "content": COMPOSE_SYSTEM}, {"role": "user", "content": prompt}],
+                COMPOSE_SCHEMA,
+                timeout=90,
+                num_ctx=3072,
+            )
+        )["sentences"]
     except (requests.RequestException, ValueError, KeyError, TypeError):
         return None
-    new = [Sentence(str(s.get("text", "")).strip(), [str(r) for r in s.get("refs") or []], "claim") for s in sents if str(s.get("text", "")).strip()]
+    new = [
+        Sentence(str(s.get("text", "")).strip(), [str(r) for r in s.get("refs") or []], "claim")
+        for s in sents
+        if str(s.get("text", "")).strip()
+    ]
     if not new:
         STATS["compose_rejected"] += 1
         return None
@@ -232,9 +341,19 @@ def describe_photo(image_b64: str, question: str = "") -> str:
     if not health().get("vision"):
         return "I can't look at photos right now because the photo model is not running. Start Ollama, or ask in words."
     try:
-        raw = chat([{"role": "system", "content": PHOTO_RULE},
-                    {"role": "user", "content": question or "What is visible in this photo?", "images": [image_b64]}],
-                   model=VISION_MODEL, timeout=180, num_ctx=2048)
+        raw = chat(
+            [
+                {"role": "system", "content": PHOTO_RULE},
+                {
+                    "role": "user",
+                    "content": question or "What is visible in this photo?",
+                    "images": [image_b64],
+                },
+            ],
+            model=VISION_MODEL,
+            timeout=180,
+            num_ctx=2048,
+        )
     except (requests.RequestException, KeyError, ValueError):
         return "I could not read that photo. Try a smaller or clearer one, or ask in words."
     kept = []

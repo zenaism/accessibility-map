@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Template composer: tool results -> Answer. Fixed sentence templates, filled from records only.
 
 Every sentence names the records it leans on (`refs`) so the verifier can check it. Wording rules:
@@ -12,7 +13,7 @@ import math
 import re
 
 from . import rules as R
-from .dates import day_text, range_text, when_text
+from .dates import range_text, when_text
 from .schema import Answer, Card, Context, Fact, Plan, Sentence, Source, ToolResult
 from .tools import NEEDS, POSITIVE
 
@@ -120,14 +121,24 @@ def pick_facts(facts: list[dict], need: str | None, k: int = 4) -> list[dict]:
     if not rel:
         rest = [f for f in facts if f["attribute"] not in R.NOISE_FACTS]
         rest = [f for f in rest if f.get("quote")] + [f for f in rest if not f.get("quote")]
-        rest = sorted(rest, key=lambda f: R.FACT_PRIORITY.index(f["attribute"]) if f["attribute"] in R.FACT_PRIORITY else 99)
+        rest = sorted(
+            rest,
+            key=lambda f: R.FACT_PRIORITY.index(f["attribute"]) if f["attribute"] in R.FACT_PRIORITY else 99,
+        )
         rel = rest or facts
     return rel[:k]
 
 
 def to_fact(f: dict, pid: str) -> Fact:
-    return Fact(fact_label(f["attribute"]), str(f["value"]), f.get("detail") or "", f.get("quote") or "",
-                f.get("source") or "", f.get("date") or "", pid)
+    return Fact(
+        fact_label(f["attribute"]),
+        str(f["value"]),
+        f.get("detail") or "",
+        f.get("quote") or "",
+        f.get("source") or "",
+        f.get("date") or "",
+        pid,
+    )
 
 
 def card_for(row: dict, need: str | None, ctx: Context, k: int = 4) -> Card:
@@ -140,18 +151,38 @@ def card_for(row: dict, need: str | None, ctx: Context, k: int = 4) -> Card:
             sources.append(Source(key, f.get("date") or "", f.get("quote") or "", source_words(key)))
     phone = fmt_phone(row.get("phone"))
     return Card(
-        place_id=row["link_id"], name=row["name"], type=R.TYPE_LABELS.get(row.get("type"), row.get("type") or ""),
-        rating=row["rating"], facts=[to_fact(f, row["link_id"]) for f in facts], sources=sources,
-        miles=row.get("miles"), direction=row.get("direction"), distance_text=distance_text(row.get("miles")),
-        phone=phone, note=row.get("notice"), lat=row.get("lat"), lon=row.get("lon"),
+        place_id=row["link_id"],
+        name=row["name"],
+        type=R.TYPE_LABELS.get(row.get("type"), row.get("type") or ""),
+        rating=row["rating"],
+        facts=[to_fact(f, row["link_id"]) for f in facts],
+        sources=sources,
+        miles=row.get("miles"),
+        direction=row.get("direction"),
+        distance_text=distance_text(row.get("miles")),
+        phone=phone,
+        note=row.get("notice"),
+        lat=row.get("lat"),
+        lon=row.get("lon"),
     )
 
 
 def event_card(e: dict, ctx: Context) -> Card:
-    c = Card(place_id=e["link_id"], name=e["place"], type="event", rating=e["rating"], facts=[],
-             sources=[Source(e["url"], "", "", source_words(e["url"]))] if e.get("url") else [],
-             event={"title": e["title"], "start": e["start"], "when_text": when_text(e["start"]), "url": e.get("url") or "",
-                    "access": [R.ACCESS_WORDS.get(a, a) for a in e.get("access") or []]})
+    c = Card(
+        place_id=e["link_id"],
+        name=e["place"],
+        type="event",
+        rating=e["rating"],
+        facts=[],
+        sources=[Source(e["url"], "", "", source_words(e["url"]))] if e.get("url") else [],
+        event={
+            "title": e["title"],
+            "start": e["start"],
+            "when_text": when_text(e["start"]),
+            "url": e.get("url") or "",
+            "access": [R.ACCESS_WORDS.get(a, a) for a in e.get("access") or []],
+        },
+    )
     return c
 
 
@@ -190,10 +221,23 @@ STANDING = "Computed from map data, not checked on site."
 
 def compose(pl: Plan, results: list[ToolResult], ctx: Context, as_of: str | None = None) -> Answer:
     fn = {
-        "emergency": _emergency, "help": _help, "ada_trust": _trust, "conflict_trust": _trust,
-        "reports_trust": _trust, "dates_trust": _trust, "out_of_area": _out_of_area, "no_data": _no_data,
-        "live_info": _live, "events": _events, "route": _route, "area": _area, "nearest": _list,
-        "search": _list, "place": _place, "clarify": _clarify, "unknown": _unknown,
+        "emergency": _emergency,
+        "help": _help,
+        "ada_trust": _trust,
+        "conflict_trust": _trust,
+        "reports_trust": _trust,
+        "dates_trust": _trust,
+        "out_of_area": _out_of_area,
+        "no_data": _no_data,
+        "live_info": _live,
+        "events": _events,
+        "route": _route,
+        "area": _area,
+        "nearest": _list,
+        "search": _list,
+        "place": _place,
+        "clarify": _clarify,
+        "unknown": _unknown,
     }[pl.intent]
     a = fn(pl, results, ctx, as_of)
     a.plan = pl.to_dict()
@@ -202,38 +246,62 @@ def compose(pl: Plan, results: list[ToolResult], ctx: Context, as_of: str | None
 
 
 def _emergency(pl, res, ctx, as_of):
-    return Answer("emergency", [S("If this is an emergency, call 911 now.", [], "meta")],
-                  actions=[{"type": "call", "name": "Emergency services", "phone": "911"}])
+    return Answer(
+        "emergency",
+        [S("If this is an emergency, call 911 now.", [], "meta")],
+        actions=[{"type": "call", "name": "Emergency services", "phone": "911"}],
+    )
 
 
 def _help(pl, res, ctx, as_of):
-    lines = [S("I can look things up about accessible places in Cincinnati and Oxford.", [], "meta"),
-             S("Each answer shows its source. I say so when I don't know.", [], "meta")]
-    det = [S("I can answer: " + "; ".join(R.CAN_ANSWER) + ".", [], "meta"),
-           S("I cannot answer: " + "; ".join(R.CANNOT_ANSWER) + ".", [], "meta")]
+    lines = [
+        S("I can look things up about accessible places in Cincinnati and Oxford.", [], "meta"),
+        S("Each answer shows its source. I say so when I don't know.", [], "meta"),
+    ]
+    det = [
+        S("I can answer: " + "; ".join(R.CAN_ANSWER) + ".", [], "meta"),
+        S("I cannot answer: " + "; ".join(R.CANNOT_ANSWER) + ".", [], "meta"),
+    ]
     return Answer("help", lines, details=det)
 
 
 def _out_of_area(pl, res, ctx, as_of):
-    return Answer("out_of_area", [S("I only cover Cincinnati and Oxford for now.", [], "meta"),
-                                  S(f"I can't help with {pl.topic} yet.", [], "meta")],
-                  unknown=[pl.topic])
+    return Answer(
+        "out_of_area",
+        [
+            S("I only cover Cincinnati and Oxford for now.", [], "meta"),
+            S(f"I can't help with {pl.topic} yet.", [], "meta"),
+        ],
+        unknown=[pl.topic],
+    )
 
 
 def _no_data(pl, res, ctx, as_of):
     topic = pl.topic.lower()
-    return Answer("no_data", [
-        S(f"I don't have information about {topic} yet.", [], "meta"),
-        S("I can look up restrooms, parking, places to eat, events and trails.", [], "meta")],
+    return Answer(
+        "no_data",
+        [
+            S(f"I don't have information about {topic} yet.", [], "meta"),
+            S("I can look up restrooms, parking, places to eat, events and trails.", [], "meta"),
+        ],
         details=[S("I can answer: " + "; ".join(R.CAN_ANSWER) + ".", [], "meta")],
-        unknown=[pl.topic])
+        unknown=[pl.topic],
+    )
 
 
 def _unknown(pl, res, ctx, as_of):
-    return Answer("unknown", [
-        S("I didn't understand that, or I don't have the data to answer it.", [], "meta"),
-        S("Try a button below, or ask about a restroom, parking, food, events, a trail or a place by name.", [], "meta")],
-        unknown=["that question"])
+    return Answer(
+        "unknown",
+        [
+            S("I didn't understand that, or I don't have the data to answer it.", [], "meta"),
+            S(
+                "Try a button below, or ask about a restroom, parking, food, events, a trail or a place by name.",
+                [],
+                "meta",
+            ),
+        ],
+        unknown=["that question"],
+    )
 
 
 def _clarify(pl, res, ctx, as_of):
@@ -250,7 +318,12 @@ def _live(pl, res, ctx, as_of):
     if row:
         call = _call(row)
         if row.get("hours"):
-            det.append(S(f"The listing for {row['name']} says hours are: {row['hours']}. This may be out of date.", [row["link_id"]]))
+            det.append(
+                S(
+                    f"The listing for {row['name']} says hours are: {row['hours']}. This may be out of date.",
+                    [row["link_id"]],
+                )
+            )
         if call:
             det.append(S(f"To be sure, call {row['name']} at {call['phone']}.", [row["link_id"]]))
         else:
@@ -258,8 +331,15 @@ def _live(pl, res, ctx, as_of):
     else:
         det.append(S("Check with the venue or agency directly for live information.", [], "meta"))
     cards = [card_for(row, None, ctx)] if row else []
-    return Answer("unknown", [first, second], details=det, cards=cards, call=call,
-                  unknown=[topic], sources=_sources(cards))
+    return Answer(
+        "unknown",
+        [first, second],
+        details=det,
+        cards=cards,
+        call=call,
+        unknown=[topic],
+        sources=_sources(cards),
+    )
 
 
 def _trust(pl, res, ctx, as_of):
@@ -270,28 +350,94 @@ def _trust(pl, res, ctx, as_of):
     refs = [row["link_id"]] if row else []
     det = []
     if pl.intent == "ada_trust":
-        head = [S("I can't say whether a place is ADA compliant. That takes a formal survey.", [], "disclaimer"),
-                S(f"Here is what public sources say about {name}." if name else "I only collect what public sources say, with dates.", refs, "meta")]
+        head = [
+            S("I can't say whether a place is ADA compliant. That takes a formal survey.", [], "disclaimer"),
+            S(
+                f"Here is what public sources say about {name}."
+                if name
+                else "I only collect what public sources say, with dates.",
+                refs,
+                "meta",
+            ),
+        ]
         if row:
-            det.append(S(f"Map rating for {name}: {R.RATING_TEXT[row['rating']].lower()}, from the facts on the card.", refs))
+            det.append(
+                S(
+                    f"Map rating for {name}: {R.RATING_TEXT[row['rating']].lower()}, from the facts on the card.",
+                    refs,
+                )
+            )
     elif pl.intent == "conflict_trust":
-        head = [S("Sources can disagree, so I show each source and its date.", [], "meta"),
-                S(f"For {name}, check the card to see which source says what." if name else "Tell me which place you mean.", refs, "meta")]
+        head = [
+            S("Sources can disagree, so I show each source and its date.", [], "meta"),
+            S(
+                f"For {name}, check the card to see which source says what."
+                if name
+                else "Tell me which place you mean.",
+                refs,
+                "meta",
+            ),
+        ]
         if row:
             n = len({f["source"] for f in row["facts"] if f["source"]})
-            det.append(S(f"I have {n} sources for {name}. If they disagree, trust the newest and call to check.", refs, "claim", [str(n)]))
+            det.append(
+                S(
+                    f"I have {n} sources for {name}. If they disagree, trust the newest and call to check.",
+                    refs,
+                    "claim",
+                    [str(n)],
+                )
+            )
     elif pl.intent == "reports_trust":
-        head = [S("I can't confirm what people say on social media. I only use sources I can name and date.", [], "meta"),
-                S(f"If you saw a problem at {name}, use Report a problem so it can be checked." if name else "If you saw a problem, use Report a problem so it can be checked.", refs, "meta")]
+        head = [
+            S(
+                "I can't confirm what people say on social media. I only use sources I can name and date.",
+                [],
+                "meta",
+            ),
+            S(
+                f"If you saw a problem at {name}, use Report a problem so it can be checked."
+                if name
+                else "If you saw a problem, use Report a problem so it can be checked.",
+                refs,
+                "meta",
+            ),
+        ]
     else:
-        head = [S(f"My information is a snapshot from {full_date(as_of)}. Each fact shows the date of its source.", [], "meta")]
+        head = [
+            S(
+                f"My information is a snapshot from {full_date(as_of)}. Each fact shows the date of its source.",
+                [],
+                "meta",
+            )
+        ]
         if row:
             nv = row.get("newest_source")
-            head.append(S(f"For {name}, the newest source is dated {month_year(nv)}." if nv else f"For {name}, I have no dated source.", refs))
-        det.append(S("Events are refreshed more often than places. Always call ahead for anything important.", [], "meta"))
-    actions = [{"type": "report", "text": f"Problem with information about {name}: " if name else "Problem with information: "}]
+            head.append(
+                S(
+                    f"For {name}, the newest source is dated {month_year(nv)}."
+                    if nv
+                    else f"For {name}, I have no dated source.",
+                    refs,
+                )
+            )
+        det.append(
+            S(
+                "Events are refreshed more often than places. Always call ahead for anything important.",
+                [],
+                "meta",
+            )
+        )
+    actions = [
+        {
+            "type": "report",
+            "text": f"Problem with information about {name}: " if name else "Problem with information: ",
+        }
+    ]
     call = _call(row)
-    return Answer("answer", head, details=det, cards=cards, actions=actions, call=call, sources=_sources(cards))
+    return Answer(
+        "answer", head, details=det, cards=cards, actions=actions, call=call, sources=_sources(cards)
+    )
 
 
 def _label_rating(r: str) -> str:
@@ -314,19 +460,30 @@ def _list(pl, res, ctx, as_of):
     rows = (r.data or []) if r else []
     plain = ctx.plain
     need = r.meta.get("fallback_need") if r and r.meta.get("fallback_need") else pl.need
-    where = f"near {pl.anchor['name']}" if pl.anchor and pl.anchor["name"] != "your location" else ("near you" if pl.anchor else "")
+    where = (
+        f"near {pl.anchor['name']}"
+        if pl.anchor and pl.anchor["name"] != "your location"
+        else ("near you" if pl.anchor else "")
+    )
     ask = need_label(pl.need) or R.TYPE_LABELS.get(pl.place_type or "", "")
     if not rows:
         if pl.args.get("query"):
-            msg = f"I don't have anything about {pl.args['query']}" + (f" with {ask}" if pl.need and ask else "") + " in my data."
+            msg = (
+                f"I don't have anything about {pl.args['query']}"
+                + (f" with {ask}" if pl.need and ask else "")
+                + " in my data."
+            )
         elif pl.need and ask:
             msg = f"I don't have a place with {ask}" + (f" {where}" if where else "") + " in my data."
         else:
             msg = "I don't have a matching place" + (f" {where}" if where else "") + " in my data."
-        head = [S(msg, [], "meta"),
-                S("I don't know, and I would rather say so than guess.", [], "meta")]
-        return Answer("unknown", head, unknown=[ask or "that"] + [f"{w}" for w in pl.unsupported],
-                      details=[S("Try another area or another need, or call the place to ask.", [], "meta")])
+        head = [S(msg, [], "meta"), S("I don't know, and I would rather say so than guess.", [], "meta")]
+        return Answer(
+            "unknown",
+            head,
+            unknown=[ask or "that"] + [f"{w}" for w in pl.unsupported],
+            details=[S("Try another area or another need, or call the place to ask.", [], "meta")],
+        )
     cards = [card_for(x, need, ctx) for x in rows[:MAX_CARDS]]
     first = rows[0]
     nm = first["name"]
@@ -335,23 +492,47 @@ def _list(pl, res, ctx, as_of):
         anchor_t = "you" if pl.anchor["name"] == "your location" else pl.anchor["name"]
         dist = cards[0].distance_text
         of = f"{dist} {first['direction']} of {anchor_t}"
-        lead = f"The closest place I found with {ask} is {nm}, {of}." if pl.need else f"The closest {ask or 'place'} I found is {nm}, {of}."
+        lead = (
+            f"The closest place I found with {ask} is {nm}, {of}."
+            if pl.need
+            else f"The closest {ask or 'place'} I found is {nm}, {of}."
+        )
         if pl.anchor["name"] == nm:
             lead = f"{nm} itself has {ask} on record." if pl.need else f"{nm} itself is the closest."
         if plain:
             lead = f"Closest with {ask}: {nm}, {of}." if pl.need else f"Closest: {nm}, {of}."
     else:
-        verb = "have" if pl.need else "are"
         if pl.need:
-            lead = f"{len(rows)} places have {ask} on record. The first is {nm}." if len(rows) > 1 else f"One place has {ask} on record: {nm}."
+            lead = (
+                f"{len(rows)} places have {ask} on record. The first is {nm}."
+                if len(rows) > 1
+                else f"One place has {ask} on record: {nm}."
+            )
         else:
-            lead = f"I found {len(rows)} places that match. The first is {nm}." if len(rows) > 1 else f"I found one place that matches: {nm}."
-    sents = [S(lead, refs, "claim", [str(len(rows))] + ([re.sub(r"[^0-9.]", "", cards[0].distance_text or "")] if cards[0].distance_text else []))]
+            lead = (
+                f"I found {len(rows)} places that match. The first is {nm}."
+                if len(rows) > 1
+                else f"I found one place that matches: {nm}."
+            )
+    sents = [
+        S(
+            lead,
+            refs,
+            "claim",
+            [str(len(rows))]
+            + ([re.sub(r"[^0-9.]", "", cards[0].distance_text or "")] if cards[0].distance_text else []),
+        )
+    ]
     ev, fct = _evidence(first, need, ctx, plain)
     if r.meta.get("fallback_need"):
-        sents.append(S("No step-free entrance is on record here. These are listed as wheelchair accessible, not checked on site."
-                       if plain else
-                       "None of them has a step-free entrance on record, so these are listed as wheelchair accessible by volunteers on OpenStreetMap, not checked on site.", refs))
+        sents.append(
+            S(
+                "No step-free entrance is on record here. These are listed as wheelchair accessible, not checked on site."
+                if plain
+                else "None of them has a step-free entrance on record, so these are listed as wheelchair accessible by volunteers on OpenStreetMap, not checked on site.",
+                refs,
+            )
+        )
     elif ev:
         sents.append(ev)
     else:
@@ -373,13 +554,24 @@ def _list(pl, res, ctx, as_of):
     unk = [f"{w}" for w in pl.unsupported]
     ids = [x["link_id"] for x in rows if x.get("lat") is not None]
     actions = [{"type": "show_on_map", "ids": ids}] if ids else []
-    return Answer("answer", sents, details=det, cards=cards, unknown=unk, call=call, actions=actions, sources=_sources(cards))
+    return Answer(
+        "answer",
+        sents,
+        details=det,
+        cards=cards,
+        unknown=unk,
+        call=call,
+        actions=actions,
+        sources=_sources(cards),
+    )
 
 
 def _focus_sentence(row: dict, need: str | None, ctx: Context):
     """One sentence answering "does it have <need>?" from the facts, or saying it is not on record."""
     label = need_label(need)
-    facts = [f for f in row.get("facts") or [] if f["attribute"] in set((NEEDS.get(need) or {}).get("facts") or [])]
+    facts = [
+        f for f in row.get("facts") or [] if f["attribute"] in set((NEEDS.get(need) or {}).get("facts") or [])
+    ]
     pos = [f for f in facts if positive(f)]
     if pos:
         f = pos[0]
@@ -394,9 +586,14 @@ def _place(pl, res, ctx, as_of):
     r = _data(res, "get_place")
     row = r.data if r else None
     if row is None:
-        return Answer("unknown", [S("I don't have that place in my data.", [], "meta"),
-                                  S("I don't know, and I would rather say so than guess.", [], "meta")],
-                      unknown=["that place"])
+        return Answer(
+            "unknown",
+            [
+                S("I don't have that place in my data.", [], "meta"),
+                S("I don't know, and I would rather say so than guess.", [], "meta"),
+            ],
+            unknown=["that place"],
+        )
     plain = ctx.plain
     refs = [row["link_id"]]
     nm = row["name"]
@@ -408,14 +605,29 @@ def _place(pl, res, ctx, as_of):
     unk += [f"{w}" for w in pl.unsupported]
     if pl.unmatched:
         mism = " ".join(w.title() for w in pl.unmatched)
-        head = [S(f"I don't have {nm} on {mism} in my data.", [], "meta"),
-                S(f"The only {nm} I know is in {row['region'].title()}, so it may not be the one you mean.", refs)]
+        head = [
+            S(f"I don't have {nm} on {mism} in my data.", [], "meta"),
+            S(
+                f"The only {nm} I know is in {row['region'].title()}, so it may not be the one you mean.",
+                refs,
+            ),
+        ]
         cards = [card_for(row, None, ctx, 4)]
-        return Answer("unknown", head, cards=cards, unknown=[f"{nm} on {mism}"], call=_call(row), sources=_sources(cards))
+        return Answer(
+            "unknown",
+            head,
+            cards=cards,
+            unknown=[f"{nm} on {mism}"],
+            call=_call(row),
+            sources=_sources(cards),
+        )
     if pl.need and pl.need != "listed_wheelchair_accessible":
         s1, f = _focus_sentence(row, pl.need, ctx)
         if f:
-            s2 = S(f"{fact_text(f)}. Source: {source_words(f['source'])}, {age_words(f.get('date') or '', ctx.today)}.", refs)
+            s2 = S(
+                f"{fact_text(f)}. Source: {source_words(f['source'])}, {age_words(f.get('date') or '', ctx.today)}.",
+                refs,
+            )
         else:
             s2 = S(f"Here is what I do know about {nm}: {_rating_line(row)}", refs)
             unk.insert(0, need_label(pl.need))
@@ -426,7 +638,10 @@ def _place(pl, res, ctx, as_of):
         s1 = S(f"{nm}: {_rating_line(row)}", refs)
         if facts:
             f = facts[0]
-            s2 = S(f"{fact_text(f)}. Source: {source_words(f['source'])}, {age_words(f.get('date') or '', ctx.today)}.", refs)
+            s2 = S(
+                f"{fact_text(f)}. Source: {source_words(f['source'])}, {age_words(f.get('date') or '', ctx.today)}.",
+                refs,
+            )
         else:
             s2 = S("I have no detailed facts for it yet. Call before you go.", refs)
         head = [s1, s2]
@@ -448,7 +663,16 @@ def _place(pl, res, ctx, as_of):
         e0 = ev[0]
         det.append(S(f"Next event I have: {e0['title']}, {when_text(e0['start'])}.", refs))
     actions = [{"type": "show_on_map", "ids": refs}] if row.get("lat") is not None else []
-    return Answer("answer", head, details=det, cards=cards, unknown=unk, call=_call(row), actions=actions, sources=_sources(cards))
+    return Answer(
+        "answer",
+        head,
+        details=det,
+        cards=cards,
+        unknown=unk,
+        call=_call(row),
+        actions=actions,
+        sources=_sources(cards),
+    )
 
 
 def _rating_line(row: dict) -> str:
@@ -464,8 +688,13 @@ def _events(pl, res, ctx, as_of):
     w = pl.when or None
     span = range_text(w) if w else "in the next 30 days"
     label = f"{w['label']}" if w else "in the next 30 days"
-    snap = S(f"Events data was last updated {full_date(as_of)}. It is a snapshot, so check with the venue." if not ctx.plain
-             else f"Events data is from {full_date(as_of)}. It is a snapshot. Check with the venue.", ["tool:find_events"], "claim")
+    snap = S(
+        f"Events data was last updated {full_date(as_of)}. It is a snapshot, so check with the venue."
+        if not ctx.plain
+        else f"Events data is from {full_date(as_of)}. It is a snapshot. Check with the venue.",
+        ["tool:find_events"],
+        "claim",
+    )
     adj = join_or([R.ACCESS_ADJ.get(a, a) for a in pl.access]) + " " if pl.access else ""
     spantxt = f" ({span})" if w and w["start"] != w["end"] else ""
     if not rows:
@@ -473,26 +702,61 @@ def _events(pl, res, ctx, as_of):
         head = [S(f"I found no {adj}events {label}{spantxt}.", ["tool:find_events"], "claim")]
         if nrows:
             e = nrows[0]
-            head.append(S(f"The next one I have is {e['title']}, {when_text(e['start'])}, at {e['place']}.", [e["link_id"]]))
+            head.append(
+                S(
+                    f"The next one I have is {e['title']}, {when_text(e['start'])}, at {e['place']}.",
+                    [e["link_id"]],
+                )
+            )
             cards = [event_card(e, ctx) for e in nrows[:MAX_CARDS]]
-            return Answer("unknown", head, details=[snap], cards=cards, unknown=["events in that time"], sources=_sources(cards))
+            return Answer(
+                "unknown",
+                head,
+                details=[snap],
+                cards=cards,
+                unknown=["events in that time"],
+                sources=_sources(cards),
+            )
         head.append(snap)
         return Answer("unknown", head, unknown=["events in that time"])
     e = rows[0]
     ctitle = e["title"]
-    s1 = f"I found {len(rows)} {adj}events {label}. The first is {ctitle}, {when_text(e['start'])}, at {e['place']}." if len(rows) > 1 else \
-         f"I found one {adj}event {label}: {ctitle}, {when_text(e['start'])}, at {e['place']}."
+    s1 = (
+        f"I found {len(rows)} {adj}events {label}. The first is {ctitle}, {when_text(e['start'])}, at {e['place']}."
+        if len(rows) > 1
+        else f"I found one {adj}event {label}: {ctitle}, {when_text(e['start'])}, at {e['place']}."
+    )
     head = [S(s1, [e["link_id"]], "claim", [str(len(rows))]), snap]
     cards = [event_card(x, ctx) for x in rows[:MAX_CARDS]]
     det = []
     for x in rows[1:8]:
         acc = ", ".join(R.ACCESS_WORDS.get(a, a) for a in x.get("access") or [])
-        det.append(S(f"{x['title']}, {when_text(x['start'])}, at {x['place']}" + (f" ({acc})." if acc else "."), [x["link_id"]]))
+        det.append(
+            S(
+                f"{x['title']}, {when_text(x['start'])}, at {x['place']}" + (f" ({acc})." if acc else "."),
+                [x["link_id"]],
+            )
+        )
     if e.get("access"):
-        det.insert(0, S("Access for the first event: " + ", ".join(R.ACCESS_WORDS.get(a, a) for a in e["access"]) + ".", [e["link_id"]]))
+        det.insert(
+            0,
+            S(
+                "Access for the first event: "
+                + ", ".join(R.ACCESS_WORDS.get(a, a) for a in e["access"])
+                + ".",
+                [e["link_id"]],
+            ),
+        )
     ids = list(dict.fromkeys(x["link_id"] for x in rows))
-    return Answer("answer", head, details=det, cards=cards, unknown=[f"{w}" for w in pl.unsupported],
-                  actions=[{"type": "show_on_map", "ids": ids}], sources=_sources(cards))
+    return Answer(
+        "answer",
+        head,
+        details=det,
+        cards=cards,
+        unknown=[f"{w}" for w in pl.unsupported],
+        actions=[{"type": "show_on_map", "ids": ids}],
+        sources=_sources(cards),
+    )
 
 
 def _route(pl, res, ctx, as_of):
@@ -502,21 +766,44 @@ def _route(pl, res, ctx, as_of):
     d = r.data if r else None
     nm = row["name"] if row else pl.place["name"]
     if not d:
-        return Answer("unknown", [S(f"I don't have a step-free route to {nm} yet.", [], "meta"),
-                                  S("I don't know, and I would rather say so than guess.", [], "meta")],
-                      unknown=["a route"], call=_call(row))
+        return Answer(
+            "unknown",
+            [
+                S(f"I don't have a step-free route to {nm} yet.", [], "meta"),
+                S("I don't know, and I would rather say so than guess.", [], "meta"),
+            ],
+            unknown=["a route"],
+            call=_call(row),
+        )
     refs = [pl.place["id"]]
-    s1 = S(f"A step-free route to {nm} from {d['from']} is about {d['length_feet']} feet.", refs, "claim", [str(d["length_feet"])])
-    s2 = S("It avoids mapped stairs and steep sections. It is computed from map data, not checked on site.", [], "meta")
+    s1 = S(
+        f"A step-free route to {nm} from {d['from']} is about {d['length_feet']} feet.",
+        refs,
+        "claim",
+        [str(d["length_feet"])],
+    )
+    s2 = S(
+        "It avoids mapped stairs and steep sections. It is computed from map data, not checked on site.",
+        [],
+        "meta",
+    )
     det = [S(x, refs, "claim") for x in d.get("directions") or []]
     if d.get("crossings_text"):
         det.append(S(d["crossings_text"], refs))
     if d.get("compared_with_shortest"):
         det.append(S(d["compared_with_shortest"], refs))
     cards = [card_for(row, None, ctx, 3)] if row else []
-    return Answer("answer", [s1, s2], details=det, cards=cards, call=_call(row),
-                  actions=[{"type": "route_to", "place_id": pl.place["id"], "profile": pl.args.get("profile", "wheelchair")}],
-                  sources=_sources(cards))
+    return Answer(
+        "answer",
+        [s1, s2],
+        details=det,
+        cards=cards,
+        call=_call(row),
+        actions=[
+            {"type": "route_to", "place_id": pl.place["id"], "profile": pl.args.get("profile", "wheelchair")}
+        ],
+        sources=_sources(cards),
+    )
 
 
 def _area(pl, res, ctx, as_of):
@@ -524,31 +811,71 @@ def _area(pl, res, ctx, as_of):
     d = r.data if r else None
     nm = pl.anchor["name"] if pl.anchor else "that area"
     if not d or d.get("path_sections") in (None, 0):
-        return Answer("unknown", [S(f"I don't have path data around {nm}.", [], "meta"),
-                                  S("I don't know, and I would rather say so than guess.", [], "meta")],
-                      unknown=["paths and slopes"])
+        return Answer(
+            "unknown",
+            [
+                S(f"I don't have path data around {nm}.", [], "meta"),
+                S("I don't know, and I would rather say so than guess.", [], "meta"),
+            ],
+            unknown=["paths and slopes"],
+        )
     T = ["tool:area_conditions"]
     pct = rhu(d["share_steeper_than_ramp"] * 100) if d.get("share_steeper_than_ramp") is not None else None
     rep = d.get("open_311_reports")
-    slope = S(f"Around {nm}, about {pct}% of mapped path sections are steeper than a ramp (8.33%). There are {d['stairways']} mapped stairways.", T, "claim", [str(pct), str(d["stairways"])])
+    slope = S(
+        f"Around {nm}, about {pct}% of mapped path sections are steeper than a ramp (8.33%). There are {d['stairways']} mapped stairways.",
+        T,
+        "claim",
+        [str(pct), str(d["stairways"])],
+    )
     unk, det = [], []
     if pl.topic == "reports" and rep is None:
         head = [S(f"I don't have closure or construction information for {nm}.", [], "meta"), slope]
         unk.append("closures and construction")
     elif pl.topic == "reports":
-        head = [S(f"Near {nm}, {len(rep)} sidewalk or curb problems are open with the city (311). Data through {full_date(d.get('311_data_through'))}.", T, "claim", [str(len(rep))]),
-                S("Reports are not closures, and they are not limited to this week. Check with the city.", [], "meta")]
+        head = [
+            S(
+                f"Near {nm}, {len(rep)} sidewalk or curb problems are open with the city (311). Data through {full_date(d.get('311_data_through'))}.",
+                T,
+                "claim",
+                [str(len(rep))],
+            ),
+            S(
+                "Reports are not closures, and they are not limited to this week. Check with the city.",
+                [],
+                "meta",
+            ),
+        ]
         det.append(slope)
         for x in rep[:6]:
-            det.append(S(f"{x['type']}, opened {full_date(x['opened'])}, priority {x['priority'].lower()}.", T))
+            det.append(
+                S(f"{x['type']}, opened {full_date(x['opened'])}, priority {x['priority'].lower()}.", T)
+            )
     else:
         head = [slope, S(STANDING + " Slopes are estimated from elevation data.", [], "meta")]
         if rep is not None:
-            det.append(S(f"{len(rep)} open sidewalk or curb reports to the city (311) nearby; data through {full_date(d.get('311_data_through'))}.", T, "claim", [str(len(rep))]))
+            det.append(
+                S(
+                    f"{len(rep)} open sidewalk or curb reports to the city (311) nearby; data through {full_date(d.get('311_data_through'))}.",
+                    T,
+                    "claim",
+                    [str(len(rep))],
+                )
+            )
     if d.get("nine_in_ten_sections_at_or_below_percent") is not None:
-        det.append(S(f"Nine in ten path sections are at or below {d['nine_in_ten_sections_at_or_below_percent']}% grade.", T))
+        det.append(
+            S(
+                f"Nine in ten path sections are at or below {d['nine_in_ten_sections_at_or_below_percent']}% grade.",
+                T,
+            )
+        )
     if d.get("city_curb_ramps") is not None:
-        det.append(S(f"The city's curb-ramp map shows {d['city_curb_ramps']} curb ramps within {d['radius_feet']} feet.", T))
+        det.append(
+            S(
+                f"The city's curb-ramp map shows {d['city_curb_ramps']} curb ramps within {d['radius_feet']} feet.",
+                T,
+            )
+        )
     else:
         unk.append("curb ramps (no curb-ramp inventory exists for this area)")
     det.append(S(STANDING, [], "meta"))
