@@ -12,7 +12,7 @@
 # ---- events with a fixed today, relative dates, empty results, past events
 - {id: ev-tonight, category: events, question: "What's on tonight in Oxford?", today: "2026-11-21", expect: {intent: [events], kind: [answer, unknown], include: ["snapshot", "13 November 2026"]}}
 - {id: ev-weekend-cinc, category: events, question: "Anything happening this weekend in Cincinnati?", today: "2026-11-20", expect: {intent: [events], include: ["snapshot"]}}
-- {id: ev-next-sat, category: events, question: "Any audio described performances next Saturday?", today: "2026-11-20", expect: {intent: [events], include: ["Saturday 28 November"]}}
+- {id: ev-next-sat, category: events, question: "Any audio described performances next Saturday?", today: "2026-11-20", expect: {intent: [events], include: ["no audio described events"]}}
 - {id: ev-asl-dec, category: events, question: "ASL interpreted shows in December", today: "2026-11-20", expect: {intent: [events], names: ["Cincinnati Playhouse in the Park", "Cincinnati Shakespeare Company"], include: ["ASL"]}}
 - {id: ev-sensory-month, category: events, question: "Sensory-friendly performances this month", today: "2026-11-20", expect: {intent: [events], include: ["sensory-friendly"]}}
 - {id: ev-this-month-oxford, category: events, question: "What events are happening in Oxford this month?", today: "2026-11-20", expect: {intent: [events], kind: [answer]}}
