@@ -105,8 +105,12 @@ TEMPLATE = r"""<!DOCTYPE html>
  svg.i{width:18px;height:18px;flex:none}
  /* top bar */
  header{height:var(--head);flex:none;display:flex;align-items:center;gap:12px;padding:0 14px;border-bottom:1px solid var(--line);background:#fff;z-index:1200}
- .brand{min-width:0;flex:1} header h1{font-size:16px;font-weight:650;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
- header .sub{margin:0;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis} header .sub a{color:var(--muted)}
+ header{position:relative}
+ .brand{min-width:0;flex:1;display:flex;align-items:center;gap:8px} header h1{flex:0 1 auto;min-width:0;font-size:16px;font-weight:650;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
+ .city{font:inherit;font-size:12.5px;line-height:1;padding:5px 24px 5px 9px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--muted);cursor:pointer;min-height:0;flex:none;max-width:42vw}
+ .info-btn{flex:none;width:20px;height:20px;padding:0;border-radius:50%;justify-content:center;font-size:12px;font-weight:700;color:var(--muted);border-color:var(--line);line-height:1}
+ header .sub{position:absolute;left:12px;top:calc(100% + 6px);z-index:1300;margin:0;max-width:min(360px,calc(100vw - 24px));padding:10px 12px;font-size:12.5px;line-height:1.6;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+ header .sub[hidden]{display:none} header .sub a{color:var(--muted);display:block}
  .search{position:relative;width:min(340px,34vw)} .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted)}
  .search input{width:100%;font:inherit;font-size:14px;padding:10px 12px 10px 36px;border-radius:10px;border:1px solid var(--line);background:var(--soft)}
  .search input:focus{background:#fff}
@@ -179,8 +183,10 @@ TEMPLATE = r"""<!DOCTYPE html>
  /* phone: map full screen, list as a bottom sheet */
  @media (max-width:720px){
    :root{--head:auto}
-   header{flex-wrap:wrap;padding:10px 12px;gap:8px}
-   .brand{flex:1 1 100%} header h1{font-size:15.5px} header .sub{white-space:normal}
+   header{flex-wrap:wrap;padding:6px 10px;gap:6px}
+   .brand{flex:1 1 100%} header h1{font-size:14.5px}
+   header button,header .btn{padding:7px 10px;font-size:13px;gap:5px} header svg.i{width:16px;height:16px}
+   header .search input{padding-top:7px;padding-bottom:7px}
    .search{flex:1 1 auto;width:auto;min-width:0}
    #near{flex:none}
    .edge{display:none}
@@ -227,7 +233,9 @@ __ASSISTANT_CSS__
 </style></head><body>
 <a class="skip" href="#list-h">Skip to the list of places</a>
 <header>
- <div class="brand"><h1>__TITLE__</h1><p class="sub">Data as of <span id="asof"></span>__NAV__</p></div>
+ <div class="brand"><h1>__TITLE__</h1>__SWITCH__
+  <button id="info-btn" class="info-btn" type="button" aria-label="About this map: last updated and more links" aria-expanded="false" aria-controls="info-pop">!</button>
+  <p class="sub" id="info-pop" hidden>Data last updated <span id="asof"></span>__NAV__</p></div>
  <div class="search" role="search">
   <svg class="i" viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="m14 14 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
   <label for="q" class="vh">Search places, trails and venues</label>
@@ -291,6 +299,12 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;
 const svg = (layer, colour, size=20) => `<svg aria-hidden="true" width="${size}" height="${size}" viewBox="0 0 20 20" style="color:${colour}">${ICONS[layer][1]}</svg>`;
 const badge = r => `<span class="rb"><i aria-hidden="true" style="background:${RATINGS[r][1]};color:${RATINGS[r][3]}">${RATINGS[r][2]}</i>${RATINGS[r][0]}</span>`;
 document.getElementById('asof').textContent = Object.values(DATA)[0].generated;
+{ const ib = document.getElementById('info-btn'), ip = document.getElementById('info-pop');
+  const setInfo = open => { ip.hidden = !open; ib.setAttribute('aria-expanded', String(open)); };
+  ib.onclick = e => { e.stopPropagation(); setInfo(ip.hidden); };
+  document.addEventListener('click', e => { if (!ip.hidden && !ip.contains(e.target)) setInfo(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !ip.hidden) { setInfo(false); ib.focus(); } });
+  const city = document.getElementById('city'); if (city) city.onchange = () => { location.href = city.value; }; }
 
 // ---------- map ----------
 const PHONE_EARLY = window.matchMedia('(max-width:720px)');
@@ -1006,11 +1020,13 @@ def render(
     data: dict,
     title: str = "Accessibility Map",
     nav: str = "",
+    switch: str = "",
 ) -> str:
     """data = {region: FeatureCollection}; nav = extra HTML after the date (e.g. a link to the other city)."""
     return (
         TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False).replace("<", "\\u003c"))
         .replace("__TITLE__", title)
+        .replace("__SWITCH__", switch)
         .replace("__NAV__", nav)
         .replace("__RATINGS__", json.dumps(RATINGS, ensure_ascii=False))
         .replace("__HELP__", json.dumps(RATING_HELP))
