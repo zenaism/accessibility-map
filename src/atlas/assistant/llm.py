@@ -16,6 +16,7 @@ Everything has a finite timeout and a fallback. One model at a time, short keep_
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import re
@@ -101,10 +102,8 @@ def chat(
 
 def unload() -> None:
     for m in (TEXT_MODEL, VISION_MODEL):
-        try:
+        with contextlib.suppress(requests.RequestException):
             requests.post(f"{OLLAMA}/api/generate", json={"model": m, "keep_alive": 0}, timeout=5)
-        except requests.RequestException:
-            pass
 
 
 # ---------------------------------------------------------------- planner ----
