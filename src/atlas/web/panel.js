@@ -558,7 +558,11 @@ self.onmessage = async (e) => {
       const o = e.target.closest('[role=option]');
       if (o) choose(+o.dataset.i);
     });
-    input.addEventListener('blur', () => setTimeout(close, 120));
+    input.addEventListener('blur', () =>
+      setTimeout(() => {
+        if (document.activeElement !== input) close();
+      }, 120)
+    );
     clear.addEventListener('click', () => {
       S[id] = null;
       c.setText(null);
