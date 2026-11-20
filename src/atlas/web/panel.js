@@ -1161,6 +1161,9 @@ self.onmessage = async (e) => {
     get result() {
       return S.result;
     },
+    get points() {
+      return { from: S.from && S.from.pt, to: S.to && S.to.pt };
+    },
   };
   window.addEventListener('atlas:route-to', (e) => {
     const d = (e && e.detail) || {};
