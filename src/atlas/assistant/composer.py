@@ -432,8 +432,6 @@ def _place(pl, res, ctx, as_of):
         head = [s1, s2]
         cards = [card_for(row, None, ctx, 5)]
     det = []
-    if row.get("summary") and row["layer"] == "organization" if "layer" in row else False:
-        pass
     if row.get("summary"):
         det.append(S(f"About: {clip(row['summary'], 300)}", refs))
     if row.get("hours"):

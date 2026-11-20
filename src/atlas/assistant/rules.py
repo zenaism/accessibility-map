@@ -554,7 +554,7 @@ CAN_ANSWER = [
 CANNOT_ANSWER = [
     "live information: bus times, weather, closures today",
     "housing, voting and civic services, places of worship, shelters",
-    "whether a place is legally ADA compliant",
+    "legal advice, or whether a place meets the law",
     "emergencies: call 911",
 ]
 
@@ -574,7 +574,7 @@ def rules_json() -> str:
         "FACT_LABELS", "VALUE_WORDS", "SOURCE_KINDS", "BANNED", "BANNED_WORDS", "STOP", "NEAR_WORDS", "NEAR_ME",
         "GENERIC_NAME_WORDS", "ALIASES", "QUERY_MAP", "QUERY_FIRST", "HELP_TILES", "CAN_ANSWER", "CANNOT_ANSWER", "EVENT_STRONG", "EVENT_ACCESS_ALL", "MONTHS_DAYS", "KNOWN_CAPS", "UNSUPPORTED", "RATING_TEXT", "NOISE_FACTS", "ACCESS_WORDS", "NEEDS", "POSITIVE", "ACCESS_ADJ", "LIVE_TOPICS", "FACT_PRIORITY",
     ]
-    return json.dumps({n: getattr(g, n) for n in names}, ensure_ascii=False, sort_keys=True)
+    return json.dumps({n: getattr(g, n) for n in names}, ensure_ascii=False)
 
 # event words that mean "events" even when a place is named; the rest only count with no named place
 EVENT_STRONG = [
