@@ -16,6 +16,8 @@ import yaml
 from .core import ROOT
 from .report_ui import CSS as REPORT_CSS
 from .report_ui import JS as REPORT_JS
+from .routing_ui import CSS as ROUTING_CSS
+from .routing_ui import JS as ROUTING_JS
 
 RATINGS = {  # value -> (label, colour, symbol, glyph colour on the disc)
     "accessible": ("Accessible", "#0072B2", "✓", "#ffffff"),
@@ -212,6 +214,9 @@ TEMPLATE = r"""<!DOCTYPE html>
  .route{margin:.2rem 0 .6rem;padding-left:1.3rem} .route li{margin:.15rem 0}
  .note{font-size:.8rem;color:#555;margin:.2rem 0 .6rem} .side-body h4{margin:.8rem 0 .3rem;font-size:.95rem}
 __REPORT_CSS__
+/* ==== ROUTING START ==== */
+__ROUTING_CSS__
+/* ==== ROUTING END ==== */
 </style></head><body>
 <a class="skip" href="#list-h">Skip to the list of places</a>
 <header>
@@ -587,6 +592,7 @@ function card(it){
   li.querySelector('[data-a=map]').onclick = () => showOnMap(it);
   li.querySelector('[data-a=det]').onclick = e => toggle(it, e.currentTarget);
   if (RATECFG) li.querySelector('.rp-act').replaceWith(reportButton({link_id:p.link_id, name:p.name, region:p.region}, 'Report', true));
+  /* ==== ROUTING START ==== */ if (ROUTING) ROUTING.decorateCard(li, it); /* ==== ROUTING END ==== */
   return li;
 }
 let routeLayer = null;
@@ -615,6 +621,7 @@ function toggle(it, btn, force){
   btn.setAttribute('aria-expanded', open); box.hidden = !open;
   if (open && !box.innerHTML){
     box.innerHTML = details(it);
+    /* ==== ROUTING START ==== */ if (ROUTING) ROUTING.decorateDetails(box, it); /* ==== ROUTING END ==== */
     const googleBox = box.querySelector('.google-details');
     if (googleBox) googleBox.replaceChildren(googleDetailsNode(it.p.google_place));
     box.querySelector('[data-a=copy]').onclick = () => copyLink(it);
@@ -798,6 +805,7 @@ function popupContent(it){
     + `<div class="pop-actions"><button type="button" class="ghost" data-a="list">Details</button></div>`;
   el.querySelector('[data-a=list]').onclick = () => openCard(it.i);
   if (RATECFG) el.querySelector('.pop-actions').append(reportButton({link_id:p.link_id, name:p.name, region:p.region}, 'Report', true));
+  /* ==== ROUTING START ==== */ if (ROUTING) ROUTING.decoratePopup(el, it); /* ==== ROUTING END ==== */
   if (canRate(it)) el.append(quickRate(it));
   return el;
 }
@@ -886,6 +894,11 @@ async function loadCommunity(linkId){
 }
 loadCommunity();
 __REPORT_JS__
+// ==== ROUTING START ====
+const ROUTING = GOOGLE_ENABLED ? null : (() => {
+__ROUTING_JS__
+})();
+// ==== ROUTING END ====
 // ---------- legend ----------
 document.getElementById('legend-body').innerHTML = '<ul>'
   + Object.entries(RATINGS).map(([k, r]) => `<li>${badge(k)}<span>${HELP[k]}</span></li>`).join('') + '</ul><ul>'
@@ -919,6 +932,8 @@ def render(
         .replace("__RATECFG__", json.dumps(ratings_config()))
         .replace("__REPORT_CSS__", REPORT_CSS)
         .replace("__REPORT_JS__", REPORT_JS)
+        .replace("__ROUTING_CSS__", ROUTING_CSS)  # ROUTING
+        .replace("__ROUTING_JS__", ROUTING_JS)  # ROUTING
     )
 
 
