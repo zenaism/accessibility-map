@@ -14,6 +14,8 @@ from . import tools as T
 from .schema import Context, Plan, ToolResult
 
 FALLBACK_NEED = {"step_free_entrance": "listed_wheelchair_accessible"}
+RESTROOM_NEEDS = ("accessible_restroom", "adult_changing_table")
+NOT_PUBLIC = ("private", "no")  # OpenStreetMap access values for a restroom the public may not use
 
 
 class KBBackend:
@@ -85,19 +87,33 @@ def _events(be, args: dict, today: str) -> list[dict]:
     return [e for e in rows if e["start"][:10] >= today]
 
 
+def _fetch(fn, a: dict, be) -> tuple[list[dict], dict]:
+    """Run a place tool; for restroom needs skip restrooms OpenStreetMap marks as not open to the public."""
+    limit = a.get("limit", 5)
+    if a.get("need") not in RESTROOM_NEEDS:
+        return _enrich(fn(**a), be), {}
+    rows = _enrich(fn(**{**a, "limit": limit * 4}), be)
+    keep = [
+        r
+        for r in rows
+        if not any(f["attribute"] == "access" and f["value"] in NOT_PUBLIC for f in r["facts"])
+    ]
+    removed = len(rows[: limit * 4]) - len(keep)
+    return keep[:limit], ({"private_removed": removed} if removed else {})
+
+
 def execute(pl: Plan, ctx: Context, be) -> list[ToolResult]:
     out: list[ToolResult] = []
     a = dict(pl.args)
     if pl.tool in ("search_places", "nearest"):
         fn = be.search_places if pl.tool == "search_places" else be.nearest
-        rows = fn(**a)
-        meta = {}
+        rows, meta = _fetch(fn, a, be)
         if not rows and a.get("need") in FALLBACK_NEED:
             a2 = {**a, "need": FALLBACK_NEED[a["need"]]}
-            rows = fn(**a2)
+            rows, meta2 = _fetch(fn, a2, be)
             if rows:
-                meta = {"fallback_need": a2["need"], "wanted": a["need"]}
-        out.append(ToolResult(pl.tool, a, _enrich(rows, be), meta))
+                meta = {**meta2, "fallback_need": a2["need"], "wanted": a["need"]}
+        out.append(ToolResult(pl.tool, a, rows, meta))
     elif pl.tool == "get_place":
         p = be.get_place(a["name_or_id"])
         if p is not None:
