@@ -114,7 +114,7 @@ def cdn(tmp_path_factory):
     return files
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")  # module scope: other test files start their own Playwright in the same run
 def browser():
     with sync_playwright() as p:
         try:
