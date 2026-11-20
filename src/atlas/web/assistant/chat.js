@@ -96,7 +96,7 @@
       h('label', { class: 'ow-vh', for: id('q') }, 'Your question'), input, sendBtn);
     const compose = h('div', { class: 'ow-compose' }, miniTiles, form, h('div', { class: 'ow-tools' }, micBtn, camBtn, stopBtn), attach, status, fileInput);
     const needsDlg = h('dialog', { 'aria-labelledby': id('needs-h') });
-    const nav = mode === 'page' ? h('nav', { class: 'ow-topnav', 'aria-label': 'Maps' }, 'Open the map:', h('a', { href: 'cincinnati.html', text: 'Cincinnati' }), h('a', { href: 'oxford.html', text: 'Oxford' })) : null;
+    const nav = mode === 'page' ? h('nav', { class: 'ow-topnav', 'aria-label': 'Maps' }, 'Open the map:', h('a', { href: (g.__OPENWAY_DATA ? g.__OPENWAY_DATA.cincinnati.site + '/' : '') + 'cincinnati.html', text: 'Cincinnati' }), h('a', { href: (g.__OPENWAY_DATA ? g.__OPENWAY_DATA.oxford.site + '/' : '') + 'oxford.html', text: 'Oxford' })) : null;
     const inner = h('div', { class: 'ow-inner' }, nav, head, settings, log, compose);
     if (mode === 'page') {
       root.append(inner, announcer, needsDlg);
@@ -111,7 +111,8 @@
       { label: 'Food with no steps', message: 'Find food with no steps at the door' }, { label: 'Step-free route', message: 'How do I get to the Cincinnati Art Museum without steps?' },
       { label: 'Events this week', message: 'What events are on this week?' }, { label: 'Trails', message: 'What paved trails are there?' }];
     const regionOf = pid => { const p = S.guided && S.guided.kb.byId.get(pid); return p ? p.region : (options.region || 'cincinnati'); };
-    const mapUrl = pid => regionOf(pid) + '.html#place=' + encodeURIComponent(pid);
+    const siteBase = () => (g.__OPENWAY_DATA && S.guided ? S.guided.kb.site + '/' : '');
+    const mapUrl = pid => siteBase() + regionOf(pid) + '.html#place=' + encodeURIComponent(pid);
     const fire = (name, detail) => !g.dispatchEvent(new g.CustomEvent(name, { detail, cancelable: true }));
     const fullDate = iso => (O.composer && iso ? O.composer.fullDate(iso) : iso || '');
     const ctxNow = () => {
@@ -220,7 +221,8 @@
     function welcome() {
       log.textContent = '';
       const list = h('ul', { class: 'ow-tiles', 'aria-label': 'Quick questions' });
-      for (const t of tiles()) list.append(h('li', {}, h('button', { type: 'button', onclick: () => ask(t.message) }, t.label)));
+      const TI = ['<path d="M10 3a2 2 0 1 0 0 .01M7 8h6l-1 4h-4zM8 12l-1 5M12 12l1 5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>','<path d="M6 17V3h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>','<path d="M6 3v6a2 2 0 0 0 2 2v6M8 3v5M4 3v5a2 2 0 0 0 2 2M14 17V3c-2 1.500-2.500 4-2.500 7H14" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>','<path d="M4 16c3-1 3-5 6-6s3-4 6-6M14 3h2v2" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/>','<rect x="3.500" y="4.500" width="13" height="12" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3.500 8.500h13M7 3v3M13 3v3" stroke="currentColor" stroke-width="1.6"/>','<path d="M3 16c3-2 3-6 7-7s4-4 7-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>'];
+      tiles().forEach((t, i) => list.append(h('li', {}, h('button', { type: 'button', onclick: () => ask(t.message) }, h('span', { class: 'ow-tile-i' }, icon(TI[i % 6])), h('span', { text: t.label })))));
       log.append(h('section', { class: 'ow-welcome', 'aria-labelledby': id('wh') },
         h(HL, { id: id('wh'), class: 'ow-ah', text: 'What would you like to know?' }),
         h('p', { text: 'Ask in your own words, or choose a button. I answer from sourced data about places in Cincinnati and Oxford, and I say so when I don’t know.' }), list));
@@ -473,7 +475,8 @@
     const get = async u => { const r = await fetch(u); if (!r.ok) throw new Error(u + ' ' + r.status); return r.json(); };
     (async () => {
       try {
-        const [rules, cinc, ox] = await Promise.all([get(base + 'rules.json'), get(base + 'cincinnati.json'), get(base + 'oxford.json')]);
+        const inl = g.__OPENWAY_DATA;
+        const [rules, cinc, ox] = inl ? [inl.rules, inl.cincinnati, inl.oxford] : await Promise.all([get(base + 'rules.json'), get(base + 'cincinnati.json'), get(base + 'oxford.json')]);
         S.guided = new O.engine.GuidedEngine([cinc, ox], rules);
         hint(''); sendBtn.disabled = false; welcome(); root.dispatchEvent(new g.CustomEvent('ow:ready'));
         S.guided.fromData = true;

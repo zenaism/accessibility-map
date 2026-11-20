@@ -58,6 +58,20 @@ def build(out: Path | None = None) -> Path:
     return out
 
 
+def build_standalone(out: Path | None = None) -> Path:
+    """One file with the data inside: opens from an email attachment, a shared drive or any static host, no server.
+    Guided mode only (the local model needs the server)."""
+    import json
+
+    out = out or ROOT / "data/map/ask-standalone.html"
+    d = ROOT / "data/map/assistant"
+    data = {k: json.loads((d / f"{k}.json").read_text()) for k in ("rules", "cincinnati", "oxford")}
+    blob = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    html = PAGE.replace("__CSS__", css()).replace("__JS__", "window.__OPENWAY_DATA = " + blob + ";\n" + js_bundle())
+    out.write_text(html)
+    return out
+
+
 if __name__ == "__main__":
-    p = build()
-    print(f"{p.relative_to(ROOT)}  {p.stat().st_size // 1024} KB")
+    for p in (build(), build_standalone()):
+        print(f"{p.relative_to(ROOT)}  {p.stat().st_size // 1024} KB")
