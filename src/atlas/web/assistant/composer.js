@@ -228,6 +228,7 @@
       det.push(S('Also on record: ' + names.join('; ') + '.', rows.slice(1, 6).map(x => x.link_id)));
     }
     if (fb && ev) det.push(ev);
+    if (r.meta && r.meta.private_removed) { const n = r.meta.private_removed; det.push(S('I left out ' + n + ' restroom' + (n > 1 ? 's' : '') + ' that OpenStreetMap marks as private.', ['tool:' + r.tool], 'claim', [String(n)])); }
     if (pl.intent === 'nearest') det.push(S('Distances are in a straight line, not a route. Not checked on site.', [], 'meta'));
     if (first.notice) det.push(S('Note for ' + nm + ': ' + first.notice + '.', refs));
     const ids = rows.filter(x => x.lat !== undefined && x.lat !== null).map(x => x.link_id);

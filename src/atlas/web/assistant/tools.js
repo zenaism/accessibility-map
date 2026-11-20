@@ -8,6 +8,8 @@
   const COMPASS = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'];
   const RATING_ORDER = { accessible: 0, partial: 1, not_accessible: 2, unknown: 3 };
   const FALLBACK_NEED = { step_free_entrance: 'listed_wheelchair_accessible' };
+  const RESTROOM_NEEDS = ['accessible_restroom', 'adult_changing_table'];
+  const NOT_PUBLIC = ['private', 'no'];
   const nz = v => (v === undefined || v === '' ? null : v);
 
   /** KB from the region files: rows shaped like the DuckDB `places` rows. */
@@ -173,19 +175,27 @@
   const enrich = (rows, be) => { for (const r of rows) { r.facts = be.facts(r.link_id); const c = be.coords(r.link_id); r.lat = c[0]; r.lon = c[1]; } return rows; };
   const upcoming = (be, args, today) => be.find_events(Object.assign({}, args, { limit: args.limit || 10 })).filter(e => e.start.slice(0, 10) >= today);
 
+  function fetchRows(fn, a, be) {
+    const limit = a.limit || 5;
+    if (!RESTROOM_NEEDS.includes(a.need)) return [enrich(fn(a), be), {}];
+    const rows = enrich(fn(Object.assign({}, a, { limit: limit * 4 })), be);
+    const keep = rows.filter(r => !r.facts.some(f => f.attribute === 'access' && NOT_PUBLIC.includes(f.value)));
+    const removed = rows.length - keep.length;
+    return [keep.slice(0, limit), removed ? { private_removed: removed } : {}];
+  }
   function execute(pl, ctx, be) {
     const out = [];
     const a = Object.assign({}, pl.args);
     const R = (tool, args, data, meta) => ({ tool, args, data, meta: meta || {} });
     if (pl.tool === 'search_places' || pl.tool === 'nearest') {
       const fn = pl.tool === 'search_places' ? be.search_places : be.nearest;
-      let rows = fn(a), meta = {};
+      let [rows, meta] = fetchRows(fn, a, be);
       if (!rows.length && FALLBACK_NEED[a.need]) {
         const a2 = Object.assign({}, a, { need: FALLBACK_NEED[a.need] });
-        rows = fn(a2);
-        if (rows.length) meta = { fallback_need: a2.need, wanted: a.need };
+        const [rows2, meta2] = fetchRows(fn, a2, be);
+        if (rows2.length) { rows = rows2; meta = Object.assign({}, meta2, { fallback_need: a2.need, wanted: a.need }); }
       }
-      out.push(R(pl.tool, a, enrich(rows, be), meta));
+      out.push(R(pl.tool, a, rows, meta));
     } else if (pl.tool === 'get_place') {
       const p = be.get_place(a.name_or_id);
       if (p) { p.events = upcoming(be, { link_id: p.link_id, start: ctx.today, end: D.plusDays(ctx.today, 365) }, ctx.today); const c = be.coords(p.link_id); p.lat = c[0]; p.lon = c[1]; }
