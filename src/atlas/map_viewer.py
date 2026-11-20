@@ -145,6 +145,8 @@ TEMPLATE = r"""<!DOCTYPE html>
  .pop-actions .report-btn svg.i{width:15px;height:15px}
  body.pop-open .rp-fab{display:none}
  .actions .ghost:hover,.pop-actions .ghost:hover,.det .links .ghost:hover{background:#e5e7eb;border-color:#9ca3af}
+ .fav-btn[aria-pressed=true]{color:#be123c;border-color:#fda4af;background:#fff1f2}
+ .fav-btn svg.i{width:16px;height:16px}
  .pop-actions{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0}
  .det{margin:6px 0 0;padding:8px 10px;background:var(--soft);border-radius:12px;font-size:13px}
  .det table{border-collapse:collapse;width:100%} .det th,.det td{text-align:left;vertical-align:top;padding:6px 4px;border-bottom:1px solid #e5e7eb}
@@ -331,13 +333,13 @@ if (GOOGLE_ENABLED) {
     iconCreateFunction: c => L.divIcon({html:`<div class="mc">${c.getChildCount()}</div>`, className:'', iconSize:[34,34]})}).addTo(map);
   trails = L.layerGroup().addTo(map);
 }
-function markerIcon(layer, r){
+function markerIcon(layer, r, fav){
   const [_, col, sym, glyph] = RATINGS[r];
   return L.divIcon({className:'', iconSize:[30,30], iconAnchor:[15,15], popupAnchor:[0,-14],
     html:`<svg width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="13" fill="${col}" stroke="#fff" stroke-width="2"/>
       <g transform="translate(5 4)" style="color:${glyph}">${ICONS[layer][1]}</g>
       <circle cx="24" cy="24" r="5.5" fill="#fff" stroke="#1b1f24" stroke-width="1"/>
-      <text x="24" y="27" text-anchor="middle" font-size="8" font-weight="700" font-family="Arial,sans-serif" fill="#1b1f24">${sym}</text></svg>`});
+      <text x="24" y="27" text-anchor="middle" font-size="8" font-weight="700" font-family="Arial,sans-serif" fill="#1b1f24">${sym}</text>${fav ? '<circle cx="6" cy="6" r="6" fill="#fff" stroke="#be123c" stroke-width="1"/><path transform="translate(0.5 0.5) scale(.5)" d="M10 16.5s-6-3.9-6-8.1A3.4 3.4 0 0 1 10 6.2a3.4 3.4 0 0 1 6 2.2c0 4.2-6 8.1-6 8.1z" fill="#be123c"/>' : ''}</svg>`});
 }
 // markers are mouse/touch only; keyboard and screen-reader users get the list (same content)
 if (!GOOGLE_ENABLED) new MutationObserver(() => document.querySelectorAll('#map .leaflet-marker-icon:not([data-q])').forEach(e => {
@@ -468,10 +470,17 @@ if (saved === '0' && !PHONE.matches) setList(false);
 
 if (!GOOGLE_ENABLED) map.setView(...VIEW[firstRegion]);
 
+
 // ---------- filters ----------
 const VISION = new Set(['Braille', 'Large print', 'Audio description', 'Touch / tactile', 'Service animals']);
+// ---------- saved places: kept in this browser only (localStorage), never sent anywhere ----------
+const FAV_KEY = 'atlas-favs';
+const FAVS = new Set(); try { (JSON.parse(localStorage.getItem(FAV_KEY)) || []).forEach(x => FAVS.add(x)); } catch (e) {}
+const saveFavs = () => { try { localStorage.setItem(FAV_KEY, JSON.stringify([...FAVS])); } catch (e) {} };
+const isFav = it => FAVS.has(it.p.link_id);
 const NEEDS = {
   'All places': () => true,
+  'Saved places': it => FAVS.has(it.p.link_id),
   'Accessible restrooms': it => it.p.layer === 'restroom' && ['accessible','partial'].includes(it.p.access_rating),
   'Any restroom': it => it.p.layer === 'restroom',
   'Museums & attractions': it => it.p.layer === 'culture',
@@ -492,6 +501,25 @@ const sort = document.getElementById('sort');
 if (RATECFG) sort.add(new Option('Highest visitor rating', 'community'));
 const need = document.getElementById('need'), known = document.getElementById('known'), q = document.getElementById('q'), when = document.getElementById('when');
 Object.keys(NEEDS).forEach(k => need.add(new Option(k, k)));
+function favCount(){ const o = [...need.options].find(x => x.value === 'Saved places'); if (o) o.textContent = 'Saved places (' + ITEMS.filter(isFav).length + ')'; }
+const HEART = '<path d="M10 16.5s-6-3.9-6-8.1A3.4 3.4 0 0 1 10 6.2a3.4 3.4 0 0 1 6 2.2c0 4.2-6 8.1-6 8.1z"/>';
+function favButton(it, small){
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'ghost fav-btn'; b.dataset.lid = it.p.link_id;
+  const paint = () => { const on = isFav(it); b.setAttribute('aria-pressed', String(on));
+    b.innerHTML = `<svg class="i" viewBox="0 0 20 20" aria-hidden="true" fill="${on ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">${HEART}</svg>${on ? 'Saved' : 'Save'}<span class="vh">: ${esc(it.p.name)}</span>`; };
+  paint();
+  b.onclick = () => { isFav(it) ? FAVS.delete(it.p.link_id) : FAVS.add(it.p.link_id); saveFavs(); favChanged(it); };
+  return b;
+}
+function favChanged(it){
+  document.querySelectorAll('.fav-btn').forEach(b => { if (b.dataset.lid === it.p.link_id){ const on = isFav(it);
+    b.setAttribute('aria-pressed', String(on)); b.firstElementChild.setAttribute('fill', on ? 'currentColor' : 'none');
+    b.childNodes[1].nodeValue = on ? 'Saved' : 'Save'; } });
+  favCount(); favMarker(it);
+  document.getElementById('status').textContent = (isFav(it) ? 'Saved ' : 'Removed from saved: ') + it.p.name + '.';
+  if (need.value === 'Saved places') { page = 0; render(false); }
+}
+function favMarker(it){ if (it.p.layer !== 'trail' && it.leaf && it.leaf.setIcon && !GOOGLE_ENABLED) it.leaf.setIcon(markerIcon(it.p.layer, it.p.access_rating, isFav(it))); }
 const RANK = {accessible:0, partial:1, not_accessible:2, unknown:3};
 const LAYER_RANK = {culture:0, park:1, adaptive_recreation:2, lodging:3, building:4, food_drink:5, service:6, trail:7, event:8, restroom:9};
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -623,9 +651,10 @@ function card(it){
       <button type="button" class="ghost" data-a="map">Show on map<span class="vh">: ${esc(p.name)}</span></button>
       <a class="btn ghost" href="${directions(it)}" target="_blank" rel="noopener">Directions<span class="vh"> to ${esc(p.name)} in Google Maps (opens in a new tab)</span></a>
       <button type="button" class="ghost" data-a="det" aria-expanded="false" aria-controls="det-${it.i}">Details<span class="vh">: ${esc(p.name)}</span></button>
-      <span class="rp-act"></span>
+      <span class="fav-act"></span><span class="rp-act"></span>
     </div>
     <div class="det" id="det-${it.i}" hidden></div>`;
+  li.querySelector('.fav-act').replaceWith(favButton(it));
   li.querySelector('[data-a=map]').onclick = () => showOnMap(it);
   li.querySelector('[data-a=det]').onclick = e => toggle(it, e.currentTarget);
   if (RATECFG) li.querySelector('.rp-act').replaceWith(reportButton({link_id:p.link_id, name:p.name, region:p.region}, 'Report', true));
@@ -697,6 +726,7 @@ function render(announce){
     document.getElementById('sheet-label').textContent = `${list.length} place${list.length === 1 ? '' : 's'}`;
     document.getElementById('status').textContent = `${list.length} place${list.length === 1 ? '' : 's'}`
       + (t ? ` matching “${t}”` : '') + ', ' + SORT_TEXT[sort.value] + '.';
+    if (need.value === 'Saved places' && !list.length) document.getElementById('status').textContent = 'No saved places yet. Tap Save on any place to keep it here on this device.';
   }
 }
 function showOnMap(it){
@@ -732,6 +762,7 @@ function openCard(i, rate){
   (form ? form.querySelector('.stars button') : li.querySelector('h3')).focus({preventScroll:true});
 }
 window.openCard = openCard;
+favCount(); ITEMS.forEach(it => { if (isFav(it)) favMarker(it); });
 [need, known, when].forEach(el => el.onchange = () => { when.hidden = !/[Ee]vents|shows/.test(need.value); page = 0; render(); });
 q.oninput = () => { page = 0; render(); };
 sort.onchange = () => { page = 0; if (sort.value === 'near' && !here) locate(); else render(); };
@@ -841,6 +872,7 @@ function popupContent(it){
   el.innerHTML = `<h3>${esc(p.name)}</h3>${badge(p.access_rating)}<p>${esc(short)}</p><p class="comm pop-comm">${commText(it)}</p>`
     + `<div class="pop-actions"><button type="button" class="ghost" data-a="list">Details</button></div>`;
   el.querySelector('[data-a=list]').onclick = () => openCard(it.i);
+  el.querySelector('.pop-actions').append(favButton(it));
   if (RATECFG) el.querySelector('.pop-actions').append(reportButton({link_id:p.link_id, name:p.name, region:p.region}, 'Report', true));
   /* ==== ROUTING START ==== */ if (ROUTING) ROUTING.decoratePopup(el, it); /* ==== ROUTING END ==== */
   if (canRate(it)) el.append(quickRate(it));
