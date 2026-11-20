@@ -20,7 +20,7 @@ from pathlib import Path
 
 WEB = Path(__file__).with_name("web")
 # Cincinnati stays on the per-place routes until measured (see docs/routing_usage.md)
-ROUTING_REGIONS = ["oxford"]
+ROUTING_REGIONS = ["oxford", "cincinnati"]
 GRAPH_BASE = "routing/"
 
 

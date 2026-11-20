@@ -12,7 +12,7 @@ Output: data/map/routing/<region>.graph.json, columnar so it gzips well:
           cls (class code, see CLASSES), name (index into names or -1), kind (index into kinds or -1),
           flags (bit field, see FLAGS), grade (percent, one decimal, null = unknown)
 
-Run: python -m atlas.export_routing --region oxford
+Run: python -m atlas.export_routing --region oxford   (or --all for every region with the panel)
 """
 
 from __future__ import annotations
@@ -143,12 +143,26 @@ def write(region: str, out_dir: Path = OUT_DIR) -> dict:
     return info
 
 
+def write_all(out_dir: Path = OUT_DIR) -> list[dict]:
+    """The graph of every region that has the Directions panel (routing_ui.ROUTING_REGIONS), when its walking
+    network is available. Called by `atlas.cli map`, so `make map` rebuilds the graphs with the maps."""
+    from .routing_ui import ROUTING_REGIONS
+
+    return [
+        write(r, out_dir) for r in ROUTING_REGIONS if (routing.PROCESSED / r / "walk_edges.parquet").exists()
+    ]
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--region", default="oxford")
+    ap.add_argument("--all", action="store_true", help="every region that has the Directions panel")
     ap.add_argument("--out", type=Path, default=OUT_DIR)
     args = ap.parse_args()
-    write(args.region, args.out)
+    if args.all:
+        write_all(args.out)
+    else:
+        write(args.region, args.out)
 
 
 if __name__ == "__main__":
