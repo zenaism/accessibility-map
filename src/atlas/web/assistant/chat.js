@@ -74,7 +74,7 @@
 
     // ---- skeleton ----
     const modeLabel = h('span', { id: id('mode') });
-    const settingsBtn = h('button', { type: 'button', 'aria-expanded': 'false', 'aria-controls': id('settings'), onclick: () => toggleSettings() }, icon(ICONS.gear), 'Settings');
+    const settingsBtn = h('button', { type: 'button', class: 'ow-gear', title: 'Settings', 'aria-label': 'Settings', 'aria-expanded': 'false', 'aria-controls': id('settings'), onclick: () => toggleSettings() }, icon(ICONS.gear));
     const closeBtn = mode === 'panel' ? h('button', { type: 'button', class: 'ow-ghost', 'aria-label': 'Close the assistant', onclick: () => api.close() }, icon(ICONS.x), 'Close') : null;
     const head = h('div', { class: 'ow-head' },
       h('div', { class: 'ow-titles' }, h(mode === 'page' ? 'h1' : 'h2', { id: id('title'), text: 'Openway Assistant' }),
@@ -221,11 +221,10 @@
     function welcome() {
       log.textContent = '';
       const list = h('ul', { class: 'ow-tiles', 'aria-label': 'Quick questions' });
-      const TI = ['<path d="M10 3a2 2 0 1 0 0 .01M7 8h6l-1 4h-4zM8 12l-1 5M12 12l1 5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>','<path d="M6 17V3h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>','<path d="M6 3v6a2 2 0 0 0 2 2v6M8 3v5M4 3v5a2 2 0 0 0 2 2M14 17V3c-2 1.500-2.500 4-2.500 7H14" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>','<path d="M4 16c3-1 3-5 6-6s3-4 6-6M14 3h2v2" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/>','<rect x="3.500" y="4.500" width="13" height="12" rx="2" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M3.500 8.500h13M7 3v3M13 3v3" stroke="currentColor" stroke-width="1.6"/>','<path d="M3 16c3-2 3-6 7-7s4-4 7-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>'];
-      tiles().forEach((t, i) => list.append(h('li', {}, h('button', { type: 'button', onclick: () => ask(t.message) }, h('span', { class: 'ow-tile-i' }, icon(TI[i % 6])), h('span', { text: t.label })))));
+      tiles().forEach(t => list.append(h('li', {}, h('button', { type: 'button', onclick: () => ask(t.message) }, t.label))));
       log.append(h('section', { class: 'ow-welcome', 'aria-labelledby': id('wh') },
-        h(HL, { id: id('wh'), class: 'ow-ah', text: 'What would you like to know?' }),
-        h('p', { text: 'Ask in your own words, or choose a button. I answer from sourced data about places in Cincinnati and Oxford, and I say so when I don’t know.' }), list));
+        h(HL, { id: id('wh'), class: 'ow-ah', text: 'Ask me about places in Cincinnati and Oxford' }),
+        h('p', { text: 'Type a question below, or try one of these. I answer only from sourced data and say so when I don\u2019t know.' }), list));
       miniTiles.hidden = true;
     }
     function fillMini() {

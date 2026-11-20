@@ -165,3 +165,13 @@
   .ow-log{padding:1.2em 1.4em}.ow-compose,.ow-head,.ow-topnav{padding-left:1.4em;padding-right:1.4em}
 }
 @media (max-width:480px){.ow-tiles{grid-template-columns:1fr 1fr}.ow-tiles button{padding:.5em .6em;font-size:.9em}.ow-tiles .ow-tile-i{width:1.8em;height:1.8em}}
+
+/* plain chat: icon-only gear, small quick-question chips */
+.ow-gear{min-width:44px;padding:.4em;justify-content:center}
+.ow-gear svg{width:1.3em;height:1.3em}
+.ow-welcome{background:none;border:0;padding:.2em 0}
+.ow-welcome .ow-ah{font-size:1.05em}
+.ow-welcome p{font-size:.88em}
+.ow .ow-tiles{display:flex;flex-wrap:wrap;gap:.4em;margin:.5em 0 0}
+.ow .ow-tiles button{width:auto;min-height:36px;padding:.3em .8em;font-size:.82em;font-weight:500;border-width:1px;border-radius:999px;background:var(--ow-brand-soft);color:#0a3d73}
+.ow .ow-tiles-mini button{font-size:.8em;min-height:34px;padding:.2em .75em}
