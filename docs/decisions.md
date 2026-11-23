@@ -19,6 +19,13 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-41: Saved Google Places details are no longer published (2026-11-23, accepted)
+Decision: the three map pages no longer embed Google `google_place` details (accessibility fields, address, Maps link); `google_places_enriched.geojson` and `google_place_matches.csv` are removed from git and git-ignored; `export_map.py` strips the details before rendering pages. Place IDs stay.
+Why: Google Places content must not be stored or redistributed (project rule, `SOURCES.md`); the files were public. The owner asked for removal on 2026-11-23.
+Alternatives: also rewrite git history (not done: needs a force push on a public repo; owner decision); load details live on selection with a restricted browser key (the older design in the root README).
+Costs / revisit if: the maps lose the Google accessibility box; history still holds the old details until rewritten, and clones or forks may keep them.
+Basis: recorded (owner instruction 2026-11-23).
+
 ### D-40: README rewritten for an outside reviewer; work done on a review branch (2026-11-23, accepted)
 Decision: the README is a short front page (animation, status table, three diagrams, five-minute commands, crawler rules, ideas for reviewers) and long material stays in `docs/`. The multi-region animation is built by `scripts/make_regions_gif.py` from real data (OpenStreetMap paths and wheelchair tags for four regions, record counts from `data/cards/index.csv`) plus one assistant screenshot. Work was done on branch `docs/readme-for-review` in a separate worktree, after merging `origin/main`, because `origin/main` already contains the assistant (PR #1) and the working copy of `main` held about 100 uncommitted data-card changes that should not be committed blindly.
 Why: a reviewer must understand the project in five minutes; the first draft assumed the assistant was not merged, which was wrong. Status numbers come from `data/cards/index.csv`, not memory.

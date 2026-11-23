@@ -7,16 +7,9 @@
 
 They are served by GitHub Pages from this folder and update whenever `make map` output is pushed.
 
-**Google Places accessibility:** the same Cincinnati and Oxford maps keep their original
-Leaflet/USGS basemap and render saved Google Place details from
-`google_places_enriched.geojson`. The maps make no live Places API requests and do not need a
-browser API key. Run `scripts/google_places_private.py` to fetch missing matches and Place Details,
-save a resumable private cache, and regenerate the existing map pages. `make map` rebuilds the
-combined file from the saved private cache or the existing combined file. The combined file
-contains all Atlas features, matched Place IDs, and returned Google detail fields. Google data is
-included in the public map file; remove it from the published repository when it is no longer
-needed. Deleting a file in a later commit does not remove copies from Git history.
-`google_place_matches.csv` remains a compact join of Atlas records and matched Place IDs.
+**Google Places:** Google details are **not published** (decision D-41). The pages keep only matched Place IDs.
+`google_places_enriched.geojson` and `google_place_matches.csv` are built locally by `make map`, are git-ignored,
+and must not be committed. Earlier commits in git history still contain the old details.
 
 **Quick preview inside GitHub:** click [github/cincinnati.geojson](github/cincinnati.geojson) or
 [github/oxford.geojson](github/oxford.geojson). GitHub draws them as maps; click a marker for its facts.
@@ -70,8 +63,8 @@ for analysis from the Supabase table editor (CSV).
 |---|---|
 | `cincinnati.html`, `oxford.html`, `index.html` | Interactive viewers (one city each, or both) |
 | `cincinnati_atlas.geojson`, `oxford_atlas.geojson` | Full map data: every fact with quote, source and date |
-| `google_places_enriched.geojson` | Combined Atlas feature collection with matched Google Place details; map pages are rendered from this file |
-| `google_place_matches.csv` | Atlas features joined to matched Google Place IDs |
+| `google_places_enriched.geojson` | Local only, git-ignored: all features with matched Place IDs and details |
+| `google_place_matches.csv` | Local only, git-ignored: features joined to Place IDs |
 | `github/*.geojson` | Simplified copies styled for GitHub's map preview |
 | `review.csv` | Everything that could not be placed on the map, and why |
 

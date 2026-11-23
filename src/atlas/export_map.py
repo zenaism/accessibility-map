@@ -666,6 +666,10 @@ def write() -> list[Path]:
     GOOGLE_PLACES_FILE.write_text(json.dumps(combined, ensure_ascii=False, separators=(",", ":")))
     written.append(GOOGLE_PLACES_FILE)
     combined = json.loads(GOOGLE_PLACES_FILE.read_text())
+    # Google Places details must not be published (D-41): the local combined file and CSV are git-ignored,
+    # and the public pages keep only the Place IDs.
+    for feature in combined["features"]:
+        feature["properties"].pop("google_place", None)
     map_data = {
         region: {
             **collection,

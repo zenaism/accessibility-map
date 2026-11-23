@@ -75,7 +75,7 @@ Each collected source has a dataset card in `data/cards/` with its licence and c
 | Reddit | Reddit Data API terms | ids and hashed authors only, no text redistributed; no posts collected so far |
 | Google Places | Google Maps Platform terms (no storage or redistribution of Places content) | see the warning below |
 
-**Warning.** `data/map/google_places_enriched.geojson`, `data/map/google_place_matches.csv` and the two map pages `data/map/cincinnati.html` and `oxford.html` contain saved Google Places accessibility fields (for example `wheelchairAccessibleEntrance`) for matched places, and these files are public in git history. This conflicts with the rule in `docs/data_landscape.md` and the skill file that Google Places data is for live lookup and evaluation only. Decision needed from the owner (see `docs/decisions.md` D-40).
+**Google Places (D-41, 2026-11-23).** Saved Google details were removed from the published map pages and the two combined files were removed from git and git-ignored. Only Place IDs stay in the pages. Older commits in git history still contain the details; rewriting history is a separate owner decision.
 
 Code licence: none chosen yet.
 

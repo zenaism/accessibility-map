@@ -163,4 +163,4 @@ docs/            everything written down
 
 ## Data and licences
 
-Data comes from OpenStreetMap (ODbL), Overture Maps, city and state open data, USGS, and quoted facts from public web pages. Each source's licence is on its dataset card in `data/cards/`; the list is in [`SOURCES.md`](SOURCES.md). **The crawled raw pages are not included**, only short quotes with links. There is no licence file for the code yet.
+Saved Google Places details are not published (decision D-41). Data comes from OpenStreetMap (ODbL), Overture Maps, city and state open data, USGS, and quoted facts from public web pages. Each source's licence is on its dataset card in `data/cards/`; the list is in [`SOURCES.md`](SOURCES.md). **The crawled raw pages are not included**, only short quotes with links. There is no licence file for the code yet.
