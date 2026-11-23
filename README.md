@@ -107,10 +107,10 @@ open data/map/oxford.html           # the Oxford map; no install (map tiles need
 make setup                          # Python venv, packages, headless browser (network, a few minutes)
 make kb                             # build the assistant's DuckDB file from the map data (2 seconds)
 scripts/serve_assistant.sh          # chat page at http://localhost:8002 (PORT=8010 to change)
-make test                           # test suite (slow, see note)
+make test                           # test suite (very slow; not verified, see note)
 ```
 
-- `make kb` and `scripts/serve_assistant.sh` were run from a fresh checkout on 2026-11-23 and worked. `make setup` was not re-run for this README (not verified).
+- `make kb` and `scripts/serve_assistant.sh` were run from a fresh checkout on 2026-11-23 and worked. `make setup` and the full `make test` were **not verified** for this README (the test run was stopped after more than 20 minutes).
 - Needs network: `make setup`, `make data` (downloads all open sources), the map background tiles, any crawl.
 - Needs Ollama (optional): "Local model" mode in the assistant and `atlas extract --llm`. Everything else works without it.
 - Crawling needs hours and raw data that is not in the repo; see [`docs/crawler_guide.md`](docs/crawler_guide.md).
