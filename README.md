@@ -3,10 +3,16 @@
 **Collects wheelchair and low-vision access information about places, rates how far each fact can be trusted, shows it on a map, and answers questions from it, with a source for every claim.** A Miami University research project.
 
 <p align="center">
-<img src="docs/figures/regions_flow.gif" width="100%" alt="Animation in three steps. 1: open map and city data arrive for Cincinnati, Oxford, Washington DC and Dayton, with record counts. 2: the four regions drawn as paths and stairs, with places coloured green, amber or red by their wheelchair tag. 3: a chat answer to 'Where is the closest accessible restroom near downtown?' that names a place and its source."/>
+<img src="docs/figures/regions_flow.gif" width="100%" alt="Animation in two steps. 1: paths and stairs of Cincinnati, Oxford, Washington DC and Dayton draw in, with the number of records collected for each. 2: places with a wheelchair tag appear on those maps in green (yes), amber (limited) or red (no); most places have no tag."/>
 </p>
 
 **Live maps:** [Cincinnati](https://zenaism.github.io/accessibility-map/data/map/cincinnati.html) · [Oxford](https://zenaism.github.io/accessibility-map/data/map/oxford.html) · [Assistant](https://zenaism.github.io/accessibility-map/data/map/ask.html) · [Text-only place lists](https://zenaism.github.io/accessibility-map/data/map/places/cincinnati/index.html) (screen-reader friendly)
+
+The assistant answers from the same facts, with the source in the answer (guided mode, no model; Cincinnati and Oxford only):
+
+<p align="center">
+<img src="docs/figures/assistant_answer.png" width="70%" alt="Screenshot of the assistant. Question: Where is the closest accessible restroom near downtown? Answer: Fountain Square, about 200 feet southeast, accessible restroom yes, with source visitcincy.com dated 29 Jan 2016 and a note that it is old. Buttons: Route here, Show on map, Call."/>
+</p>
 
 ## What it does
 

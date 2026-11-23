@@ -1,9 +1,8 @@
-"""Render docs/figures/regions_flow.gif: sources -> map (four regions) -> chat answer.
+"""Render docs/figures/regions_flow.gif: sources -> map, for four regions (maps only; the chat has its own figure).
 
 Uses real data only:
   - OSM paths and wheelchair-tagged places from data/processed/<region>/osm.entities.parquet
   - record counts from data/cards/index.csv
-  - the chat frame is a screenshot of the assistant (docs/work_logs/screens/assistant/)
 
 Needs `make data` first (data/processed is not in git).  Run:
   .venv/bin/python scripts/make_regions_gif.py
@@ -27,7 +26,6 @@ from PIL import Image  # noqa: E402
 from atlas.core import PROCESSED, ROOT  # noqa: E402
 
 OUT = ROOT / "docs" / "figures" / "regions_flow.gif"
-SHOT = ROOT / "docs/work_logs/screens/assistant/desktop-2-answer-with-cards.png"
 REGIONS = [("cincinnati", "Cincinnati"), ("oxford", "Oxford"), ("dc", "Washington DC"), ("dayton", "Dayton")]
 PATHS = ("highway=footway", "highway=path", "highway=steps", "highway=pedestrian", "highway=cycleway")
 INK, MUTED, PATH, GOOD, WARN, BAD = "#0b0b0b", "#52514e", "#9aa3ad", "#1b7f3b", "#c27a00", "#b42318"
@@ -54,15 +52,9 @@ def load(region: str):
 
 def frame(data, n, stage: int, progress: float) -> Image.Image:
     fig = plt.figure(figsize=(W / 100, H / 100), dpi=100, facecolor="white")
-    fig.text(0.5, 0.955, ["1  Sources: open maps and city data", "2  Map: paths, stairs and places with a wheelchair tag (OpenStreetMap)",
-                          "3  Chat: an answer with its source (Cincinnati and Oxford)"][stage],
+    fig.text(0.5, 0.955, ["1  Sources: open maps and city data", "2  Map: paths, stairs and places with a wheelchair tag (OpenStreetMap)"][stage],
              ha="center", va="center", fontsize=15, fontweight="bold", color=INK)
-    if stage == 2:
-        im = Image.open(SHOT).crop((200, 130, 1080, 555))
-        ax = fig.add_axes([0.1, 0.03, 0.8, 0.85])
-        ax.imshow(im)
-        ax.axis("off")
-    else:
+    if True:
         for i, (key, label) in enumerate(REGIONS):
             lines, pts = data[key]
             ax = fig.add_axes([0.02 + i * 0.245, 0.14, 0.235, 0.72])
@@ -99,7 +91,6 @@ def main() -> None:
         frames.append(frame(data, n, 0, p)); durations.append(500 if p < 1 else 1500)
     for p in (0.3, 0.7, 1.0):
         frames.append(frame(data, n, 1, p)); durations.append(500 if p < 1 else 2200)
-    frames.append(frame(data, n, 2, 1)); durations.append(3500)
     frames = [f.convert("P", palette=Image.ADAPTIVE, colors=64) for f in frames]
     frames[0].save(OUT, save_all=True, append_images=frames[1:], duration=durations, loop=0, optimize=True)
     print(OUT, OUT.stat().st_size // 1024, "KB")
