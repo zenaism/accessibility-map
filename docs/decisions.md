@@ -19,6 +19,83 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-39: Voice input is tap-to-toggle, continuous, capped, never auto-sent (2026-11-23, accepted)
+Decision: tap to start and tap to stop; `continuous = true` with restart when the browser ends a session; 60 s cap with a counter; the transcript lands in the input box, editable; nothing is sent automatically.
+Why: the code used `continuous = false`, so the browser ended recording at the first pause and a long sentence was cut off. Tap-to-toggle suits one-handed use and tremor. No auto-send lets people fix recognition errors.
+Alternatives: hold-to-talk (hard with tremor); raising a timer only (does not fix the pause cut-off).
+Costs / revisit if: iOS Safari is unreliable and the 60 s figure is ours, not the browser's; test on real devices.
+Basis: recorded (owner report 2026-11-23; `voice.js:13`; MDN `continuous`; forum reports are excerpts) in [ux_brief.md](ux_brief.md) 3c and 4.4.
+
+### D-38: Chat answers short first, detail on request (2026-11-23, accepted)
+Decision: first answer is one sentence plus one compact place card; other places, all facts and sources sit under "More"; at most two visible actions. Every claim stays traceable; computed facts keep "not checked on site".
+Why: a measured answer was 1,465 characters with three full cards and five extra buttons; NN/g (April 2026) says to give the essential answer first and let users pull detail.
+Alternatives: keep all cards open (wall of text); drop sources from the first answer (breaks the cite-or-unknown rule).
+Costs / revisit if: users ask for "More" almost every time.
+Basis: recorded (owner request; NN/g page read).
+
+### D-37: Search-first map, no markers on open (2026-11-23, accepted)
+Decision: the map opens with the basemap, search, category chips and Near me; markers and trails appear only for a search or chip; "Show all places" is an off switch; the text list and A to Z pages stay complete.
+Why: the opening phone view had 26 icons, about 20 cluster discs and trail lines before any question; the owner asked for it. Text-first access is kept for screen-reader users.
+Alternatives: keep clustering only (still busy); empty list too (hurts screen-reader and no-map use).
+Costs / revisit if: people cannot find places without a query.
+Basis: recorded (owner request; measured on the live page). The search-first pattern itself is assumed, no source found.
+
+### D-36: Saved places stay on the device, with a restore link (2026-11-23, accepted by default)
+Decision: favourites stay in localStorage; a "Copy link to my saved places" holds place ids only; no account, no Supabase sync; a Saved page replaces the filter-only view.
+Why: privacy rules (nothing about people stored), AccessMap keeps profiles on the phone, and Safari may clear script-written storage after 7 days of non-use (excerpt, 2020 to 2022 sources), so a way back is needed.
+Alternatives: Supabase sync by random device id (stores more, uses the free quota).
+Costs / revisit if: users want several devices to stay in sync.
+Basis: recorded (owner chose the default); storage-loss risk is excerpt only.
+
+### D-35: Navigation uses live location only while navigating; spoken steps, off-route alerts and re-routing are built in stages (2026-11-23, accepted)
+Decision: `watchPosition` starts only on an explicit Start and stops on Stop, arrival or when the page is hidden; compass only after a button tap; nothing about location leaves the device; build order live dot and text, speech, off-route alert, re-routing; rough GPS says so instead of claiming off-route.
+Why: compliance rule that location stays on the device; battery; `requestPermission()` needs a user tap (MDN); owner asked for speech, alerts and re-routing.
+Alternatives: always-on tracking (battery, privacy); text only (owner wants more).
+Costs / revisit if: spoken steps fail when the iPhone screen locks; the 25 m off-route threshold is a proposal to tune on real walks.
+Basis: recorded (owner request, MDN); thresholds assumed.
+
+### D-34: Settings uses the standard gear icon (2026-11-23, accepted)
+Decision: replace the sun-like icon with the standard cogwheel (open-licence inline SVG), 44x44, visible name "Settings".
+Why: the deployed icon reads as brightness; the owner asked for the gear phones and computers use.
+Alternatives: emoji (inconsistent rendering, not recommended).
+Costs / revisit if: none; check the icon set licence file when adding.
+Basis: recorded (owner, 2026-11-23).
+
+### D-33: Details panel has two layers (2026-11-23, accepted by default)
+Decision: first layer = rating word, entrance, restroom, one step or parking line, source and age, Route here and Save; everything else under "More details".
+Why: Details on one place showed 1,598 characters at once, with the answer in the first three lines and ten more blocks after it.
+Alternatives: keep everything open; a separate page on phones.
+Costs / revisit if: testers cannot find hidden facts.
+Basis: recorded (owner request; measured).
+
+### D-32: Targets: 44 px is a project rule, 24 px is the WCAG AA minimum (2026-11-23, accepted)
+Decision: keep the 44 px primary-target rule and say in the docs that 44 px is the AAA criterion 2.5.5; AA (2.5.8) needs 24 px with spacing exceptions. Control borders `#6b7280`, body text 16 px, muted text `#4b5563`.
+Why: one-handed use and tremor; measured failures (32 px header buttons, a 13 px info button, borders at 1.16:1). WCAG pages read 2026-11-23.
+Alternatives: meet only AA 24 px.
+Costs / revisit if: layouts get crowded on small phones.
+Basis: recorded (W3C Understanding pages read; audit measurements).
+
+### D-31: Confidence shown quietly, "Reported accessible" for weak single tags, light theme only (2026-11-23, accepted by default)
+Decision: three states (Confirmed, Reported, Not known); labels shown only when weaker or old, always in details; a place with one weak or crowd tag reads "Reported accessible" and sorts below confirmed ones (needs a `confidence` field in the export, flagged for the other team); no dark mode in v1; prototypes are static HTML under `docs/prototypes/`.
+Why: the trust engine rates everything but the exported data and UI show none of it; "Area History" ranked first on one OSM tag.
+Alternatives: always show confidence (overload); percentages (false precision).
+Costs / revisit if: the export change is not agreed with the other team.
+Basis: recorded ([ux_brief.md](ux_brief.md) audit A1, A2).
+
+### D-30: The assistant is a tool-first pipeline that runs without a paid model (2026-11-20, proposed)
+Decision: there is no funding for a hosted model, so (1) the assistant is built as a fixed pipeline of plan, run tools, compose, verify, with a rules version and a small-local-model version of the plan and compose steps; (2) the public version is a static "guided mode" with no model and no server (quick-ask tiles and a question matcher over exported data); (3) a local small model through Ollama is used for research, evaluation and demonstrations; (4) a hosted model is not used unless funding appears. Details: [`assistant_build_spec.md`](assistant_build_spec.md).
+Why: no budget (D-15). Small local models are poor at free-form tool use but acceptable at narrow, schema-constrained steps; the tools and the verifier, not the model, keep answers sourced. A static public version costs nothing, keeps questions on the device, and cannot invent facts.
+Alternatives: a hosted model through a proxy (best quality, needs money); a model in the visitor's browser (free but heavy on phones, kept as an experiment); free-tier APIs (limits and terms change, questions go to a third party); a free-form agent loop on a 3B model (unreliable).
+Costs / revisit if: free-text understanding in the public version is limited to what rules and the matcher cover; the research claim is about the design, so we must measure rules-only against model-assisted versions honestly; revisit if credits or funding appear.
+Basis: recorded (the user stated there is no funding on 2026-11-20; the architecture is proposed and not yet tested).
+
+### D-29: The assistant is named "Openway Assistant" (2026-11-20, accepted)
+Decision: the assistant's public name is Openway Assistant; the project and maps stay "Accessibility Map".
+Why: includes blind and low-vision users as well as wheelchair users, says what it does, not tied to Ohio. "Ramp Up" was rejected because it leaves out blind users and is a common phrase.
+Alternatives: Scout, Levelway, Waymark, Ramp Up.
+Costs / revisit if: a quick web search found two small accessibility projects already called Openway (an accessible travel app and a hackathon project); no trademark search was done. Check the USPTO database and ask the professor before publishing, and revisit if there is a conflict.
+Basis: recorded (user choice 2026-11-20; web search results).
+
 ### D-28: Agreement between sources is measured as corroboration, never as coverage (2026-11-16, accepted)
 **Decision:** the trust engine's "agreement" part is the share of what a crowd source *claims* that an independent source backs up within a distance (corroboration), computed by `fusion.py`. What a crowd map *lacks* (coverage) is reported but never lowers its score; the official inventory is not scored by agreement at all. First use, Washington DC: OSM lowered or flush kerbs are corroborated by the official curb-ramp inventory 89% of the time (15 m), audible-signal tags only 29% (25 m).
 **Why:** OpenStreetMap is incomplete by nature (it holds 28% of DC's inventoried ramps), so punishing it for what it does not contain would make every crowd source look bad; what matters for believing a claim is whether independent evidence supports it. Conflicts (624 inventory ramps rated "missing" where OSM maps a lowered kerb) are listed as leads, because either source can be out of date.
