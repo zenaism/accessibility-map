@@ -13,9 +13,13 @@ import json
 
 import yaml
 
+from .assistant.page import css as assistant_css  # Openway Assistant panel (ASSISTANT markers below)
+from .assistant.page import js_bundle as assistant_js
 from .core import ROOT
 from .report_ui import CSS as REPORT_CSS
 from .report_ui import JS as REPORT_JS
+from .routing_ui import CSS as ROUTING_CSS
+from .routing_ui import JS as ROUTING_JS
 
 RATINGS = {  # value -> (label, colour, symbol, glyph colour on the disc)
     "accessible": ("Accessible", "#0072B2", "✓", "#ffffff"),
@@ -94,15 +98,20 @@ TEMPLATE = r"""<!DOCTYPE html>
  .vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
  .skip{position:absolute;left:12px;top:-80px;background:#fff;padding:10px 14px;border-radius:10px;z-index:4000;box-shadow:var(--shadow);font-weight:600}
  .skip:focus{top:10px}
- button,.btn{font:inherit;font-size:14px;line-height:1;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink);
+ button,.btn{font:inherit;font-size:13.5px;line-height:1;padding:7px 11px;border-radius:9px;border:1px solid var(--line);background:#fff;color:var(--ink);
    cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:background .15s,border-color .15s}
- button:hover,.btn:hover{background:var(--soft)} .ghost{border-color:transparent;background:transparent;padding:7px 8px;color:#374151}
+ button:hover,.btn:hover{background:var(--soft)} .ghost{border-color:transparent;background:transparent;padding:6px 8px;color:#374151}
  .primary{background:var(--accent);border-color:var(--accent);color:#fff} .primary:hover{background:#1f2937}
  svg.i{width:18px;height:18px;flex:none}
  /* top bar */
  header{height:var(--head);flex:none;display:flex;align-items:center;gap:12px;padding:0 14px;border-bottom:1px solid var(--line);background:#fff;z-index:1200}
- .brand{min-width:0;flex:1} header h1{font-size:16px;font-weight:650;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
- header .sub{margin:0;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis} header .sub a{color:var(--muted)}
+ header{position:relative}
+ .brand{min-width:0;flex:1;display:flex;align-items:center;gap:8px} header h1{flex:0 1 auto;min-width:0;font-size:16px;font-weight:650;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
+ .city{-webkit-appearance:none;appearance:none;font:inherit;font-size:16px;font-weight:650;letter-spacing:-.01em;color:var(--ink);background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236b7280' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 1px center;border:0;border-radius:6px;padding:0 15px 0 0;margin:0 5px 0 0;min-height:0;cursor:pointer;flex:none}
+ .ttl{display:flex;align-items:flex-start;gap:2px;min-width:0}
+ .info-btn{flex:none;width:13px;height:13px;min-height:0;padding:0!important;margin-top:-1px;border-radius:50%;justify-content:center;font-size:9px;font-weight:700;color:var(--muted);border-color:var(--line);line-height:1}
+ header .sub{position:absolute;left:50%;transform:translateX(-50%);top:calc(100% + 6px);z-index:1300;margin:0;max-width:min(360px,calc(100vw - 24px));padding:10px 12px;font-size:12.5px;line-height:1.6;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+ header .sub[hidden]{display:none} header .sub a{color:var(--muted);display:block}
  .search{position:relative;width:min(340px,34vw)} .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted)}
  .search input{width:100%;font:inherit;font-size:14px;padding:10px 12px 10px 36px;border-radius:10px;border:1px solid var(--line);background:var(--soft)}
  .search input:focus{background:#fff}
@@ -137,6 +146,8 @@ TEMPLATE = r"""<!DOCTYPE html>
  .pop-actions .report-btn svg.i{width:15px;height:15px}
  body.pop-open .rp-fab{display:none}
  .actions .ghost:hover,.pop-actions .ghost:hover,.det .links .ghost:hover{background:#e5e7eb;border-color:#9ca3af}
+ .fav-btn[aria-pressed=true]{color:#be123c;border-color:#fda4af;background:#fff1f2}
+ .fav-btn svg.i{width:16px;height:16px}
  .pop-actions{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0}
  .det{margin:6px 0 0;padding:8px 10px;background:var(--soft);border-radius:12px;font-size:13px}
  .det table{border-collapse:collapse;width:100%} .det th,.det td{text-align:left;vertical-align:top;padding:6px 4px;border-bottom:1px solid #e5e7eb}
@@ -175,8 +186,10 @@ TEMPLATE = r"""<!DOCTYPE html>
  /* phone: map full screen, list as a bottom sheet */
  @media (max-width:720px){
    :root{--head:auto}
-   header{flex-wrap:wrap;padding:10px 12px;gap:8px}
-   .brand{flex:1 1 100%} header h1{font-size:15.5px} header .sub{white-space:normal}
+   header{flex-wrap:wrap;padding:6px 10px;gap:6px}
+   .brand{flex:1 1 100%;justify-content:center} .city{font-size:14.5px} header h1{font-size:14.5px}
+   header button,header .btn{padding:7px 10px;font-size:13px;gap:5px} header svg.i{width:16px;height:16px}
+   header .search input{padding-top:7px;padding-bottom:7px}
    .search{flex:1 1 auto;width:auto;min-width:0}
    #near{flex:none}
    .edge{display:none}
@@ -212,17 +225,34 @@ TEMPLATE = r"""<!DOCTYPE html>
  .route{margin:.2rem 0 .6rem;padding-left:1.3rem} .route li{margin:.15rem 0}
  .note{font-size:.8rem;color:#555;margin:.2rem 0 .6rem} .side-body h4{margin:.8rem 0 .3rem;font-size:.95rem}
 __REPORT_CSS__
+/* ==== ROUTING START ==== */
+__ROUTING_CSS__
+/* ==== ROUTING END ==== */
+/* ==== ASSISTANT START ==== */
+__ASSISTANT_CSS__
+/* the header button that opens the panel */
+#ask-open{white-space:nowrap}
+/* ==== ASSISTANT END ==== */
 </style></head><body>
 <a class="skip" href="#list-h">Skip to the list of places</a>
 <header>
- <div class="brand"><h1>__TITLE__</h1><p class="sub">Data as of <span id="asof"></span>__NAV__</p></div>
+ <div class="brand"><div class="ttl">__SWITCH__<h1>__H1__</h1>
+  <button id="info-btn" class="info-btn" type="button" aria-label="About this map: last updated and more links" aria-expanded="false" aria-controls="info-pop">!</button></div>
+  <p class="sub" id="info-pop" hidden>Data last updated <span id="asof"></span>__NAV__</p></div>
  <div class="search" role="search">
   <svg class="i" viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="m14 14 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
   <label for="q" class="vh">Search places, trails and venues</label>
   <input id="q" type="search" placeholder="Search" autocomplete="off"></div>
  <button id="near" class="primary" type="button">
   <svg class="i" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3" fill="currentColor"/><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>Near me</button>
+ <!-- ==== ASSISTANT START ==== -->
+ <button id="ask-open" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="ow-panel">
+  <svg class="i" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 4.5h14v9H8l-4 3v-3H3z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/></svg>Ask</button>
+ <!-- ==== ASSISTANT END ==== -->
 </header>
+<!-- ==== ASSISTANT START ==== -->
+<div id="ow-panel" hidden></div>
+<!-- ==== ASSISTANT END ==== -->
 <main class="app">
  <section class="side" id="side" aria-labelledby="list-h">
   <button class="sheet-bar" id="sheet" type="button" aria-controls="side-body" aria-expanded="false"><span><span id="sheet-label">Places</span><span>Show list</span></span></button>
@@ -255,15 +285,33 @@ __REPORT_CSS__
  </section>
 </main>
 <script>
+/* ==== ASSISTANT START ==== */
+__ASSISTANT_JS__
+/* ==== ASSISTANT END ==== */
+</script>
+<script>
 (async () => {
 const GOOGLE_ENABLED = false;
 let googleMaps = null, googleInfoWindow = null;
 const DATA = __DATA__, RATINGS = __RATINGS__, HELP = __HELP__, ICONS = __ICONS__, RATECFG = __RATECFG__;
 const PAGE = 20;
+/* ==== ASSISTANT START ==== */
+let ASSIST_IDS = null;   // place ids the assistant asked us to show (null = no filter)
+/* ==== ASSISTANT END ==== */
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const svg = (layer, colour, size=20) => `<svg aria-hidden="true" width="${size}" height="${size}" viewBox="0 0 20 20" style="color:${colour}">${ICONS[layer][1]}</svg>`;
 const badge = r => `<span class="rb"><i aria-hidden="true" style="background:${RATINGS[r][1]};color:${RATINGS[r][3]}">${RATINGS[r][2]}</i>${RATINGS[r][0]}</span>`;
 document.getElementById('asof').textContent = Object.values(DATA)[0].generated;
+{ const ib = document.getElementById('info-btn'), ip = document.getElementById('info-pop');
+  const setInfo = open => { ip.hidden = !open; ib.setAttribute('aria-expanded', String(open)); };
+  ib.onclick = e => { e.stopPropagation(); setInfo(ip.hidden); };
+  document.addEventListener('click', e => { if (!ip.hidden && !ip.contains(e.target)) setInfo(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !ip.hidden) { setInfo(false); ib.focus(); } });
+  const city = document.getElementById('city');
+  if (city){ city.onchange = () => { location.href = city.value; };
+    const fit = () => { const m = document.createElement('span'); m.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;font:' + getComputedStyle(city).font;
+      m.textContent = city.selectedOptions[0].text; document.body.append(m); city.style.width = (m.offsetWidth + 17) + 'px'; m.remove(); };
+    fit(); if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit); } }
 
 // ---------- map ----------
 const PHONE_EARLY = window.matchMedia('(max-width:720px)');
@@ -290,13 +338,13 @@ if (GOOGLE_ENABLED) {
     iconCreateFunction: c => L.divIcon({html:`<div class="mc">${c.getChildCount()}</div>`, className:'', iconSize:[34,34]})}).addTo(map);
   trails = L.layerGroup().addTo(map);
 }
-function markerIcon(layer, r){
+function markerIcon(layer, r, fav){
   const [_, col, sym, glyph] = RATINGS[r];
   return L.divIcon({className:'', iconSize:[30,30], iconAnchor:[15,15], popupAnchor:[0,-14],
     html:`<svg width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="13" fill="${col}" stroke="#fff" stroke-width="2"/>
       <g transform="translate(5 4)" style="color:${glyph}">${ICONS[layer][1]}</g>
       <circle cx="24" cy="24" r="5.5" fill="#fff" stroke="#1b1f24" stroke-width="1"/>
-      <text x="24" y="27" text-anchor="middle" font-size="8" font-weight="700" font-family="Arial,sans-serif" fill="#1b1f24">${sym}</text></svg>`});
+      <text x="24" y="27" text-anchor="middle" font-size="8" font-weight="700" font-family="Arial,sans-serif" fill="#1b1f24">${sym}</text>${fav ? '<circle cx="6" cy="6" r="6" fill="#fff" stroke="#be123c" stroke-width="1"/><path transform="translate(0.5 0.5) scale(.5)" d="M10 16.5s-6-3.9-6-8.1A3.4 3.4 0 0 1 10 6.2a3.4 3.4 0 0 1 6 2.2c0 4.2-6 8.1-6 8.1z" fill="#be123c"/>' : ''}</svg>`});
 }
 // markers are mouse/touch only; keyboard and screen-reader users get the list (same content)
 if (!GOOGLE_ENABLED) new MutationObserver(() => document.querySelectorAll('#map .leaflet-marker-icon:not([data-q])').forEach(e => {
@@ -427,10 +475,17 @@ if (saved === '0' && !PHONE.matches) setList(false);
 
 if (!GOOGLE_ENABLED) map.setView(...VIEW[firstRegion]);
 
+
 // ---------- filters ----------
 const VISION = new Set(['Braille', 'Large print', 'Audio description', 'Touch / tactile', 'Service animals']);
+// ---------- saved places: kept in this browser only (localStorage), never sent anywhere ----------
+const FAV_KEY = 'atlas-favs';
+const FAVS = new Set(); try { (JSON.parse(localStorage.getItem(FAV_KEY)) || []).forEach(x => FAVS.add(x)); } catch (e) {}
+const saveFavs = () => { try { localStorage.setItem(FAV_KEY, JSON.stringify([...FAVS])); } catch (e) {} };
+const isFav = it => FAVS.has(it.p.link_id);
 const NEEDS = {
   'All places': () => true,
+  'Saved places': it => FAVS.has(it.p.link_id),
   'Accessible restrooms': it => it.p.layer === 'restroom' && ['accessible','partial'].includes(it.p.access_rating),
   'Any restroom': it => it.p.layer === 'restroom',
   'Museums & attractions': it => it.p.layer === 'culture',
@@ -451,6 +506,25 @@ const sort = document.getElementById('sort');
 if (RATECFG) sort.add(new Option('Highest visitor rating', 'community'));
 const need = document.getElementById('need'), known = document.getElementById('known'), q = document.getElementById('q'), when = document.getElementById('when');
 Object.keys(NEEDS).forEach(k => need.add(new Option(k, k)));
+function favCount(){ const o = [...need.options].find(x => x.value === 'Saved places'); if (o) o.textContent = 'Saved places (' + ITEMS.filter(isFav).length + ')'; }
+const HEART = '<path d="M10 16.5s-6-3.9-6-8.1A3.4 3.4 0 0 1 10 6.2a3.4 3.4 0 0 1 6 2.2c0 4.2-6 8.1-6 8.1z"/>';
+function favButton(it, small){
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'ghost fav-btn'; b.dataset.lid = it.p.link_id;
+  const paint = () => { const on = isFav(it); b.setAttribute('aria-pressed', String(on));
+    b.innerHTML = `<svg class="i" viewBox="0 0 20 20" aria-hidden="true" fill="${on ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">${HEART}</svg>${on ? 'Saved' : 'Save'}<span class="vh">: ${esc(it.p.name)}</span>`; };
+  paint();
+  b.onclick = () => { isFav(it) ? FAVS.delete(it.p.link_id) : FAVS.add(it.p.link_id); saveFavs(); favChanged(it); };
+  return b;
+}
+function favChanged(it){
+  document.querySelectorAll('.fav-btn').forEach(b => { if (b.dataset.lid === it.p.link_id){ const on = isFav(it);
+    b.setAttribute('aria-pressed', String(on)); b.firstElementChild.setAttribute('fill', on ? 'currentColor' : 'none');
+    b.childNodes[1].nodeValue = on ? 'Saved' : 'Save'; } });
+  favCount(); favMarker(it);
+  document.getElementById('status').textContent = (isFav(it) ? 'Saved ' : 'Removed from saved: ') + it.p.name + '.';
+  if (need.value === 'Saved places') { page = 0; render(false); }
+}
+function favMarker(it){ if (it.p.layer !== 'trail' && it.leaf && it.leaf.setIcon && !GOOGLE_ENABLED) it.leaf.setIcon(markerIcon(it.p.layer, it.p.access_rating, isFav(it))); }
 const RANK = {accessible:0, partial:1, not_accessible:2, unknown:3};
 const LAYER_RANK = {culture:0, park:1, adaptive_recreation:2, lodging:3, building:4, food_drink:5, service:6, trail:7, event:8, restroom:9};
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -475,6 +549,7 @@ function current(){
   const t = q.value.trim().toLowerCase();
   let list = ITEMS.filter(NEEDS[need.value]).filter(it => !known.checked || it.p.access_rating !== 'unknown')
                   .filter(it => !t || it.text.includes(t))
+                  .filter(it => !ASSIST_IDS || ASSIST_IDS.has(it.p.link_id))   /* ==== ASSISTANT ==== */
                   .filter(it => need.value !== 'Events' || windowEvents(it).length);
   return list.sort(SORTS[sort.value] || SORTS.access);
 }
@@ -581,12 +656,14 @@ function card(it){
       <button type="button" class="ghost" data-a="map">Show on map<span class="vh">: ${esc(p.name)}</span></button>
       <a class="btn ghost" href="${directions(it)}" target="_blank" rel="noopener">Directions<span class="vh"> to ${esc(p.name)} in Google Maps (opens in a new tab)</span></a>
       <button type="button" class="ghost" data-a="det" aria-expanded="false" aria-controls="det-${it.i}">Details<span class="vh">: ${esc(p.name)}</span></button>
-      <span class="rp-act"></span>
+      <span class="fav-act"></span><span class="rp-act"></span>
     </div>
     <div class="det" id="det-${it.i}" hidden></div>`;
+  li.querySelector('.fav-act').replaceWith(favButton(it));
   li.querySelector('[data-a=map]').onclick = () => showOnMap(it);
   li.querySelector('[data-a=det]').onclick = e => toggle(it, e.currentTarget);
   if (RATECFG) li.querySelector('.rp-act').replaceWith(reportButton({link_id:p.link_id, name:p.name, region:p.region}, 'Report', true));
+  /* ==== ROUTING START ==== */ if (ROUTING) ROUTING.decorateCard(li, it); /* ==== ROUTING END ==== */
   return li;
 }
 let routeLayer = null;
@@ -615,6 +692,7 @@ function toggle(it, btn, force){
   btn.setAttribute('aria-expanded', open); box.hidden = !open;
   if (open && !box.innerHTML){
     box.innerHTML = details(it);
+    /* ==== ROUTING START ==== */ if (ROUTING) ROUTING.decorateDetails(box, it); /* ==== ROUTING END ==== */
     const googleBox = box.querySelector('.google-details');
     if (googleBox) googleBox.replaceChildren(googleDetailsNode(it.p.google_place));
     box.querySelector('[data-a=copy]').onclick = () => copyLink(it);
@@ -653,6 +731,7 @@ function render(announce){
     document.getElementById('sheet-label').textContent = `${list.length} place${list.length === 1 ? '' : 's'}`;
     document.getElementById('status').textContent = `${list.length} place${list.length === 1 ? '' : 's'}`
       + (t ? ` matching “${t}”` : '') + ', ' + SORT_TEXT[sort.value] + '.';
+    if (need.value === 'Saved places' && !list.length) document.getElementById('status').textContent = 'No saved places yet. Tap Save on any place to keep it here on this device.';
   }
 }
 function showOnMap(it){
@@ -688,6 +767,7 @@ function openCard(i, rate){
   (form ? form.querySelector('.stars button') : li.querySelector('h3')).focus({preventScroll:true});
 }
 window.openCard = openCard;
+favCount(); ITEMS.forEach(it => { if (isFav(it)) favMarker(it); });
 [need, known, when].forEach(el => el.onchange = () => { when.hidden = !/[Ee]vents|shows/.test(need.value); page = 0; render(); });
 q.oninput = () => { page = 0; render(); };
 sort.onchange = () => { page = 0; if (sort.value === 'near' && !here) locate(); else render(); };
@@ -797,7 +877,9 @@ function popupContent(it){
   el.innerHTML = `<h3>${esc(p.name)}</h3>${badge(p.access_rating)}<p>${esc(short)}</p><p class="comm pop-comm">${commText(it)}</p>`
     + `<div class="pop-actions"><button type="button" class="ghost" data-a="list">Details</button></div>`;
   el.querySelector('[data-a=list]').onclick = () => openCard(it.i);
+  el.querySelector('.pop-actions').append(favButton(it));
   if (RATECFG) el.querySelector('.pop-actions').append(reportButton({link_id:p.link_id, name:p.name, region:p.region}, 'Report', true));
+  /* ==== ROUTING START ==== */ if (ROUTING) ROUTING.decoratePopup(el, it); /* ==== ROUTING END ==== */
   if (canRate(it)) el.append(quickRate(it));
   return el;
 }
@@ -886,6 +968,74 @@ async function loadCommunity(linkId){
 }
 loadCommunity();
 __REPORT_JS__
+// ==== ROUTING START ====
+const ROUTING = GOOGLE_ENABLED ? null : (() => {
+__ROUTING_JS__
+})();
+// ==== ROUTING END ====
+/* ==== ASSISTANT START ==== */
+// ---------- Openway Assistant: panel and hooks ----------
+// The chat dispatches cancelable window events; calling preventDefault() tells it we handled the request.
+//   atlas:show-places {ids}            highlight those places: filter the list and fit the map to them
+//   atlas:route-to {placeId, profile}  routing (window.AtlasRouting handles it when present; else the saved route, else Google Maps)
+//   atlas:open-report {text}           open the existing report form with the text filled in
+(function assistantHooks(){
+  const status = document.getElementById('status');
+  let clearBtn = null;
+  function showAssistPlaces(ids){
+    ASSIST_IDS = ids && ids.size ? ids : null;
+    if (!clearBtn){
+      clearBtn = document.createElement('button'); clearBtn.type = 'button'; clearBtn.id = 'assist-clear'; clearBtn.className = 'ghost';
+      clearBtn.style.cssText = 'border:1px solid #cfd4da;margin:0 0 6px';
+      clearBtn.onclick = () => { showAssistPlaces(null); status.textContent = 'Showing all places again.'; };
+      status.parentNode.insertBefore(clearBtn, status);
+    }
+    clearBtn.hidden = !ASSIST_IDS;
+    if (ASSIST_IDS) clearBtn.textContent = 'Showing ' + ASSIST_IDS.size + ' place' + (ASSIST_IDS.size > 1 ? 's' : '') + ' from the assistant. Show all places';
+    page = 0; render();
+    if (ASSIST_IDS) status.textContent = 'Showing ' + ASSIST_IDS.size + ' place' + (ASSIST_IDS.size > 1 ? 's' : '') + ' from the assistant.';
+  }
+  window.addEventListener('atlas:show-places', e => {
+    const want = new Set((e.detail && e.detail.ids) || []);
+    const items = ITEMS.filter(it => want.has(it.p.link_id));
+    if (!items.length) return;                 // not on this map: let the chat open the right page
+    e.preventDefault();
+    if (items.length === 1){ ASSIST_IDS = null; if (clearBtn) clearBtn.hidden = true; openCard(items[0].i); showOnMap(items[0]); return; }
+    showAssistPlaces(new Set(items.map(it => it.p.link_id)));
+    if (!GOOGLE_ENABLED){
+      const pts = items.flatMap(it => it.pts);
+      if (pts.length) map.fitBounds(L.latLngBounds(pts), {padding:[50, 50], maxZoom:16});
+    }
+    if (PHONE.matches) setSheet(true);
+  });
+  window.addEventListener('atlas:route-to', e => {
+    if (window.AtlasRouting) return;           // the routing feature handles this event itself
+    const d = e.detail || {}, it = ITEMS.find(x => x.p.link_id === d.placeId);
+    if (!it) return;
+    e.preventDefault();
+    const r = it.p.getting_there && it.p.getting_there.route;
+    if (r && r.line){ openCard(it.i); showRoute(it, d.profile === 'blind' && !!r.blind); }
+    else window.open(directions(it), '_blank', 'noopener');
+  });
+  window.addEventListener('atlas:open-report', e => {
+    if (!RATECFG){ status.textContent = 'Reporting is not set up on this copy of the map.'; return; }
+    e.preventDefault();
+    openReport(null, document.activeElement);
+    const ta = document.getElementById('rp-text');
+    if (ta && e.detail && e.detail.text){ ta.value = String(e.detail.text).slice(0, 1000); ta.dispatchEvent(new Event('input')); }
+  });
+  // the header button: build the panel on first use so the map loads as before
+  const btn = document.getElementById('ask-open'), panel = document.getElementById('ow-panel');
+  let api = null;
+  btn.onclick = () => {
+    if (!api){ api = Openway.chat.mount(panel, {mode:'panel', base:'assistant/', region:firstRegion, opener:btn});
+      panel.addEventListener('ow:closed', () => btn.setAttribute('aria-expanded', 'false')); }
+    panel.hidden = !panel.hidden;
+    btn.setAttribute('aria-expanded', String(!panel.hidden));
+    if (!panel.hidden) api.focus(); else api.close();
+  };
+})();
+/* ==== ASSISTANT END ==== */
 // ---------- legend ----------
 document.getElementById('legend-body').innerHTML = '<ul>'
   + Object.entries(RATINGS).map(([k, r]) => `<li>${badge(k)}<span>${HELP[k]}</span></li>`).join('') + '</ul><ul>'
@@ -907,11 +1057,14 @@ def render(
     data: dict,
     title: str = "Accessibility Map",
     nav: str = "",
+    switch: str = "",
 ) -> str:
     """data = {region: FeatureCollection}; nav = extra HTML after the date (e.g. a link to the other city)."""
     return (
         TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False).replace("<", "\\u003c"))
         .replace("__TITLE__", title)
+        .replace("__SWITCH__", switch)
+        .replace("__H1__", title.split(" ", 1)[1] if switch and " " in title else title)
         .replace("__NAV__", nav)
         .replace("__RATINGS__", json.dumps(RATINGS, ensure_ascii=False))
         .replace("__HELP__", json.dumps(RATING_HELP))
@@ -919,6 +1072,10 @@ def render(
         .replace("__RATECFG__", json.dumps(ratings_config()))
         .replace("__REPORT_CSS__", REPORT_CSS)
         .replace("__REPORT_JS__", REPORT_JS)
+        .replace("__ROUTING_CSS__", ROUTING_CSS)  # ROUTING
+        .replace("__ROUTING_JS__", ROUTING_JS)  # ROUTING
+        .replace("__ASSISTANT_CSS__", assistant_css())  # ASSISTANT
+        .replace("__ASSISTANT_JS__", assistant_js())  # ASSISTANT
     )
 
 

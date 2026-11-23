@@ -88,6 +88,11 @@ def main() -> None:
 
         for f in write_map():
             print(f)
+        # ==== ROUTING START ==== walking graphs for the Directions panel (data/map/routing/, not committed)
+        from .export_routing import write_all
+
+        write_all()
+        # ==== ROUTING END ====
         return
     if a.command == "inventory":
         from .inventory import write

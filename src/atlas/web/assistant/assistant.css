@@ -1,0 +1,192 @@
+/* Openway Assistant: styles. Everything is under .ow so it can sit inside the map page without clashing.
+   Colours follow the map's tokens (--ink, --muted, --line, --soft, --focus) with safe fallbacks. */
+.ow{--ow-ink:var(--ink,#111827);--ow-muted:#4b5563;--ow-line:#d9dde3;--ow-soft:#f3f4f6;--ow-bg:#fff;--ow-focus:var(--focus,#2563eb);
+  --ow-brand:#0b5cad;--ow-brand-dark:#084a8c;--ow-brand-soft:#e8f1fb;--ow-teal:#0f766e;--ow-accent:#0b5cad;--ow-accent-ink:#fff;--ow-good:#0b5cad;--ow-warn:#8a4b00;--ow-bad:#a63c00;--ow-scale:1;--ow-r:14px;
+  display:flex;flex-direction:column;min-height:0;height:100%;background:var(--ow-bg);color:var(--ow-ink);
+  font:calc(17px*var(--ow-scale))/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;box-sizing:border-box}
+.ow *,.ow *::before,.ow *::after{box-sizing:border-box}
+.ow [hidden],.ow[hidden]{display:none!important}
+.ow :focus-visible{outline:3px solid var(--ow-focus);outline-offset:2px;border-radius:6px}
+.ow .ow-vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.ow button,.ow .ow-btn,.ow select,.ow input[type=text]{font:inherit;font-size:.94em}
+.ow button,.ow .ow-btn{min-height:44px;min-width:44px;padding:.5em .9em;border-radius:12px;border:1.5px solid #9aa3af;background:#fff;color:var(--ow-ink);
+  cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:.45em;text-decoration:none;line-height:1.2}
+.ow button:hover,.ow .ow-btn:hover{background:var(--ow-soft)}
+.ow button[disabled]{opacity:.55;cursor:not-allowed}
+.ow .ow-primary{background:var(--ow-accent);border-color:var(--ow-accent);color:var(--ow-accent-ink)}
+.ow .ow-primary:hover{background:var(--ow-brand-dark)}
+.ow .ow-ghost{border-color:transparent;background:transparent}
+.ow svg.ow-i{width:1.2em;height:1.2em;flex:none}
+
+/* header (a div, not <header>: the map page styles the header element) */
+.ow-head{display:flex;align-items:center;gap:.6em;padding:.6em .9em;border-bottom:1px solid var(--ow-line);flex:none;min-height:0}
+.ow-titles{flex:1;min-width:0}
+.ow-head h1,.ow-head h2{margin:0;font-size:1.12em;font-weight:650;letter-spacing:-.01em;line-height:1.25}
+.ow-sub{margin:.1em 0 0;font-size:.8em;color:var(--ow-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* settings */
+.ow-settings{border-bottom:1px solid var(--ow-line);padding:.8em .9em;background:var(--ow-soft);display:grid;gap:.9em}
+.ow-settings fieldset{border:0;margin:0;padding:0;min-width:0}
+.ow-settings legend{font-weight:650;margin-bottom:.3em;padding:0}
+.ow-seg{display:flex;flex-wrap:wrap;gap:.4em}
+.ow-seg label{position:relative}
+.ow-seg input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.ow-seg span{display:inline-flex;align-items:center;min-height:44px;padding:.4em .9em;border:1.5px solid #9aa3af;border-radius:12px;background:#fff}
+.ow-seg input:checked+span{background:var(--ow-accent);color:#fff;border-color:var(--ow-accent)}
+.ow-seg input:focus-visible+span{outline:3px solid var(--ow-focus);outline-offset:2px}
+.ow-seg input:disabled+span{opacity:.55}
+.ow-switch{display:flex;align-items:center;gap:.7em;min-height:44px}
+.ow-switch input{width:1.4em;height:1.4em;flex:none;accent-color:var(--ow-accent)}
+.ow-hint{font-size:.85em;color:var(--ow-muted);margin:.2em 0 0}
+
+/* conversation */
+.ow-log{flex:1;min-height:0;overflow-y:auto;padding:1em .9em;display:flex;flex-direction:column;gap:1em;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){.ow-log{scroll-behavior:auto}}
+.ow-welcome .ow-ah{margin:.1em 0 .3em;font-size:1.25em;letter-spacing:-.01em}
+.ow-welcome .ow-ah{margin:.1em 0 .3em;font-size:1.25em;letter-spacing:-.01em;text-transform:none;color:inherit}
+.ow-welcome p{margin:.2em 0 .8em;color:var(--ow-muted)}
+.ow-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(10.5em,1fr));gap:.55em;margin:.4em 0 0;padding:0;list-style:none}
+.ow-tiles button{width:100%;min-height:56px;text-align:left;justify-content:flex-start;font-weight:560;border-radius:14px;background:#fff;padding:.6em .8em}
+.ow-me{align-self:flex-end;max-width:88%;background:var(--ow-accent);color:#fff;padding:.6em .9em;border-radius:16px 16px 4px 16px;overflow-wrap:anywhere}
+.ow-me .ow-who{display:block;font-size:.75em;opacity:.85}
+.ow-a{align-self:stretch;border:1px solid var(--ow-line);border-radius:var(--ow-r);padding:.9em 1em;background:#fff;box-shadow:0 1px 2px rgba(17,24,39,.05)}
+.ow-a .ow-ah{margin:0 0 .3em;font-size:.8em;font-weight:650;text-transform:uppercase;letter-spacing:.05em;color:var(--ow-muted)}
+.ow-a .ow-ah:focus{outline:3px solid var(--ow-focus);outline-offset:3px}
+.ow-main{margin:.1em 0 .6em;font-size:1.06em;font-weight:650;overflow-wrap:anywhere}
+.ow-main .ow-rest{font-weight:400;font-size:.95em;color:#374151}
+.ow-a.ow-unknown-kind{border-left:5px solid var(--ow-warn)}
+.ow-a.ow-emergency{border:3px solid var(--ow-bad);background:#fff7f3}
+.ow-a.ow-emergency .ow-main{font-size:1.3em;font-weight:700}
+.ow-thinking{color:var(--ow-muted);display:flex;align-items:center;gap:.6em;min-height:44px}
+.ow-dots{display:inline-flex;gap:.25em}.ow-dots i{width:.5em;height:.5em;border-radius:50%;background:currentColor;opacity:.4;animation:ow-b 1.2s infinite}
+.ow-dots i:nth-child(2){animation-delay:.2s}.ow-dots i:nth-child(3){animation-delay:.4s}
+@keyframes ow-b{0%,80%,100%{opacity:.25}40%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.ow-dots i{animation:none;opacity:.7}}
+
+/* cards */
+.ow-cards{display:grid;gap:.7em;margin:.5em 0;padding:0;list-style:none}
+.ow-card{border:1px solid var(--ow-line);border-radius:12px;padding:.75em .85em;background:var(--ow-soft)}
+.ow-card .ow-ch{margin:0;font-size:1.02em;font-weight:650;line-height:1.3}
+.ow-meta{display:flex;flex-wrap:wrap;gap:.3em .8em;align-items:center;margin:.25em 0 .1em;font-size:.88em;color:#374151}
+.ow-rate{display:inline-flex;align-items:center;gap:.4em;font-weight:600}
+.ow-rate i{font-style:normal;width:1.35em;height:1.35em;border-radius:50%;display:inline-grid;place-items:center;font-size:.8em;font-weight:700;color:#fff;background:#6b7280}
+.ow-rate.r-accessible i{background:#0b5cad}.ow-rate.r-partial i{background:#8a4b00}.ow-rate.r-not_accessible i{background:#a63c00}
+.ow-facts{list-style:none;margin:.45em 0;padding:0;display:grid;gap:.25em;font-size:.92em}
+.ow-facts li{padding-left:1.5em;position:relative}
+.ow-facts .ow-g{position:absolute;left:.2em;font-weight:700;color:var(--ow-good)}
+.ow-facts li.no .ow-g{color:var(--ow-bad)}
+.ow-src{font-size:.82em;color:var(--ow-muted);margin:.25em 0}
+.ow-when{font-weight:600}
+.ow-chips{display:flex;flex-wrap:wrap;gap:.35em;margin:.3em 0;padding:0;list-style:none}
+.ow-chips li{background:#fff;border:1px solid var(--ow-line);border-radius:999px;padding:.1em .7em;font-size:.85em}
+.ow-row{display:flex;flex-wrap:wrap;gap:.45em;margin:.55em 0 0}
+.ow-row .ow-btn,.ow-row button{font-size:.9em}
+.ow-note{font-size:.86em;color:var(--ow-muted);margin:.4em 0 0}
+.ow-unknown{margin:.5em 0;padding:.5em .7em;background:#fff8ec;border:1px solid #e8c68a;border-radius:10px;font-size:.92em}
+.ow-unknown strong{font-weight:650}
+.ow-call{margin:.5em 0}
+.ow-detail,.ow-sources{margin:.6em 0;padding:.7em .8em;border-radius:10px;border:1px dashed #9aa3af;font-size:.92em}
+.ow-detail ul,.ow-sources ul{margin:.2em 0;padding-left:1.2em}.ow-detail li,.ow-sources li{margin:.3em 0;overflow-wrap:anywhere}
+.ow-sources blockquote{margin:.2em 0 .2em .2em;padding-left:.6em;border-left:3px solid var(--ow-line);color:#374151}
+.ow-asof{font-size:.8em;color:var(--ow-muted);margin:.6em 0 0}
+.ow-clarify{display:flex;flex-wrap:wrap;gap:.45em;margin:.4em 0}
+.ow-voicebar{display:flex;flex-wrap:wrap;align-items:center;gap:.45em;margin:.5em 0;padding:.4em .6em;background:var(--ow-soft);border-radius:10px;font-size:.9em}
+
+/* composer */
+.ow-compose{flex:none;border-top:1px solid var(--ow-line);padding:.7em .9em calc(.7em + env(safe-area-inset-bottom));background:#fff}
+.ow-compose form{display:flex;gap:.45em;align-items:stretch}
+.ow-compose input[type=text]{flex:1;min-width:0;min-height:48px;padding:.5em .8em;border:1.5px solid #6b7280;border-radius:12px;background:#fff;color:var(--ow-ink)}
+.ow-compose .ow-tools{display:flex;gap:.4em;margin:.5em 0 0;flex-wrap:wrap;align-items:center}
+.ow-tiles-mini{display:flex;gap:.4em;overflow-x:auto;padding:.1em 0 .5em;margin:0 0 .3em;list-style:none}
+.ow-tiles-mini button{white-space:nowrap;min-height:44px;border-radius:999px}
+.ow-status{font-size:.88em;color:var(--ow-muted);min-height:1.4em;margin:.35em 0 0}
+.ow-attach{display:flex;align-items:center;gap:.6em;margin:.4em 0;font-size:.9em}
+.ow-attach img{width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--ow-line)}
+
+/* dialogs */
+.ow dialog{border:1px solid var(--ow-line);border-radius:16px;padding:1.1em 1.2em;max-width:min(32em,calc(100vw - 24px));width:100%;color:var(--ow-ink);background:#fff;
+  box-shadow:0 20px 50px rgba(17,24,39,.3)}
+.ow dialog::backdrop{background:rgba(17,24,39,.5)}
+.ow dialog h2{margin:0 0 .3em;font-size:1.25em}
+.ow dialog fieldset{border:0;padding:0;margin:.8em 0}
+.ow dialog legend{font-weight:650;padding:0;margin-bottom:.3em}
+.ow dialog label.ow-opt{display:flex;align-items:center;gap:.6em;min-height:44px;padding:.1em 0}
+.ow dialog input[type=radio],.ow dialog input[type=checkbox]{width:1.3em;height:1.3em;flex:none;accent-color:var(--ow-accent)}
+.ow dialog .ow-row{justify-content:flex-end;margin-top:1em}
+
+/* panel on the map pages */
+.ow-panel{position:fixed;z-index:3500;top:var(--head,60px);right:0;bottom:0;width:min(440px,100vw);border-left:1px solid var(--ow-line);box-shadow:-8px 0 30px rgba(17,24,39,.15);background:#fff}
+@media (max-width:720px){.ow-panel{top:0;left:0;width:100vw;border:0}}
+.ow-panel-x{position:absolute;right:.4em;top:.5em}
+/* the page version fills the window */
+.ow-page{height:100vh;height:100dvh}
+.ow-page .ow-inner{width:100%;max-width:52em;margin:0 auto;display:flex;flex-direction:column;min-height:0;flex:1;border-left:1px solid var(--ow-line);border-right:1px solid var(--ow-line)}
+@media (max-width:720px){.ow-page .ow-inner{border:0}.ow-topnav{padding:.2em .9em;gap:1em}}
+.ow-topnav{display:flex;gap:.8em;align-items:center;padding:.5em .9em;border-bottom:1px solid var(--ow-line);font-size:.9em;flex:none}
+.ow-topnav a{color:var(--ow-ink);min-height:44px;display:inline-flex;align-items:center}
+@media (forced-colors:active){.ow button,.ow .ow-btn,.ow-card,.ow-a,.ow-me{border:1px solid ButtonText}.ow .ow-primary{background:ButtonFace;color:ButtonText;border:2px solid ButtonText}
+  .ow-seg input:checked+span{outline:3px solid Highlight}.ow-rate i{border:1px solid ButtonText;background:Canvas;color:CanvasText}}
+@media print{.ow-compose,.ow-settings{display:none}}
+
+/* big text leaves little room: the quick questions are in the welcome list and in Settings > What can I ask? */
+.ow[data-big] .ow-tiles-mini{display:none}
+@media (max-height:640px){.ow-tiles-mini{display:none}}
+
+/* ---- colour and friendliness ---- */
+.ow-head{background:linear-gradient(135deg,#e8f1fb 0%,#e6f6f3 100%);border-bottom:1px solid #c9dcef}
+.ow-head h1,.ow-head h2{color:#0a3d73}
+.ow-topnav{background:#f6f9fd}.ow-topnav a{color:var(--ow-brand);font-weight:600}
+.ow-me{background:var(--ow-brand)}
+.ow-a{border-left:6px solid var(--ow-brand)}
+.ow-a.ow-unknown-kind{border-left-color:var(--ow-warn)}
+.ow-card{background:#f5f9fe;border-color:#cfe0f3;border-left:5px solid #9aa3af}
+.ow-card:has(.r-accessible){border-left-color:#0b5cad}.ow-card:has(.r-partial){border-left-color:#b45f06}
+.ow-card:has(.r-not_accessible){border-left-color:#a63c00}
+.ow-tiles button{border:2px solid #c9dcef;background:#fff;gap:.7em}
+.ow-tiles button:hover{background:var(--ow-brand-soft);border-color:var(--ow-brand)}
+.ow-tiles .ow-tile-i{flex:none;width:2.1em;height:2.1em;border-radius:50%;display:grid;place-items:center;color:#fff}
+.ow-tiles .ow-tile-i svg{width:1.2em;height:1.2em}
+.ow-tiles li:nth-child(1) .ow-tile-i{background:#0b5cad}.ow-tiles li:nth-child(2) .ow-tile-i{background:#6d28d9}
+.ow-tiles li:nth-child(3) .ow-tile-i{background:#b45f06}.ow-tiles li:nth-child(4) .ow-tile-i{background:#0f766e}
+.ow-tiles li:nth-child(5) .ow-tile-i{background:#be185d}.ow-tiles li:nth-child(6) .ow-tile-i{background:#15803d}
+.ow-tiles-mini button{border-color:#c9dcef;background:var(--ow-brand-soft);color:#0a3d73;font-weight:560}
+.ow-compose{background:#f6f9fd}
+.ow-compose input[type=text]{border-color:#5b7fa6}
+.ow-row button,.ow-row .ow-btn{border-color:#8fb0d3;color:#0a3d73;background:#fff}
+.ow-row button:hover,.ow-row .ow-btn:hover{background:var(--ow-brand-soft)}
+.ow-seg input:checked+span{background:var(--ow-brand);border-color:var(--ow-brand)}
+.ow-welcome{background:linear-gradient(180deg,#f6f9fd,#fff);border-radius:16px;padding:1em;border:1px solid #dbe8f6}
+/* tablets: a little larger, three tiles across, comfortable side margins */
+@media (min-width:721px) and (max-width:1100px){
+  .ow{font-size:calc(18px*var(--ow-scale))}
+  .ow-tiles{grid-template-columns:repeat(3,1fr)}
+  .ow-page .ow-inner{max-width:none;border:0}
+  .ow-log{padding:1.2em 1.4em}.ow-compose,.ow-head,.ow-topnav{padding-left:1.4em;padding-right:1.4em}
+}
+@media (max-width:480px){.ow-tiles{grid-template-columns:1fr 1fr}.ow-tiles button{padding:.5em .6em;font-size:.9em}.ow-tiles .ow-tile-i{width:1.8em;height:1.8em}}
+
+/* ---- more colour (integration pass): answers read at a glance, rating colours as on the map ---- */
+.ow-me{background:linear-gradient(135deg,#0b5cad,#0f766e);box-shadow:0 1px 3px rgba(11,92,173,.3)}
+.ow-a .ow-ah{display:inline-block;padding:.15em .7em;border-radius:999px;background:#e0f2ef;color:#0b4f49;letter-spacing:.06em}
+.ow-card:has(.r-accessible){background:#eef5fd}
+.ow-card:has(.r-partial){background:#fff6e8;border-color:#f0d2a4}
+.ow-card:has(.r-not_accessible){background:#fff0e8;border-color:#f0b999}
+.ow-card:has(.r-unknown){background:#f3f4f6}
+.ow-rate.r-unknown i{background:#4b5563}
+.ow-rate.r-partial{color:#7a4000}.ow-rate.r-not_accessible{color:#8f3400}
+.ow-card .ow-row>:first-child{background:var(--ow-brand);border-color:var(--ow-brand);color:#fff}
+.ow-card .ow-row>:first-child:hover{background:var(--ow-brand-dark)}
+.ow-tiles-mini li:nth-child(6n+1) button{border-left:6px solid #0b5cad}.ow-tiles-mini li:nth-child(6n+2) button{border-left:6px solid #6d28d9}
+.ow-tiles-mini li:nth-child(6n+3) button{border-left:6px solid #b45f06}.ow-tiles-mini li:nth-child(6n+4) button{border-left:6px solid #0f766e}
+.ow-tiles-mini li:nth-child(6n+5) button{border-left:6px solid #be185d}.ow-tiles-mini li:nth-child(6n+6) button{border-left:6px solid #15803d}
+.ow-welcome .ow-ah{color:#0a3d73}
+/* plain chat: icon-only gear, small quick-question chips */
+.ow-gear{min-width:44px;padding:.4em;justify-content:center}
+.ow-gear svg{width:1.3em;height:1.3em}
+.ow-welcome{background:none;border:0;padding:.2em 0}
+.ow-welcome .ow-ah{font-size:1.05em}
+.ow-welcome p{font-size:.88em}
+.ow .ow-tiles{display:flex;flex-wrap:wrap;gap:.4em;margin:.5em 0 0}
+.ow .ow-tiles button{width:auto;min-height:44px;padding:.3em .8em;font-size:.82em;font-weight:500;border-width:1px;border-radius:999px;background:var(--ow-brand-soft);color:#0a3d73}
+.ow .ow-tiles-mini button{font-size:.8em;min-height:44px;padding:.2em .75em}
