@@ -2,6 +2,8 @@
 
 Mermaid diagrams, so they render in Obsidian and on GitHub and stay diffable as text. Colour key used in every diagram: **green = exists today** (Cincinnati and Oxford pipeline), **blue = planned** in [`national_data_plan.md`](national_data_plan.md), **grey = external**. Reasons behind the choices are in [`decisions.md`](decisions.md).
 
+The README carries three simplified copies of the system, crawler and assistant diagrams for outside readers (checked against `src/atlas/` on 2026-11-23). This file stays the full version; update both when the system changes.
+
 ## 1. The big picture: four layers
 
 Data flows left to right through four layers. Each layer has one job, and the layer below only trusts what the layer above passes down.

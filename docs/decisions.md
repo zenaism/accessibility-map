@@ -19,6 +19,13 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-40: README rewritten for an outside reviewer; work done on a review branch (2026-11-23, accepted)
+Decision: the README is a short front page (animation, status table, three diagrams, five-minute commands, crawler rules, ideas for reviewers) and long material stays in `docs/`. The multi-region animation is built by `scripts/make_regions_gif.py` from real data (OpenStreetMap paths and wheelchair tags for four regions, record counts from `data/cards/index.csv`) plus one assistant screenshot. Work was done on branch `docs/readme-for-review` in a separate worktree, after merging `origin/main`, because `origin/main` already contains the assistant (PR #1) and the working copy of `main` held about 100 uncommitted data-card changes that should not be committed blindly.
+Why: a reviewer must understand the project in five minutes; the first draft assumed the assistant was not merged, which was wrong. Status numbers come from `data/cards/index.csv`, not memory.
+Alternatives: a Cincinnati-only animation (rejected: misleading); copying doc text into the README (rejected: duplicate docs).
+Costs / revisit if: the GIF needs `make data` (local `data/processed`) to regenerate; counts in the README table go stale when sources are re-collected.
+Basis: recorded (task brief 2026-11-23).
+
 ### D-39: Voice input is tap-to-toggle, continuous, capped, never auto-sent (2026-11-23, accepted)
 Decision: tap to start and tap to stop; `continuous = true` with restart when the browser ends a session; 60 s cap with a counter; the transcript lands in the input box, editable; nothing is sent automatically.
 Why: the code used `continuous = false`, so the browser ended recording at the first pause and a long sentence was cut off. Tap-to-toggle suits one-handed use and tremor. No auto-send lets people fix recognition errors.

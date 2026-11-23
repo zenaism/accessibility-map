@@ -60,3 +60,22 @@ This list separates data already collected from ideas for later. Google Places m
 - CILO (Center for Independent Living Options) 💡 site down when checked: https://www.cilo.net
 - Reddit additions 🔜: r/miamioh, r/Disabled, r/accessibility, r/ADA
 - Not using: AllTrails (automated access is blocked and its terms may restrict scraping); Wheel the World (robots disallow access); Facebook groups (privacy/no API); The Mighty (not location data); OOD maps page (empty). Wheelmap duplicates OSM, which is already collected. The correct BCRTA site is butlercountyrta.com.
+
+## Licences and redistribution (added 2026-11-23, for outside review)
+
+Each collected source has a dataset card in `data/cards/` with its licence and caveats. In short:
+
+| Source kind | Licence on the cards | What this repo does |
+|---|---|---|
+| OpenStreetMap and data derived from it (maps, kerbs, entrances) | ODbL 1.0, credit "(c) OpenStreetMap contributors"; derived databases must stay under ODbL | map files carry the credit; share-alike applies to the derived data |
+| Overture Maps places | CDLA-Permissive-2.0, Apache-2.0 or ODbL, depending on the upstream dataset | only matched names and categories are used |
+| City and agency open data (CAGIS, Cincinnati 311, DC Open Data, transit GTFS) | CC BY 4.0, public domain per portal, or "confirm redistribution terms" (CAGIS, Open Data Cincy, agency GTFS) | the "confirm" items are **not yet confirmed** |
+| USGS 3DEP elevation and the USGS basemap | public domain | derived slopes are labelled as computed |
+| Venue, organisation and news web pages | no licence granted | only short quotes with links, dates and contact points; raw pages are not published |
+| Reddit | Reddit Data API terms | ids and hashed authors only, no text redistributed; no posts collected so far |
+| Google Places | Google Maps Platform terms (no storage or redistribution of Places content) | see the warning below |
+
+**Warning.** `data/map/google_places_enriched.geojson`, `data/map/google_place_matches.csv` and the two map pages `data/map/cincinnati.html` and `oxford.html` contain saved Google Places accessibility fields (for example `wheelchairAccessibleEntrance`) for matched places, and these files are public in git history. This conflicts with the rule in `docs/data_landscape.md` and the skill file that Google Places data is for live lookup and evaluation only. Decision needed from the owner (see `docs/decisions.md` D-40).
+
+Code licence: none chosen yet.
+
