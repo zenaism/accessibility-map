@@ -85,7 +85,7 @@ The checks run the page at 375 and 1280 px in Light and Dark and fail on: text u
 | File | Owner | Others |
 |---|---|---|
 | `src/atlas/ui_foundation.py`, `src/atlas/web/foundation/*` (CSS, JS, icons, fonts), `src/atlas/ui_checks.py`, `src/atlas/ui_components_page.py`, `tests/test_ui_foundation.py`, this doc | B0 | read only; ask for a new component or icon by adding it here in a follow-up B0 change, not by editing in a screen build |
-| Map page, Saved, place card use (`map_viewer.py`, `web/panel.*`, saved-places code) | B1 | call the builders, listen for `atlas:open-saved` |
+| New map app: `src/atlas/map_app.py`, `src/atlas/web/map/{map.css,map.js,nav.js}`, `tests/test_map_app.py`; `map_viewer.render()` dispatch (`legacy=True` keeps the old page) | B1 | call the builders; listens for `atlas:open-saved`, fires `atlas:open-report` and `atlas:open-ask` |
 | Report form (`report_ui.py`, `supabase/ratings.sql` and the report JS) | B2 | listens for `atlas:open-report` |
 | Chat page (`assistant/page.py`, `web/assistant/*`) | B3 | listens for `atlas:open-ask`; Settings Appearance row uses `appearance_group()` |
 | City switcher and first-open sheet (new files) | B4 | emits and listens for `atlas:region-changed` |
@@ -98,3 +98,9 @@ Screen-specific CSS goes in the screen's own file, scoped under `.ax`, built fro
 2. The inverse toast's Undo button had a 2.5:1 (light) and 1.8:1 (dark) focus ring. Its ring now uses the toast text colour.
 3. The Partly accessible ring is 2 px (the frames' 1.5 px renders as 1 px at normal pixel density).
 4. "copy-link": the frames use the link icon (`share`); a `copy` icon is also in the sprite.
+
+## Gaps B1 found in the foundation (B0 to decide; B1 worked around them in `map.css`)
+
+- Not in `harbor.css` although the chosen frames use them: `.tile-grid.three` and `.tile.sm` (type tiles), `.opt` (a bordered group), `h3.sec`, a `[hidden]` rule that beats `.btn { display: inline-flex }`, hiding the native clear button in `input[type=search]`, and a 44 px minimum for inline links inside the panel (`.dfact a`, `ul.plain a`). B1 defines these under `.ax` in `map.css`; if B2 and B3 need them too, move them into `harbor.css`.
+- The desktop frames have no Back control; B1 adds one in the panel (D-76).
+- `atlas.ui.toast` has no way to place itself above a docked panel; on phone it overlaps the bottom of the sheet for 6 to 10 seconds.

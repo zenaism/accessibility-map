@@ -207,6 +207,7 @@ Our position: we accept a harder build to get trustworthy, explainable answers. 
 |---|---|
 | Cincinnati and Oxford data (maps, 311, transit, slope, venue facts with quotes, posters, events) | ✅ built |
 | Map and text pages (GitHub Pages) | ✅ built |
+| New map app: search-first map, place card, details, step-free route with live position and compass, Saved places (branch `ui/map`, `map_app.py`, `web/map/`) | 🟡 built on the branch, not yet merged or deployed; real-phone check of compass and location still needed (`ui_components.md`) |
 | DuckDB knowledge base and four lookup tools; tools-only evaluation 29/29 | ✅ built |
 | Visitor ratings (Supabase) | ✅ built |
 | Region resolver (Census and OSM) for new regions | 🔵 planned |

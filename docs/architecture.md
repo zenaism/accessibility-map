@@ -448,3 +448,43 @@ flowchart TD
   classDef ext fill:#eee,stroke:#888,color:#111
 ```
 
+## 16. The map app (B1, 2026-11-24)
+
+```mermaid
+flowchart TD
+  DATA["Map data in the page<br/>places, ratings, saved routes"]:::built --> APP["map_app.py<br/>map.css, map.js, nav.js"]:::plan
+  FOUND["ui_foundation<br/>CSS, icons, theme, events"]:::built --> APP
+  APP --> S["Search, results, place card,<br/>details, legend"]:::plan
+  APP --> SV["Saved places<br/>snapshot, needs a look, restore link"]:::plan
+  APP --> RT["Route here"]:::plan
+  RT --> W["Walking graph in a Web Worker<br/>routing.js, directions.js"]:::built
+  RT -.->|"graph file missing"| SR["Saved route of the place"]:::built
+  RT --> NAV["Live navigation<br/>position, compass, step banner"]:::plan
+  GPS["Phone location and compass<br/>stay on the device"]:::ext --> NAV
+  APP -->|"atlas:open-report"| B2["B2 Report"]:::plan
+  APP -->|"atlas:open-ask"| B3["B3 Chat"]:::plan
+  SV -->|"localStorage atlas-favs"| DEV["This device"]:::ext
+  classDef built fill:#d4edda,stroke:#2e7d32,color:#111
+  classDef plan fill:#e0f2fe,stroke:#0369a1,color:#111
+  classDef ext fill:#eee,stroke:#888,color:#111
+```
+
+```mermaid
+stateDiagram-v2
+  [*] --> Preview: Route here
+  Preview --> Locating: Start
+  Locating --> Following: first position
+  Locating --> Denied: permission refused
+  Locating --> NoSignal: 15 s without a position
+  NoSignal --> Following: a position arrives
+  Following --> Rough: accuracy over 50 m
+  Rough --> Following: accuracy better
+  Following --> Stopped: Stop
+  Following --> IdleStop: 5 min without a touch
+  Following --> Arrived: within 25 m
+  Stopped --> Locating: Resume
+  IdleStop --> Locating: Resume
+  Arrived --> [*]
+  Denied --> [*]: steps by hand, Close
+```
+

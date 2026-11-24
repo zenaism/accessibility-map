@@ -1,0 +1,89 @@
+/* Map app (session B1). Built on the B0 foundation: every rule is under .ax and uses tokens only. */
+html, body { height: 100%; margin: 0; overflow: hidden; }
+.ax.mapapp { height: 100%; display: flex; flex-direction: column; background: var(--bg); color: var(--text); font-family: var(--font); }
+.ax .skip { position: absolute; left: 12px; top: -80px; background: var(--surface); color: var(--text); padding: 10px 14px; border-radius: var(--r-sm); z-index: 4000; box-shadow: var(--shadow); font-weight: var(--fw-med); }
+.ax .skip:focus { top: 10px; }
+.ax .appbar.phone-bar { min-height: 56px; }
+.ax .appbar .back[hidden] { display: none; }
+.ax .main { flex: 1; min-height: 0; position: relative; display: flex; }
+.ax .mapwrap { position: absolute; inset: 0; }
+.ax #map { position: absolute; inset: 0; background: var(--map-bg); z-index: 0; }
+/* the leaflet basemap stays light in both themes; its own controls are replaced by ours */
+.ax .leaflet-container { font-family: var(--font); }
+.ax .leaflet-control-attribution { display: none; }
+.ax .credit { position: absolute; left: var(--s2); bottom: var(--s2); z-index: 500; font-size: var(--fs-small); background: var(--surface); color: var(--text); padding: 2px 8px; border-radius: var(--r-sm); max-width: 70%; }
+.ax .leftcol { display: contents; }
+.ax .topstack { position: absolute; left: var(--s3); right: var(--s3); top: var(--s3); display: grid; gap: var(--s2); z-index: 600; }
+.ax .zoom { position: absolute; right: var(--s3); top: 190px; display: grid; gap: var(--s2); z-index: 500; }
+.ax .zoom .btn { box-shadow: var(--shadow); font-size: 22px; font-weight: var(--fw-bold); }
+.ax .hintpill { position: absolute; left: 50%; transform: translateX(-50%); top: 178px; width: max-content; max-width: min(230px, calc(100% - 32px)); text-wrap: balance; z-index: 500; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: var(--r-chip); padding: var(--s2) var(--s4); box-shadow: var(--shadow); font-weight: var(--fw-med); text-align: center; }
+.ax .panel { position: absolute; left: 0; right: 0; bottom: 0; max-height: 62%; z-index: 700; background: var(--surface); border: 1px solid var(--line); border-bottom: 0; border-radius: var(--r-sheet) var(--r-sheet) 0 0; box-shadow: var(--shadow); display: flex; flex-direction: column; min-height: 0; }
+.ax .panel .grab { margin: var(--s2) auto var(--s1); flex: none; }
+.ax .panel-body { overflow: auto; padding: 0 var(--s4) var(--s4); display: grid; gap: var(--s3); align-content: start; min-height: 0; }
+.ax .panel-body:focus { outline: none; }
+.ax .panel.tall { max-height: 82%; }
+.ax .tabbar { flex: none; }
+.ax .dim { position: absolute; inset: 0; background: color-mix(in srgb, #0a0d10 35%, transparent); z-index: 550; }
+.ax .listbox { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--shadow); overflow: auto; max-height: 52vh; }
+.ax .listbox .gh { padding: var(--s2) var(--s4) 0; font-size: var(--fs-small); font-weight: var(--fw-bold); color: var(--muted); }
+.ax .opt-row { display: grid; grid-template-columns: 24px 1fr auto; gap: var(--s3); align-items: center; min-height: 56px; padding: var(--s2) var(--s4); cursor: pointer; }
+.ax .opt-row small { display: block; color: var(--muted); font-size: var(--fs-small); }
+.ax .opt-row[aria-selected="true"] { background: var(--primarysoft); }
+.ax .head-row { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); }
+.ax .head-row h2 { font-size: var(--fs-lead); font-weight: var(--fw-bold); margin: 0; }
+.ax .sub { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; font-size: var(--fs-small); color: var(--muted); }
+.ax .note { display: flex; gap: var(--s2); align-items: center; color: var(--muted); font-size: var(--fs-small); }
+.ax .groupt { display: flex; gap: var(--s2); align-items: center; font-size: var(--fs-body); font-weight: var(--fw-bold); margin: 0; }
+.ax ul.plain { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
+.ax .favrow { position: relative; display: grid; grid-template-columns: 1fr 44px; gap: 2px var(--s2); align-items: center; padding: var(--s3) var(--s4); border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); min-height: 56px; }
+.ax .favrow.look { background: var(--warn-bg); border-color: var(--warn-bd); color: var(--warn-fg); }
+.ax .favrow .nm { font-weight: var(--fw-bold); }
+.ax .favrow .sub { grid-column: 1 / -1; }
+.ax .favrow.look .sub { color: inherit; }
+.ax .legendrow { display: grid; grid-template-columns: auto 1fr; gap: var(--s3); align-items: center; min-height: 44px; }
+.ax .dfact { display: grid; grid-template-columns: 24px 1fr; gap: 2px var(--s3); padding: var(--s3) 0; border-top: 1px solid var(--line); }
+.ax .dfact .k { color: var(--muted); font-size: var(--fs-small); }
+.ax .dfact .v { font-weight: var(--fw-bold); }
+.ax .dfact .q, .ax .dfact .nx { grid-column: 2; font-size: var(--fs-small); color: var(--muted); }
+.ax .dfact a { color: var(--link); }
+.ax .routelist { margin: 0; padding-left: var(--s5); display: grid; gap: var(--s2); }
+.ax .routelist li[aria-current="step"] { font-weight: var(--fw-bold); }
+.ax .stepcard { background: var(--primary); color: var(--onprimary); border-radius: var(--r-card); padding: var(--s4); display: grid; gap: var(--s1); }
+.ax .stepcard .dist { font-size: var(--fs-h1); font-weight: var(--fw-bold); line-height: 1.1; }
+.ax .stepcard .what { font-size: var(--fs-lead); font-weight: var(--fw-bold); display: flex; gap: var(--s2); align-items: center; }
+.ax .stepcard .count { font-size: var(--fs-small); font-weight: var(--fw-med); }
+.ax .link { color: var(--link); }
+/* map pins and clusters (fixed colours, dark outline, white halo, in both themes) */
+.ax .leaflet-marker-icon.pinwrap { background: none; border: 0; }
+.ax .pin { position: relative; margin: 0; }
+.ax .cluster { position: relative; margin: 0; }
+.ax .you { position: relative; }
+.ax .you .ring { position: absolute; left: 0; top: 0; }
+@media (min-width: 900px) {
+  .ax .main { display: flex; }
+  .ax .leftcol { display: flex; flex-direction: column; width: 400px; flex: none; z-index: 800; background: var(--bg); border-right: 1px solid var(--line); min-height: 0; position: relative; }
+  .ax .mapwrap { position: relative; inset: auto; flex: 1; min-width: 0; }
+  .ax .topstack { position: static; padding: var(--s3) var(--s4) var(--s2); }
+  .ax .panel { position: static; max-height: none; flex: 1; border: 0; border-radius: 0; box-shadow: none; background: var(--bg); }
+  .ax .panel .grab { display: none; }
+  .ax .panel-body { padding-top: var(--s2); }
+  .ax .zoom { top: var(--s3); }
+  .ax .hintpill { top: var(--s3); }
+  .ax .tabbar { display: none; }
+  .ax .phone-bar { display: none; }
+  .ax .dim { display: none; }
+  .ax .topstack .listbox { position: absolute; left: var(--s4); right: var(--s4); top: 76px; }
+}
+.ax [hidden] { display: none !important; }
+/* pieces of the chosen frames that the foundation does not carry (reported to B0 in docs/ui_components.md) */
+.ax .tile-grid.three { grid-template-columns: repeat(3, 1fr); }
+.ax .tile.sm { min-height: 80px; padding: var(--s3) var(--s2); font-size: var(--fs-small); font-weight: var(--fw-bold); justify-items: center; text-align: center; align-content: center; }
+.ax .tile.sm .ic { width: 26px; height: 26px; }
+.ax .opt { border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); padding: var(--s3) var(--s4); display: grid; gap: var(--s2); }
+.ax h3.sec { font-size: var(--fs-body); font-weight: var(--fw-bold); margin: 0; }
+.ax .search input[type="search"]::-webkit-search-cancel-button, .ax .search input[type="search"]::-webkit-search-decoration { -webkit-appearance: none; appearance: none; display: none; }
+.ax .stack3 { display: grid; gap: var(--s3); }
+.ax .backrow { display: flex; margin-left: calc(-1 * var(--s2)); }
+.ax .panel-body .dfact a, .ax .panel-body ul.plain a, .ax .panel-body .routelist a { display: inline-flex; align-items: center; min-height: var(--target); min-width: var(--target); }
+.ax ul.compact .favrow { min-height: var(--target); padding: var(--s2) var(--s3); }
+.ax ul.compact .favrow .sub > span:not(.badge) { display: none; }

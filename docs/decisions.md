@@ -19,6 +19,41 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-76: Desktop gets an in-panel Back button; the phone keeps the app-bar one (2026-11-24, accepted)
+Decision: the new map app shows Back in the panel on desktop (the phone app bar is hidden there) and in the app bar on phone. Search, results, card, details, route and Saved are one history, so Back always returns to the step before.
+Why: the first browser test found no way back on desktop (the frames draw the app bar only on phone). Found by the keyboard-only test.
+Alternatives: browser Back only (no history entries, loses the place); an X on every screen.
+Costs / revisit if: the frames show no desktop Back, so this is an addition to confirm.
+Basis: inferred (frames silent; confirm).
+
+### D-75: Saved places keep a snapshot and flag changes; restore link in the URL fragment (2026-11-24, accepted)
+Decision: saving stores the link id in `atlas-favs` (same key as the old page) plus a snapshot (name, rating, key facts) in `atlas-fav-snap`. A saved place whose rating or key facts changed, or that left the data, is listed under "Needs a look" with the reason. "Copy restore link" builds `#saved=id1,id2` (a fragment never reaches a server); restore offers Add to my list or Replace my list. Safari gets the 7-day warning; blocked storage gets a banner.
+Why: the frames show "Needs a look" and the restore flow; the data has no opening-hours history, so only rating and key-fact changes can be detected honestly ("Hours changed" and "Closed" from the frames are not built).
+Alternatives: a server-side list (needs accounts, breaks the device-only rule).
+Costs / revisit if: snapshots grow with the list (a few hundred bytes per place); hours-change and closed notices need a fact history from the pipeline.
+Basis: recorded ([design/CHOSEN_DESIGN.md](design/CHOSEN_DESIGN.md), local-only) for the screens; inferred for what counts as a change (confirm).
+
+### D-74: "Open now" uses only hours it can read; unknown is never "open" (2026-11-24, accepted)
+Decision: the Open now tile and the search rank places whose OSM-style hours (`Mo-Fr 09:00-17:00; Sa 10:00-14:00`, `24/7`) parse and match the current time on this device. Any hours text it cannot parse, and any day no rule covers, count as not known, not as open or closed.
+Why: showing a closed place as open is worse than showing fewer places; no manual checking is possible. Never guess.
+Alternatives: a full opening_hours library (large, third-party); drop the tile (the frames draw it).
+Costs / revisit if: places with unusual hours never appear under Open now; time zone is the device's.
+Basis: recorded (no manual checking rule); inferred for the wording (confirm).
+
+### D-73: Live navigation: graph route in a worker, saved route as fallback, watch location only while following (2026-11-24, accepted)
+Decision: Route here computes a step-free route with the existing walking graph in a Web Worker (`routing.js`, `directions.js`); where the graph file is missing it uses the place's saved route and places step boundaries by the feet written in each step. Start begins `watchPosition` and compass listening; position, heading and the route never leave the device. States: locating, rough (over 50 m: the arrow is hidden), denied (steps by hand), no signal (keeps watching; recovers by itself), no compass (arrow follows walking direction), iPhone compass permission from a tap, map not following after a pan, stopped, stopped after 5 min, arrived (within 25 m). Watching stops on Stop, on arrival, after 5 min without a touch, and while the page is hidden. Off the route by over 45 m twice, at most every 15 s, re-routes. Steps are text only (spoken turns are not in version 1).
+Why: D-49 to D-56 and the chosen frames; battery and privacy; transient position errors are normal and must not end the session.
+Alternatives: a hosted routing API (paid, sends location away); stop on the first position error (loses the session).
+Costs / revisit if: the real-phone behaviour of the compass and of locking the screen is not tested here (needs an iPhone 16 Pro and an Android phone); Cincinnati has no graph (ROUTING_REGIONS is Oxford only), so its places show a Google Maps link instead of Route here.
+Basis: recorded (CHOSEN_DESIGN.md and the nav frames, local-only).
+
+### D-72: The new map app replaces the page template; the old one stays behind legacy=True (2026-11-24, accepted)
+Decision: `atlas.map_app` builds the map page on the B0 foundation (`web/map/map.css`, `map.js`, `nav.js`). `map_viewer.render()` returns it by default; `render(..., legacy=True)` returns the old list-first template, kept unused until the integration so nothing is lost. The embedded report form and assistant panel are not in the new page: the Report and Ask tabs fire `atlas:open-report` and `atlas:open-ask`, and follow their `href` (the GitHub report form, `ask.html`) when nothing listens. `nav` and `switch` arguments are ignored (the city switcher is B4). Pages under `data/map/` are not regenerated by this branch.
+Why: the owner chose a new app over a retrofit; two layouts (sidebar list and search-first sheet) in one 1,000-line template would fight each other.
+Alternatives: retrofit in place; build only a smaller slice first.
+Costs / revisit if: until I1 merges B2 and B3 the new page has no in-app report form or chat; `make map` now writes the new page.
+Basis: recorded (owner's answers in the B1 session).
+
 ### D-71: Foundation checks run in a real browser on a generated components page (2026-11-24, accepted)
 Decision: `src/atlas/ui_checks.py` builds `build/ui_components/components.html` (git-ignored, never shipped) and measures it in Chromium at 375 and 1280 px in Light and Dark: text 4.5:1, control borders, icons and focus rings 3:1, targets 44 px, accessible names, no external request, no horizontal scroll, plus axe when installed. It is part of the test run (`tests/test_ui_foundation.py`).
 Why: the owner wants accessibility measured, not asserted (UX brief, D-63). Reading computed colours tests the real CSS, including the dark theme.
