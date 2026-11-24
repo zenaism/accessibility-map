@@ -89,7 +89,7 @@ def page_html(data: dict, title: str = "Accessibility Map", nav: str = "") -> st
         + ui.button("Settings", "ghost", "settings", icon_only=True, id="settings")
         + "</header>"
         f'<div class="only-desktop">{top}</div>'
-        '<main class="main">'
+        '<main class="main"><h1 class="vh only-desktop">Accessibility Map</h1>'
         '<div class="leftcol">'
         + _search()
         + '<section class="panel" id="panel" aria-label="Places"><div class="grab"></div><div class="panel-body" id="panel-body" tabindex="-1"></div></section></div>'

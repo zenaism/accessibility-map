@@ -473,3 +473,35 @@ def test_200_percent_zoom_has_no_sideways_scroll_and_keeps_controls_reachable(br
         )
     assert pg.get_by_role("button", name="Route here").scroll_into_view_if_needed() is None
     assert pg.get_by_role("button", name="Save").is_visible()
+
+
+@pytest.mark.skipif(
+    ui_checks.find_axe() is None,
+    reason="axe-core not installed (npm install axe-core@4.10.2 --no-save --prefix ./.axe)",
+)
+@pytest.mark.parametrize("width,height,theme", [(375, 812, "light"), (1280, 720, "dark")])
+def test_axe_finds_nothing_in_each_state(browser, cdn, site, width, height, theme):
+    pg = open_map(browser, cdn, site, width, height, theme)
+    pg.add_script_tag(path=str(ui_checks.find_axe()))
+    run = "async () => (await axe.run(document, {runOnly: {type: 'tag', values: ['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa','best-practice']}})).violations.map(v => v.id + ': ' + v.nodes.map(n => n.target.join(' ')).slice(0, 3).join(' | '))"
+    found = {"start": pg.evaluate(run)}
+    pg.fill("#q", "lib")
+    pg.wait_for_selector("#sug [role=option]")
+    found["typing"] = pg.evaluate(run)
+    pg.keyboard.press("Enter")
+    pg.wait_for_selector("#rows")
+    found["results"] = pg.evaluate(run)
+    open_first(pg)
+    found["card"] = pg.evaluate(run)
+    pg.get_by_role("button", name="More details").click()
+    pg.wait_for_selector(".dfact")
+    pg.get_by_role("button", name="More details").click()
+    found["details"] = pg.evaluate(run)
+    if GRAPH.exists():
+        pg.get_by_role("button", name="Route here").click()
+        pg.wait_for_selector("[data-nav=start]")
+        found["route preview"] = pg.evaluate(run)
+        pg.locator("[data-nav=start]").click()
+        pg.wait_for_selector(".stepcard")
+        found["route follow"] = pg.evaluate(run)
+    assert {k: v for k, v in found.items() if v} == {}
