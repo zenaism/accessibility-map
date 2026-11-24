@@ -1256,7 +1256,8 @@ self.onmessage = async (e) => {
   };
   window.addEventListener('atlas:route-to', (e) => {
     const d = (e && e.detail) || {};
-    window.AtlasRouting.open({ toPlaceId: d.placeId, profile: d.profile, fromLatLng: d.fromLatLng });
+    // preventDefault tells the sender (the chat's "Route here") that the panel took it, so it does not navigate away
+    if (window.AtlasRouting.open({ toPlaceId: d.placeId, profile: d.profile, fromLatLng: d.fromLatLng })) e.preventDefault();
   });
 
   // "Route here" on place cards and map popups; the old Google Maps link becomes the secondary choice

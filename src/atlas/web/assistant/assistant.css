@@ -190,3 +190,38 @@
 .ow .ow-tiles{display:flex;flex-wrap:wrap;gap:.4em;margin:.5em 0 0}
 .ow .ow-tiles button{width:auto;min-height:44px;padding:.3em .8em;font-size:.82em;font-weight:500;border-width:1px;border-radius:999px;background:var(--ow-brand-soft);color:#0a3d73}
 .ow .ow-tiles-mini button{font-size:.8em;min-height:44px;padding:.2em .75em}
+
+/* ---- map side panel: fits the window and reads compact ---- */
+/* .ow sets height:100%, which beat top/bottom and pushed the panel's bottom (composer, Speak, Photo) 60px below the screen */
+.ow.ow-panel{height:auto;font-size:calc(15px*var(--ow-scale));line-height:1.4;max-height:calc(100dvh - var(--head,60px))}
+@media (max-width:720px){.ow.ow-panel{max-height:100dvh}}
+.ow-panel .ow-head{padding:.45em .7em}
+.ow-panel .ow-head h2{font-size:1.05em}
+.ow-panel .ow-log{padding:.7em .7em;gap:.7em}
+.ow-panel button,.ow-panel .ow-btn{min-height:38px;padding:.35em .7em;border-radius:10px}
+.ow-panel .ow-welcome{padding:.7em}
+.ow-panel .ow-welcome .ow-ah{font-size:1.1em}
+.ow-panel .ow-welcome p{margin:.1em 0 .5em;font-size:.92em}
+.ow-panel .ow-tiles button{min-height:44px;padding:.4em .6em;font-size:.92em}
+.ow-panel .ow-tiles .ow-tile-i{width:1.8em;height:1.8em}
+/* answers */
+.ow-panel .ow-a{padding:.6em .75em;border-left-width:4px}
+.ow-panel .ow-a .ow-ah{font-size:.68em;padding:.1em .6em;margin:0 0 .3em}
+.ow-panel .ow-main{font-size:1em;margin:.1em 0 .4em}
+.ow-panel .ow-main .ow-rest{font-size:.92em}
+.ow-panel .ow-a:has(.ow-cards) .ow-rest{display:none}   /* the card below says the same thing */
+.ow-panel .ow-cards{gap:.45em;margin:.35em 0}
+.ow-panel .ow-card{padding:.5em .65em;border-left-width:4px}
+.ow-panel .ow-card .ow-ch{font-size:.98em}
+.ow-panel .ow-meta{font-size:.84em;margin:.1em 0}
+.ow-panel .ow-facts{margin:.3em 0;gap:.15em;font-size:.88em}
+.ow-panel .ow-src,.ow-panel .ow-note,.ow-panel .ow-asof{font-size:.78em;margin:.2em 0 0}
+.ow-panel .ow-row{margin:.4em 0 0;gap:.35em}
+.ow-panel .ow-row .ow-btn,.ow-panel .ow-row button{font-size:.86em}
+/* composer */
+.ow-panel .ow-compose{padding:.5em .7em calc(.5em + env(safe-area-inset-bottom))}
+.ow-panel .ow-compose input[type=text]{min-height:42px}
+.ow-panel .ow-tiles-mini{padding:.1em 0 .4em}
+.ow-panel .ow-tiles-mini button{min-height:34px;padding:.2em .8em;font-size:.88em}
+.ow-panel .ow-compose .ow-tools{margin:.4em 0 0}
+.ow-panel .ow-status{margin:.2em 0 0;min-height:1.1em}
