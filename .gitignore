@@ -43,3 +43,6 @@ node_modules/
 # Google Places details and matches: never published (D-41); regenerated locally by make map
 data/map/google_places_enriched.geojson
 data/map/google_place_matches.csv
+
+# Claude Code local config and skills (keep off GitHub)
+.claude/
