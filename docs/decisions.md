@@ -19,6 +19,34 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-71: Foundation checks run in a real browser on a generated components page (2026-11-24, accepted)
+Decision: `src/atlas/ui_checks.py` builds `build/ui_components/components.html` (git-ignored, never shipped) and measures it in Chromium at 375 and 1280 px in Light and Dark: text 4.5:1, control borders, icons and focus rings 3:1, targets 44 px, accessible names, no external request, no horizontal scroll, plus axe when installed. It is part of the test run (`tests/test_ui_foundation.py`).
+Why: the owner wants accessibility measured, not asserted (UX brief, D-63). Reading computed colours tests the real CSS, including the dark theme.
+Alternatives: reusing the design worktree's contrast script (local only, tokens not code); checking tokens in Python alone (misses overrides such as the app-bar rule, found here).
+Costs / revisit if: needs Playwright and Chromium (already used by the assistant tests); disabled controls are exempt from contrast as WCAG allows.
+Basis: recorded (B0 brief). Source: [ui_components.md](ui_components.md).
+
+### D-70: Event contracts connect the area builds without shared files (2026-11-24, accepted)
+Decision: five events on `document` (`atlas:open-report`, `atlas:open-saved`, `atlas:open-ask`, `atlas:region-changed`, `atlas:theme-changed`) with fixed payloads, fired from `data-atlas-emit` markup or `atlas.emit`, with a built-in no-op listener and a link `href` fallback when nobody listens.
+Why: B1 to B4 are built in parallel and must not edit each other's files; the Report tab needs to open B2's form before B2 exists.
+Alternatives: a shared router module (one file everyone edits); direct function calls (load-order coupling).
+Costs / revisit if: events are untyped, so payloads are documented in docs/ui_components.md and tested; add names only through B0.
+Basis: recorded (B0 brief).
+
+### D-69: Light default, user-chosen Dark, stored on the device, applied before first paint (2026-11-24, accepted)
+Decision: `<html data-theme>` is `light` unless the device holds `atlas.theme=dark`; the app ignores `prefers-color-scheme`. `window.atlasTheme.get()/.set()`; a script in `<head>` applies it before paint. The map colours and the USGS basemap stay light in dark mode.
+Why: the owner's answer on the board ("default light, option to make it dark"); supersedes D-31 (light only) and D-60's pending default. A pre-paint attribute avoids a flash; try/catch keeps it working when storage is blocked.
+Alternatives: follow the system setting (owner declined); a cookie (needs the server).
+Costs / revisit if: no system-follow option; add a third "Device setting" choice only if the owner asks.
+Basis: recorded ([design/CHOSEN_DESIGN.md](design/CHOSEN_DESIGN.md) follow-up 2, local-only file).
+
+### D-68: One foundation module, everything scoped under `.ax`, fonts and icons self-hosted (2026-11-24, accepted)
+Decision: `src/atlas/ui_foundation.py` returns the Harbor tokens (light and dark), component CSS, the Lucide sprite and the JS; assets live in `src/atlas/web/foundation/` with the Figtree (SIL OFL) and Lucide (ISC) licences. All CSS needs a parent with class `ax`. The Partly accessible ring is the badge's text colour (`currentColor`), one ring colour everywhere.
+Why: existing pages use bare variable names (`--line`, `--focus`) and classes, so unscoped tokens would restyle or break them; B1 to B3 need one source for look and icons; self-hosting means no third-party request at run time (privacy, offline).
+Alternatives: copy the design board's `.sx` CSS into each page (drift); load Figtree from a CDN (third-party request).
+Costs / revisit if: about 73 KB CSS with inlined fonts per page (use `css("fonts/")` to link the files instead); `sun`, `moon`, `copy`, `dots` icons are Lucide additions not drawn in the frames.
+Basis: recorded (B0 brief). Source: [ui_components.md](ui_components.md).
+
 ### D-58: Style direction A Harbor chosen over B Signal and C Meadow (2026-11-24, accepted)
 Decision: the owner chose A Harbor (teal, soft, Figtree, Lucide). All design frames (map, report, chat) read `docs/design/style/tokens/style-a-harbor.css` and `components.css` unchanged and add only layout rules built from tokens. Supersedes the recommendation of B in D-57.
 Why: the owner's choice (no reason stated). Reusing the token files gives a later build the same look from the same files; no colour or icon is invented.

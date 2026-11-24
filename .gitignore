@@ -51,3 +51,6 @@ data/map/google_place_matches.csv
 docs/design/
 docs/prototypes/
 docs/figures/ux_audit/
+
+# Generated components test page (B0)
+build/
