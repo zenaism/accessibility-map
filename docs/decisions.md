@@ -19,6 +19,13 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-42: One UI base branch cut from origin/main; local main is not merged (2026-11-24, accepted)
+Decision: build sessions branch from `integration/ui-base`, which is `origin/main` plus three commits (screenshot shrink, side-panel fixes, a lint wrap). Local `main` is left as it is and is not merged or pushed. Old local tips are kept as `backup/*` tags; the uncommitted integration edits live on `wip/panel-fixes`.
+Why: `origin/main` already contains the assistant (PR #1), routing, saved places and voice; all three origin UI branches are its ancestors. 46 of local main's 49 commits are patch-identical copies of remote commits, so a merge gives 21 conflicts for no new content. Local history also holds the Google Places files removed by D-41, and merging or pushing it would republish them. Owner instruction 2026-11-24: do not publish Google API data.
+Alternatives: merge `origin/main` into local main (rejected: 21 conflicts, republishes Google data); rebase (rejected: rewrites history); use local `deploy/routing-pages` as base (rejected: an older rewritten copy of an origin ancestor).
+Costs / revisit if: local main now differs from the remote main until the owner retires it. The daily card regeneration stays uncommitted in the main working tree; commit it from its own branch. Parallel edits to `docs/progress_log.md` still conflict: consider `merge=union` in `.gitattributes`.
+Basis: recorded (owner approval 2026-11-24).
+
 ### D-41: Saved Google Places details are no longer published (2026-11-23, accepted)
 Decision: the three map pages no longer embed Google `google_place` details (accessibility fields, address, Maps link); `google_places_enriched.geojson` and `google_place_matches.csv` are removed from git and git-ignored; `export_map.py` strips the details before rendering pages. Place IDs stay.
 Why: Google Places content must not be stored or redistributed (project rule, `SOURCES.md`); the files were public. The owner asked for removal on 2026-11-23.

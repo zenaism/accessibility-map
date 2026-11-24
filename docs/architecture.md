@@ -413,3 +413,18 @@ flowchart TD
   classDef plan fill:#e0f2fe,stroke:#0369a1,color:#111
 ```
 
+## 14. Branch layout for build sessions (2026-11-24)
+
+```mermaid
+flowchart TD
+  OM["origin/main: has the UI (PR 1, routing, saved places, voice)"]:::built
+  OM --> BASE["integration/ui-base: build sessions branch from here"]:::built
+  LM["local main: old copies plus uncommitted daily card files, not merged"]:::ext
+  WIP["wip/panel-fixes: committed integration edits"]:::built
+  TAGS["backup tags: old local branch tips"]:::ext
+  WIP -->|"cherry-pick"| BASE
+  LM -.->|"73a7b20 cherry-pick"| BASE
+  classDef built fill:#d4edda,stroke:#2e7d32,color:#111
+  classDef ext fill:#eee,stroke:#888,color:#111
+```
+
