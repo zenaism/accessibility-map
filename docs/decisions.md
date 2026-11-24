@@ -19,6 +19,225 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-58: Style direction A Harbor chosen over B Signal and C Meadow (2026-11-24, accepted)
+Decision: the owner chose A Harbor (teal, soft, Figtree, Lucide). All design frames (map, report, chat) read `docs/design/style/tokens/style-a-harbor.css` and `components.css` unchanged and add only layout rules built from tokens. Supersedes the recommendation of B in D-57.
+Why: the owner's choice (no reason stated). Reusing the token files gives a later build the same look from the same files; no colour or icon is invented.
+Alternatives: B Signal (recommended in D-57), C Meadow; copying and editing tokens per frame (drifts apart).
+Costs / revisit if: B had the heaviest text for low vision; A passes all measured pairs but has no sunlight test. If the direction changes, rebuild with another token file (`lib.py` names the direction; chat re-copies `assets/tokens`).
+Basis: recorded (owner's choice in the V2 briefs). Source: [design/map/DECISIONS.md](design/map/DECISIONS.md) V2A-1, [design/chat/DECISIONS.md](design/chat/DECISIONS.md) note 1.
+
+### D-59: Report a problem is the fourth tab on phone and a top-bar button on desktop (2026-11-24, accepted)
+Decision: the phone tab bar has four items: Map, Saved, Ask, Report (flag icon, accessible name "Report a problem"). On desktop it is a top-bar button next to Ask. The app bar has no Report button; Settings stays there. The place card and details view keep "Report a problem here", which prefills the place. This replaces the list-footer spot of D-52 and the idea of an app-bar button. Supersedes D-52 (and the "list footer stays as a second route" line in D-V2B-1; the list footer is dropped).
+Why: the owner decided it. The tab bar is in the thumb zone, so one-handed outdoor use reaches it; reporting problems is the lab students' main task, so it deserves the same weight as Map and Saved; the bar is on every phone screen, so the spot is the same everywhere (checklist item 18, ux_brief 3.2.6); no floating button covers the map or legend.
+Alternatives: app-bar button (top of screen, hard to reach); floating button (covers map and legend, audit A6); list footer only (not on every screen).
+Costs / revisit if: four tabs are about 93 to 94 px wide at 375 px (all pass 44 px) but CHOSEN.md warned of a crowded bar; at 188 px (200 percent zoom) labels become hidden names. Test on a real phone. Map, report and chat frames must all use the same four-item bar.
+Basis: recorded (owner's decision, V2A follow-up). Source: [design/map/DECISIONS.md](design/map/DECISIONS.md) V2A-2, [design/report/DECISIONS.md](design/report/DECISIONS.md) D-V2B-1, [design/chat/DECISIONS.md](design/chat/DECISIONS.md) note 3.
+
+### D-60: Defaults assumed pending the owner's answer (2026-11-24, accepted by default)
+Decision: keep the word "Partly accessible"; dark mode is designed, light is the default; the USGS basemap stays light; Near me and Ask sit under the search; no seventh "Near me" tile because the button is already under the search. Dark mode designed supersedes the light-theme-only line of D-31 for design purposes; whether to ship it is still open (D-57).
+Why: the owner did not answer style README questions 1 to 7; these are the defaults the style README and CHOSEN.md already drew.
+Alternatives: other wording for partial (README lists them); dark basemap (not available).
+Costs / revisit if: the owner answers differently; listed in the map `README.md` under "Assumed defaults".
+Basis: inferred, to confirm. Source: [design/map/DECISIONS.md](design/map/DECISIONS.md) V2A-4; [design/style/README.md](design/style/README.md).
+
+### D-61: The partial rating keeps its orange and gets a ring (2026-11-24, accepted)
+Decision: `#E69F00` stays. On the map the pin keeps its 2.5 px dark edge and white halo (13:1 on the basemap, 7.95:1 against the fill); the badge and tile get a ring in the badge text colour (`--partial-fg`, 8.9:1 on white, 10.1:1 in dark mode). The chat frames use `--partial-ring` `#8A5300` (6.33:1) in light mode, none needed in dark (6.98:1), and `#B2C4CE` for the unknown grey tile in dark mode (2.59:1). Recommend moving `.badge.partial { border-color: var(--partial-fg) }` into the shared components in the foundation build. Settles the partial-colour open point in CHOSEN.md.
+Why: the fill alone is 2.25:1 on white and 1.81:1 on the basemap, below 3:1. A ring needs no new colour, so the Okabe-Ito colour-blind-safe set stays. Text and symbol were never at risk.
+Alternatives: a darker orange (breaks the colour family and the measured pin set); no ring (fails 3:1).
+Costs / revisit if: the two ring colours (`--partial-fg` and `#8A5300`) should be unified in the foundation build.
+Basis: recorded (measured in `contrast_map.csv`). Source: V2A-3, D-V2B-9, chat note 2.
+
+### D-62: Three variants only for the place card, next-step banner, report steps and chat answer and compose (2026-11-24, accepted)
+Decision: place card A List, B Rating first, C Sentence first; next-step banner A Card, B Filled, C Distance tile (state frames use A). Report main step A Steps, B One screen, C Sheet; success A Receipt, B Timeline, C Summary on the map. Chat short answer A plain card, B rating band, C big rating tile; compose A one field with icons (12 percent of height), B labelled actions (18 percent, clearest names, worst at 200 percent zoom), C big round mic plus pill (13 percent, for voice users). Everything else has one design. Where and Details are drawn in the A layout only.
+Why: the owner asked for three variants of the most important components only; structure is fixed by CHOSEN.md, so variants differ in look or taps, not in the chosen structure. Report success B makes "Report another" primary (many lab reports in a row).
+Alternatives: variants for every screen (too much to choose from).
+Costs / revisit if: after the owner picks, the board session can drop the others.
+Basis: recorded. Source: V2A-5, D-V2B-8, chat notes 5 and 6.
+
+### D-63: Frames are generated by script and measured in a real browser (2026-11-24, accepted)
+Decision: `build.py` generates every frame; `check.py` opens each in Chrome and measures target size, text contrast, names, overflow and external requests; `check_contrast.py` measures token pairs. Chat frames fill their window instead of fixed boxes (manifest gives the intended size); 200 percent zoom is shown as a 188 x 406 px viewport (compose area then takes 41 to 70 percent of the height).
+Why: measured results instead of estimates; one generator keeps the frames consistent when a token or word changes; real dvh and zoom behaviour can be tested.
+Alternatives: hand-made frames (drift).
+Costs / revisit if: not covered: real screen readers, real phones, forced colours, sunlight.
+Basis: inferred (owner asked for a measured self-check). Source: V2A-6, chat notes 9 and 10.
+
+### D-64: Report form: text optional, two or three steps, no map pin (2026-11-24, accepted)
+Decision: "What happened" is Optional; when empty the build sends the kind label (for example "Blocked, broken") as the text, because `supabase/problem_reports.sql` requires 5 to 1000 characters. From a place card the form has What, then Details (2 steps); from the Report tab it adds Where (search, Near me, "Not about one place") for 3 steps; cue "Step n of N" with a bar; one dialog on desktop. No free map pin.
+Why: fewest taps, often outdoors with one hand; a prefilled place saves a screen; the table stores link_id, place_name and region only, with no latitude or longitude, so a pin would be thrown away.
+Alternatives: relax the check to 0 (SQL change the owner must run); always 3 steps; add lat and lon columns (new privacy question, a pin can be a home address).
+Costs / revisit if: the team sees only the kind for some reports; a problem not at a listed place (a broken kerb ramp mid-block) cannot be pinned.
+Basis: recorded (SQL read) plus inferred. Source: D-V2B-2, D-V2B-3, D-V2B-4.
+
+### D-65: Report wording says what the code does (2026-11-24, accepted)
+Decision: privacy line "No name needed. We keep your report, device type and page address." plus a "What we keep" sheet (mentions the random device code, which makes Delete work). Offline says "Your text is saved on this device" with Try again, not "Reports send when you reconnect". Duplicate says "Already sent. Your code is X." as information, not an error. Errors: a summary at the top takes focus (tabindex -1) with links to each field; each field has its own message via aria-describedby (aria-invalid on text fields, a fieldset for choice groups); no role=alert on the summary, so it is read once.
+Why: the code stores user agent, page address, a device code and optional contact, so "Anonymous" over-promises (improvement_plan 3.6, audit A14); it keeps a draft but never sends later by itself; a repeated report id is stored once; improvement_plan 3.7 found errors not tied to fields and a summary announced twice.
+Alternatives: keep "Anonymous"; build send-when-online (needs a queue and online listener, out of scope).
+Costs / revisit if: the "no IP address" claim holds for our table only (Supabase request logs not checked); retention of 24 months is still the owner's proposal to confirm (compliance.md section 4); an offline person must press Try again; the photo is lost if the form is closed.
+Basis: recorded (code read). Source: D-V2B-5, D-V2B-6, D-V2B-10.
+
+### D-66: "My reports on this device" list is optional and needs a small build (2026-11-24, proposed)
+Decision: one frame draws the list (kind, place, date, code, Delete) with an "only on this device" note. It is not in the current system. Building it means saving the report id and device code in the browser at send time, then using the existing delete function.
+Why: the code stores no ids and has no read function today; the cost is small, so drawing it lets the owner decide.
+Alternatives: no list (people cannot find their code or delete later).
+Costs / revisit if: no status column (the public key cannot read the team's status); clearing browser data empties the list while reports stay in the database for up to 24 months.
+Basis: recorded (owner: optional, small build). Source: D-V2B-7.
+
+### D-67: Chat frames: chips live in the list, one Stop, separate live regions (2026-11-24, accepted)
+Decision: quick chips are removed from the compose area (the greeting offers questions and each answer ends with three follow-up chips); while recording the compose mic is dashed and named "Speak, listening now" and Stop lives only in the voice bar; the chat list is `role="log"` inside `<main>`, and state messages go to a separate polite region (the counter stays silent).
+Why: the chip row cost 56 px and put the compose area at 19 percent, over the 18 percent cap (now 12 to 18 percent); two Stop buttons confused the focus order and CHOSEN.md keeps Stop in one place across Listening, Restarting and Processing; one live region for answers and one for short state text.
+Alternatives: keep the chip row; one shared live region.
+Costs / revisit if: testing shows people miss the greeting chips once the list scrolls.
+Basis: inferred (needs confirming). Source: [design/chat/DECISIONS.md](design/chat/DECISIONS.md) notes 4, 7 and 8.
+
+### D-57: Three style directions proposed; recommend B Signal, owner has not chosen (2026-11-24, proposed; owner chose A, see D-58)
+Decision: three directions were built as a style board ([design/style](design/style/index.html)): A Harbor (teal, soft, Figtree, Lucide), B Signal (ink, bold, Atkinson Hyperlegible, Tabler), C Meadow (green, pill shapes, Lexend, Phosphor). Each has light and dark tokens in its own CSS file. Recommendation: B, then C, then A. The structure is the one in `prototypes/CHOSEN.md`; only the look differs.
+Why: the audience is outdoors on phones, many with low vision or tremor; B has the heaviest text and borders, solid badges and a font built for low vision (Braille Institute page read). All 240 colour pairs (text 4.5:1, controls 3:1) pass in all three, light and dark, computed by `palettes.py`. Fonts are SIL OFL and icons ISC or MIT, all self-hosted and inlined, so the page makes no outside requests (privacy rule).
+Alternatives: keep the grey minimal look (the owner no longer wants it as the target); a dark basemap (not available: the USGS basemap stays light, so pins use fixed colours with a dark outline and white halo in both modes).
+Costs / revisit if: dark mode was ruled out for v1 (Q13) but is designed here and passes, the owner decides whether to ship it; the pattern research (bottom sheets, floating search, status badges) is *assumed*, one source did not load; no screen reader, real phone or sunlight test yet; Lexend is wide, long place names need a check.
+Basis: recorded (owner's V1 request); measurements are computed, pattern claims assumed.
+
+### D-49: Live location uses the bottom card (2A.1 option A) (2026-11-24, accepted)
+Decision: follow-me dot, accuracy ring and next step use the bottom card layout; Stop is kept visible above notices; stop after 5 minutes without moving; Previous and Next step always shown; 50 m rough limit.
+Why: dot and next step are on screen together and every control is in the thumb zone; one reading order. Recommended by the prototype README ([prototypes/map/README.md](prototypes/map/README.md)); the open questions took their stated defaults.
+Alternatives: B top banner (text far from the thumb, hides map), C text-first (least map).
+Costs / revisit if: a long notice pushes lower controls to the screen edge; thresholds are untuned; needs an iPhone and an Android test before building.
+Basis: recorded (README recommendation, owner acceptance in session V0); defaults taken, not stated by the owner. See [prototypes/CHOSEN.md](prototypes/CHOSEN.md).
+
+### D-50: Search-first map uses tiles with a chip row above results (2A.2 option B) (2026-11-24, accepted)
+Decision: six large tiles (Near me is one) in the list; chip row above results; C's "Search this area" and distance choice come later; half-mile default radius; empty sheet half height on phone.
+Why: all choices visible at 375 px, big low targets, shorter header. README recommendation.
+Alternatives: A chips (half hidden), C near me first (better for nearby, taken later as refinements).
+Costs / revisit if: the half-height sheet makes the map small on first open; half a mile may be too far for a wheelchair user.
+Basis: recorded (README, owner acceptance); radius is a default, not measured.
+
+### D-51: Details panel uses inline More details (2A.3 option A) (2026-11-24, accepted)
+Decision: first layer then an inline More details; step line rule parking, else step, else Not known; no extra confidence word beyond the rating; steps shown in full.
+Why: one tap, nothing replaced, state announced. README recommendation.
+Alternatives: B drill-in (hides the map), C sentence first (380 characters, extra tap).
+Costs / revisit if: screen-reader users find C's sentence useful; long routes may need a collapsed list.
+Basis: recorded (README, owner acceptance); defaults taken.
+
+### D-52: Report a problem sits in the list footer, a default to confirm (2026-11-24, superseded by D-59)
+Decision: keep Report a problem in the list footer on phone and in the header on desktop, as in the prototypes.
+Why: the floating button covered the map and collided with the legend (audit A6). It is the prototype default.
+Alternatives: floating button; one fixed place on every screen (checklist item 18), which the prototypes do not yet meet.
+Costs / revisit if: it is harder to find on a phone; the V2 designs should try a fixed entry on every screen and show the owner.
+Basis: inferred (README open question B, default taken; owner has not stated it).
+
+### D-53: Favourites use the Saved tab and page with C's Edit list (2B option A) (2026-11-24, accepted)
+Decision: bottom tab Saved (n) and a Saved page; name "Saved places"; device snapshot; all change notices; redirect table and one small shared index in the release; no file download; assistant may read the list on the device; link warning as a private note.
+Why: only A puts the way back in the thumb zone on every screen, and the restore link needs a plain landing page. README recommendation; open questions took the recommended answers.
+Alternatives: B sheet over the map (fallback if the 56 px tab bar is too crowded), C text-first (Saved feels buried).
+Costs / revisit if: the tab bar crowds the map on a real phone; the redirect table and shared index change the export (data_dictionary.md); Safari 7-day storage limit.
+Basis: recorded (README, owner acceptance). Confirms D-40 to D-44 (favourites).
+
+### D-54: Settings cogwheel and short chat answer shape A (2C.1, 2C.2) (2026-11-24, accepted)
+Decision: own-drawn cogwheel, 44 px; chat answer is a sentence, one card, More, three chips; confidence line always shown; the nearest confirmed fresh place leads. C is the fallback.
+Why: standard symbol with no licence to carry; 344 to 410 characters against 612 to 943; reuses the place card. Q7 default.
+Alternatives: Lucide or Feather gear; B fact list (breaks one system); C sentence only.
+Costs / revisit if: the visual design adopts an icon set that has a gear (use that one); confidence line departs from the Q12 quiet default for list cards.
+Basis: recorded (README, owner acceptance); lead rule and confidence line are defaults.
+
+### D-55: Chat layout C: compose area under about 18%, two columns in landscape (2C.3) (2026-11-24, accepted)
+Decision: layout C; Near me and Ask at 44 px with Ask as the primary header button; blue and teal chat colours dropped for the chosen style.
+Why: 18% of a 700 px phone (about 25% today), best landscape list, every control one tap. README recommendation.
+Alternatives: A (no landscape gain), B (tray hides Photo and chips).
+Costs / revisit if: iOS Safari keyboard and `dvh` behaviour is unverified; two layouts to maintain.
+Basis: recorded (README, owner acceptance); measured in Chromium only.
+
+### D-56: Voice input as designed (2C.4) (2026-11-24, accepted)
+Decision: continuous recognition with restart after 350 ms, 60 s cap, counter, editable transcript, never auto-sent, text box read-only while listening.
+Why: keeps what was said across browser pauses (D-48). README recommendation.
+Alternatives: typing counts as Stop; hold-to-talk (rejected in D-39).
+Costs / revisit if: real Chrome and Safari engines differ; test on the owner's iPhone over https (pushing the prototype pages is not yet decided).
+Basis: recorded (README, owner acceptance); read-only box is a default.
+
+---
+
+### D-44: Favourites UX: recommend a Saved tab and page (option A) (2026-11-23, accepted 2026-11-24)
+Decision: three prototypes were built ([prototypes/favourites](prototypes/favourites/index.html)): A bottom tab and Saved page, B Saved sheet over the map, C text-first compact page. Recommendation: A, with C's "Edit list" and compact rows for long lists. Nothing is built until the owner chooses.
+Why: A puts the way back in the bottom thumb zone on every screen (task 5, one-handed); the restore link needs a plain landing page that can confirm and report success or failure; a page works without the map (checklist 15). B adds no bottom bar but hides the restore prompt behind a map and sheet; C is simplest but its link is at the top of the screen.
+Alternatives: B and C (see the comparison table in the prototype index).
+Costs / revisit if: A adds a 56 px tab bar to a map screen that already has a sheet, legend and Report button; test on a real iPhone (checklist 24). If it is too crowded, use B.
+Basis: recorded (owner's session 2B request and Q5); effort and one-handed reach are *assumed*, not measured on a device.
+
+### D-43: The assistant may read the saved list on the device (2026-11-23, accepted 2026-11-24)
+Decision: a question such as "is my favourite cafe step-free?" is resolved against the saved list in the browser. One saved match gives a direct answer (one sentence plus one card); several matches ask "which one?" with buttons; none offers a search; a closed or removed place says so first. The list is never added to anything that leaves the device.
+Why: top task 4 and 5; the assistant already runs on the device (guided mode, local model); keeps the privacy rule.
+Alternatives: no personalisation (the question cannot be answered); sending the list to a model (violates privacy and the $0 rule if hosted).
+Costs / revisit if: a hosted model is ever used; then saved places must stay out of its prompt.
+Basis: recorded (owner request); the on-device behaviour is a design, not tested with the real composer.
+
+### D-42: A small snapshot on the device handles changed and removed places (2026-11-23, accepted 2026-11-24) (number clash, see progress log)
+Decision: next to each saved id the device keeps name, type, city, last seen entrance, restroom, parking and rating, with source and date. It is never put in the restore link. The Saved page uses it to show a place that left the data (by name), to work with a weak connection (labelled "as last seen"), and to say what changed. Places that merged follow an old-id to new-id table that the data release would carry, written automatically by the dedupe step. Changed, closed, moved and removed places sit first under "Needs a look"; "Caution" and a warning colour only when a fact got worse.
+Why: a saved id alone cannot say what a place was called, or what changed; no one can check data by hand, so the release must say when an id moved.
+Alternatives: ids only (missing places become codes; no change notices); keep every fact in the link (bigger link, more to leak).
+Costs / revisit if: the redirect table is a data-export change to coordinate in `data_dictionary.md`; the snapshot is a little more data kept on the device; after a restore the "changed since" baseline starts again from today.
+Basis: recorded (owner's request to handle places that disappear or change); the redirect table and snapshot are my design, *proposed*.
+
+### D-41: Restore link in the URL fragment, merge by default, backup status shown (2026-11-23, accepted 2026-11-24) (number clash, see progress log)
+Decision: link form `saved.html#restore=v1;<region>~<id>,...;k=<check>` (place codes in saved order and a 4 character check). Browsers never send the fragment to a server, so nothing about the list reaches a server. Opening or pasting a link asks first: "Add" (default) or "Replace" (separate red button naming how many places go). A cut-off, wrong-version or non-link input changes nothing and says why. The page strips the fragment from the address after reading it. The Saved page shows backup status ("not copied yet", "N changes since", "copied N days ago") and, only for Safari after 4 or more days away without a current copy, a warning. The empty page has a paste box.
+Why: Q5 and D-36; Safari can delete script-written storage after 7 days (excerpt-level sources in ux_brief 4.4); a link that is cut by a messaging app is common, so a check code and a paste box are needed.
+Alternatives: Supabase sync (stores more, uses quota, already rejected); download a file (not offered now; asked in the prototype questions); showing the link only on request.
+Costs / revisit if: anyone who gets the link can see the places (a clinic, for example), and apps that send it can read it; the warning cannot reach someone who never returns after 7 days; Safari detection from the user-agent is fragile; whether Home Screen apps are exempt is unverified.
+Basis: recorded (Q5, `compliance.md` privacy rules); the fragment rule is standard URL behaviour, *not re-verified in a source here*; the format is my design.
+
+### D-40: Save control: one visible word, no aria-pressed, undo on the Saved page (2026-11-23, accepted 2026-11-24) (number clash, see progress log)
+Decision: Save is a 44 px button with a heart and the word Save or Saved (filled heart and a thicker border when saved). The word changes; `aria-pressed` is not used. Its name starts with the visible word and ends with the place name. One polite status message for the page announces the result. Removing on the Saved page leaves an inline message with Undo and moves focus to it; elsewhere pressing Save again is the undo. No timed toast. No Save in the map popup.
+Why: the current code sets both a changing word and `aria-pressed` (`map_viewer.py:512-516`), which can read as "Saved, Saved, toggle"; timed toasts can vanish before they are read (checklist 16); popup stays short (brief 7.5).
+Alternatives: aria-pressed with a fixed word (weaker for low-vision users who read the word); toast with Undo (timing, focus).
+Costs / revisit if: a screen reader test shows the status messages are missed.
+Basis: recorded (brief checklist 5, 6, 16; read the current code); screen reader behaviour is by design and not listened to.
+
+### D-42: Details panel first layer, built from Q6, with the layout still open (2026-11-23, accepted 2026-11-24) (number clash, see progress log)
+Decision: first layer = name, rating word with symbol, Entrance, Restroom, one step or parking line, source and age, Route here, Save; everything else behind "More details". Unknown values read "Not known" plus one next-step sentence. Prototyped three ways (inline, drill-in view, sentence first); the owner picks. My recommendation is inline.
+Why: Q6 default; the measured live panel showed 1,598 characters at once. In the prototype the Area History first layer is 272 characters and the full content 1,496 (with a route).
+Alternatives: drill-in (second view, hides the map); sentence first (380 characters, repeats the rows, one more tap).
+Costs / revisit if: screen-reader users find the sentence helps; the facts table needs a `confidence` export field (D-31, not changed here).
+Basis: recorded (Q6, ux_brief 3c item 3); layout recommendation is mine, from taps and focus behaviour, not tested with people.
+
+### D-41: Search-first map: what stays on the empty map, and where Report and Legend go (2026-11-23, accepted 2026-11-24) (number clash, see progress log)
+Decision: the empty map shows only the basemap, zoom buttons and credit (plus a short hint). No markers, no cluster discs, no trails. "Report a problem" moves from a floating map button to the list footer; the legend appears only when results are on the map; "Show all places on the map" is an off-by-default button. Results sort best-known first (accessible, reported, partly, not, then no information), then nearest. On a phone the map sits above the list sheet instead of behind it. Three ways to find places without typing are prototyped (chips, tiles, near me first); my recommendation is tiles, with a chip row once results show.
+Why: Q8 and D-37; audit finding 7 (26 icons, about 20 clusters, trails and a button over the map) and A6 (legend and Report collide). The sort rule keeps "no information" below every place that has information (principle 2 in the brief). Map above sheet stops markers and the map credit hiding under the sheet.
+Alternatives: keep clustering only (still busy); chips only (half of them are off screen at 375 px); floating Report (covers the map).
+Costs / revisit if: "Report" in a footer is harder to find on a phone than a floating button (checklist item 18 wants one fixed place on every screen, not yet true in the prototypes); Near me radius half a mile is a guess for wheelchair users; the layout needs a real phone.
+Basis: recorded (Q8, D-37, audit); sort rule, footer placement and radius are inferred from the brief's principles, not stated by the owner.
+
+### D-40: Live location screens: states and limits proposed for the first stage (2026-11-23, accepted 2026-11-24) (number clash, see progress log)
+Decision: first stage of Q4/D-35 is a follow-me dot, accuracy ring, heading arrow and next step as text only. Separate states for locating, poor accuracy (over 50 m: says "Location is rough", no arrow, no off-route claim), permission denied (steps still work, moved by hand), no signal, no compass, iPhone compass behind a tap, paused when the page is hidden, stopped after 5 minutes without moving, arrived, stopped. Re-centre and Stop are different buttons ("Follow me" moves the map; "Stop navigation" turns location off). Position changes are never announced; only a new step, arrival, pause and stop are. Three layouts prototyped (bottom card, top banner, text first); my recommendation is the bottom card.
+Why: Q4 and D-35 (battery, privacy, `requestPermission()` needs a tap); the brief's checklist item 21. Five minutes idle and 50 m are proposals to tune with real walks.
+Alternatives: always-on watching (battery, privacy); one generic error for denied, no signal and rough (hides what the person can still do).
+Costs / revisit if: real iPhone or Android behaviour differs (compass, screen lock, accuracy values); spoken steps, off-route alert and re-routing are later stages and need their own screens.
+Basis: recorded (Q4, D-35, MDN references in ux_brief 4.2); thresholds assumed; simulated GPS only.
+
+### D-48: Voice keeps what was said across browser pauses (2026-11-23, accepted 2026-11-24)
+Decision: recognition runs with `continuous = true`; when the browser ends a session and the person has not tapped Stop, a new session starts after 350 ms and everything heard so far (final or not) is kept. States: idle, starting, recording, warning at 50 s, restarting, processing, stopped, limit reached at 60 s, error, microphone denied, paused by the browser (tap to continue), not supported. The box is read-only while listening; Stop makes it editable; Escape stops; nothing is sent automatically; we store no audio.
+Why: the code ended recording at the first pause (`continuous = false`), so long questions were cut. A restart loop is the usual way to get longer input from the browser engine, and keeping interim text means a session that ends without a final result loses nothing. The "paused by the browser" state exists because iOS may refuse an automatic restart.
+Alternatives: only raising a timer (does not fix pauses); allowing typing while listening and treating it as Stop (open question for the owner); hold-to-talk (hard with tremor, rejected in D-39).
+Costs / revisit if: proven only in a simulation and in Chromium; real Chrome and Safari engines may end sessions differently, so test on the owner's iPhone before building. The 60 s cap is ours; the browser may stop earlier.
+Basis: refines D-39. Recorded (owner answer Q9 in [ux_brief.md](ux_brief.md); `voice.js` read on `deploy/routing-pages`) plus inferred (the restart design is mine, not yet tested on a device). Prototype: [prototypes/chat/voice.html](prototypes/chat/voice.html).
+
+### D-47: Chat layout follows the visible screen, compose area at most about 18% (2026-11-23, accepted 2026-11-24)
+Decision: the chat shell is exactly the visible viewport (`100dvh` with a `100vh` fallback, plus a `visualViewport` script because iOS Safari does not shrink the layout viewport for the keyboard); only the message list scrolls and the new answer scrolls to its first line (never `scrollIntoView`, which also moved the page in testing); compose padding is `16px + env(safe-area-inset-bottom)` with `viewport-fit=cover`; Speak, Photo and Send are 44 px icon buttons inside the input row, the input is a 16 px auto-growing textarea; Near me and Ask go from 32 to 44 px. Recommended layout: option C (inline icons in portrait, two columns on short wide screens). Option B (one row and a tray) is the alternative.
+Why: measured in Chromium, option C gives a compose area of 18% of a 700 px phone (about 25% today), 281 px of list in landscape against 214 px for the other layouts, 16 px above the bottom edge in every size and state tested, no target under 44 px and no sideways scroll at 320 px or 200%. It keeps every control one tap away; B reaches 10% but puts Photo and the quick questions behind a tray.
+Alternatives: B (above); keeping today's two rows (about 25%).
+Costs / revisit if: iOS Safari behaviour (safe area, toolbars, keyboard, `dvh`) is from search excerpts only and must be tested on a real iPhone; two layouts to maintain in C. 200% zoom was simulated by viewport size.
+Basis: recorded (measurements in [prototypes/chat/tools/last_report.md](prototypes/chat/tools/last_report.md); brief section 3c item 6, checklist 8, 10, 24) plus inferred (iOS behaviour). Prototypes: [prototypes/chat/](prototypes/chat/index.html).
+
+### D-46: The short chat answer is one sentence, one card, More, three chips; the nearest confirmed place leads (2026-11-23, accepted 2026-11-24)
+Decision: recommended shape A: one sentence of 25 words or fewer, one compact place card (name, rating word and symbol, the key fact, a confidence line with source and month, two actions), a "More" button that opens other places, all facts, quotes and sources, unknowns, contact, Read aloud and Report, and three follow-up chips. The lead place is the nearest one whose record is confirmed and not old; a nearer place with an old or weaker record goes under More with its age. When nothing answers, the sentence starts "I don't know" and the first action is "Report what I know". Draft prompt and tests: [prototypes/chat/answer_prompt_draft.md](prototypes/chat/answer_prompt_draft.md).
+Why: your Q7 default (refines D-38). Measured on three eval questions: 344 to 410 characters and 6 buttons against 612 to 943 characters and up to 14 buttons in the rebuilt current shape (the live restroom answer was 1,465 characters). It reuses the place card of the list and map. The lead rule follows the brief's rule that unknown or weak never outranks confirmed.
+Alternatives: B, a fact list with no card (breaks one system, D-31 to D-39 principle 10); C, sentence only with the place in a sheet (shortest at 250 to 288 characters, one more tap, kept as the fallback).
+Costs / revisit if: the 25-word limit and three chips are proposals, not measured optima; showing the confidence line on every chat answer departs from the Q12 default for list cards (question to the owner); no user testing yet. The live site did not load on 2026-11-23, so "today" was rebuilt from the verified live shape and understates the saving.
+Basis: recorded (Q7; [ux_brief.md](ux_brief.md) 3c, 4.4, 4.6; `eval/questions.yaml`) plus inferred (lead rule, limits). Prototypes: [prototypes/chat/answers-a.html](prototypes/chat/answers-a.html).
+
+### D-45: Settings button is a cogwheel drawn for the project (2026-11-23, accepted 2026-11-24)
+Decision: replace the sun-like icon (a circle with eight rays) with an 8-tooth cogwheel drawn as inline SVG on a 24 px grid with a 2 px stroke; 44×44 px; "Settings" visible beside it on desktop and as the accessible name on phones; `aria-expanded` and `aria-controls` on the button; the settings panel keeps its current contents and scrolls inside itself (max 60% of the screen).
+Why: owner request Q2 for the standard gear (refines D-34). Drawing it ourselves means no icon library and no licence file to carry (Lucide is ISC, Feather is MIT, both would also have been allowed).
+Alternatives: an exact Lucide or Feather gear (needs the licence file checked and added); an emoji (never, per the style guide).
+Costs / revisit if: the owner prefers a particular gear shape. No screenshot of the icon the owner sees was attached; the live screenshots in `figures/ux_audit/` were used.
+Basis: recorded (Q2 in [ux_brief.md](ux_brief.md); `chat.js` icon on `deploy/routing-pages`). Prototype: [prototypes/chat/settings-icon.html](prototypes/chat/settings-icon.html).
+
 ### D-42: One UI base branch cut from origin/main; local main is not merged (2026-11-24, accepted)
 Decision: build sessions branch from `integration/ui-base`, which is `origin/main` plus three commits (screenshot shrink, side-panel fixes, a lint wrap). Local `main` is left as it is and is not merged or pushed. Old local tips are kept as `backup/*` tags; the uncommitted integration edits live on `wip/panel-fixes`.
 Why: `origin/main` already contains the assistant (PR #1), routing, saved places and voice; all three origin UI branches are its ancestors. 46 of local main's 49 commits are patch-identical copies of remote commits, so a merge gives 21 conflicts for no new content. Local history also holds the Google Places files removed by D-41, and merging or pushing it would republish them. Owner instruction 2026-11-24: do not publish Google API data.

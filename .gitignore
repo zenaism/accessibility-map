@@ -46,3 +46,8 @@ data/map/google_place_matches.csv
 
 # Claude Code local config and skills (keep off GitHub)
 .claude/
+
+# Local-only design files (frames, prototypes, board, audit screenshots): never commit these
+docs/design/
+docs/prototypes/
+docs/figures/ux_audit/
