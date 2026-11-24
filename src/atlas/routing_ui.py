@@ -19,8 +19,9 @@ import json
 from pathlib import Path
 
 WEB = Path(__file__).with_name("web")
-# Cincinnati is measured and works (4.3 MB gzipped graph) but is off on this deploy branch: add "cincinnati" here,
-# run `python -m atlas.export_routing --all`, commit the graph and re-render the pages to turn it on
+# Cincinnati is measured and works (4.3 MB gzipped graph) but is off on this deploy branch:
+# add "cincinnati" here, run `python -m atlas.export_routing --all`, commit the graph
+# and re-render the pages to turn it on
 ROUTING_REGIONS = ["oxford"]
 GRAPH_BASE = "routing/"
 
