@@ -511,7 +511,7 @@
     if (m) { const ids = parseRestore(h); if (ids && ids.length) { S.prev = [{ view: 'start' }]; S.view = 'restore'; viewRestore(ids); } }
   }
   window.addEventListener('hashchange', openFromHash);
-  window.AtlasMap = { S, ITEMS, openPlace, go, results, openNow, nearMe };
+  window.AtlasMap = { S, ITEMS, map, openPlace, go, results, openNow, nearMe };
   render();
   openFromHash();
   document.documentElement.setAttribute('data-map-ready', '1');

@@ -1,0 +1,75 @@
+/* Rate or report (session B2). Foundation tokens only; every rule is under .ax. */
+.ax.rp { position: fixed; inset: 0 0 calc(60px + env(safe-area-inset-bottom, 0px)) 0; z-index: 1500; background: var(--bg); color: var(--text); font-family: var(--font); display: flex; flex-direction: column; }
+.ax.rp .rp-form { display: flex; flex-direction: column; flex: 1; min-height: 0; margin: 0; }
+.ax.rp .appbar { flex: none; background: var(--appbar); border-bottom: 1px solid var(--line); }
+.ax.rp .appbar .title { margin: 0 auto 0 0; }
+.ax.rp .appbar h1:focus { outline: none; }
+.ax.rp .rp-scroll { flex: 1; min-height: 0; overflow: auto; padding: var(--s4); display: grid; gap: var(--s4); align-content: start; }
+.ax.rp .rp-foot { flex: none; padding: var(--s3) var(--s4) var(--s4); background: var(--surface); border-top: 1px solid var(--line); display: grid; gap: var(--s2); }
+.ax.rp .rp-priv { display: flex; gap: var(--s2); align-items: flex-start; margin: 0; font-size: var(--fs-small); color: var(--muted); }
+.ax.rp .rp-priv .ic { width: 18px; height: 18px; margin-top: 2px; color: var(--primarytext); }
+.ax .link { background: none; border: 0; padding: 0; min-height: var(--target); color: var(--link); text-decoration: underline; font: inherit; font-weight: var(--fw-med); cursor: pointer; }
+.ax.rp .rp-place { display: flex; align-items: center; gap: var(--s2); justify-content: space-between; min-height: var(--target); }
+.ax.rp .rp-place b { font-weight: var(--fw-bold); }
+.ax.rp .h2s { font-size: var(--fs-lead); font-weight: var(--fw-bold); padding: 0; margin-bottom: var(--s2); }
+.ax.rp .tag { font-size: var(--fs-small); font-weight: var(--fw-reg); color: var(--muted); margin-left: var(--s1); }
+.ax.rp .starword { margin: var(--s2) 0 0; text-align: center; color: var(--primarytext); font-weight: var(--fw-med); min-height: 1.5em; display: flex; gap: var(--s2); justify-content: center; align-items: center; }
+.ax.rp .starword .saved { display: inline-flex; align-items: center; gap: 4px; }
+.ax.rp .starword .saved .ic { width: 18px; height: 18px; }
+.ax.rp .star .n { font-size: var(--fs-small); }
+.ax.rp .star input:disabled ~ * { opacity: .6; }
+.ax.rp details.disc { border: var(--bw) solid var(--control); border-radius: var(--r-card); background: var(--surface); padding: 0 var(--s4); }
+.ax.rp details.disc > summary { min-height: 56px; justify-content: space-between; color: var(--text); }
+.ax.rp details.disc > summary small { display: block; font-weight: var(--fw-reg); color: var(--muted); font-size: var(--fs-small); }
+.ax.rp details.disc > summary b { font-weight: var(--fw-bold); }
+.ax.rp details.disc .body { padding: 0 0 var(--s4); gap: var(--s3); }
+.ax.rp .part { display: grid; grid-template-columns: 1fr auto auto; gap: var(--s2); align-items: center; }
+.ax.rp .part > span:first-child { font-weight: var(--fw-med); }
+.ax.rp .chip-wrap, .ax.rp .chip-grid { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.ax.rp .chip-grid { display: grid; grid-template-columns: 1fr 1fr; }
+.ax.rp .chip-grid .chip { min-height: 56px; justify-content: flex-start; border-radius: var(--r-card); }
+.ax.rp .chip { position: relative; }
+.ax.rp .chip .tick { margin-left: auto; order: 3; }
+.ax.rp .chip-wrap .chip .tick { order: 0; margin-left: 0; }
+.ax.rp .rp-hint-row { display: flex; justify-content: space-between; gap: var(--s2); }
+.ax.rp .rp-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.ax.rp .photo-prev { display: flex; gap: var(--s3); align-items: center; padding: var(--s2); border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); }
+.ax.rp .banner.errsum { border-color: var(--danger-bd); background: var(--danger-bg); color: var(--danger-fg); }
+.ax.rp .banner.errsum ul { margin: var(--s1) 0 0; padding-left: var(--s4); }
+.ax.rp .banner.errsum a { color: inherit; font-weight: var(--fw-bold); display: inline-flex; align-items: center; min-height: var(--target); }
+.ax.rp .banner:focus { outline: 3px solid var(--focus); outline-offset: 2px; }
+.ax.rp .done { display: grid; gap: var(--s3); justify-items: center; text-align: center; }
+.ax.rp .done > .block { width: 100%; }
+.ax.rp .bigcheck { width: 72px; height: 72px; border-radius: 50%; background: var(--primary); color: var(--onprimary); display: grid; place-items: center; margin-top: var(--s4); }
+.ax.rp .bigcheck.off { background: var(--surface2); color: var(--text); border: var(--bw) solid var(--control); }
+.ax.rp .bigcheck .ic { width: 40px; height: 40px; }
+.ax.rp .done h2:focus { outline: none; }
+.ax.rp .timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s3); width: 100%; text-align: left; }
+.ax.rp .timeline li { display: grid; grid-template-columns: 28px 1fr; gap: var(--s3); align-items: start; }
+.ax.rp .timeline .ic { color: var(--primarytext); }
+.ax.rp li.mine { display: grid; grid-template-columns: 44px 1fr auto; gap: var(--s3); align-items: center; padding: var(--s3) var(--s4); border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); }
+.ax.rp .tile-ic { width: 44px; height: 44px; border-radius: var(--r-btn); background: var(--primarysoft); color: var(--primarytext); display: grid; place-items: center; }
+.ax ul.keep { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
+.ax ul.keep li { display: grid; grid-template-columns: 24px 1fr; gap: var(--s3); align-items: start; }
+.ax .sheet.modal h3.sec { margin: var(--s2) 0 0; }
+.ax .listrow .badge { justify-self: end; }
+@media (min-width: 900px) {
+  .ax.rp { inset: 0; background: color-mix(in srgb, #0a0d10 55%, transparent); align-items: center; justify-content: center; }
+  .ax.rp > .appbar, .ax.rp > .rp-form { width: 560px; max-width: calc(100% - 32px); background: var(--bg); }
+  .ax.rp > .appbar { border-radius: var(--r-sheet) var(--r-sheet) 0 0; border: 1px solid var(--line); border-bottom: 0; flex: none; }
+  .ax.rp > .rp-form { flex: 0 1 auto; max-height: calc(100vh - 140px); border: 1px solid var(--line); border-top: 0; border-radius: 0 0 var(--r-sheet) var(--r-sheet); overflow: hidden; }
+}
+/* At 200 percent zoom (188 CSS px) five 44 px stars do not fit one row: let them wrap instead of scrolling sideways. */
+.ax.rp .stars { grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); }
+.ax.rp .star { min-width: 44px; }
+.ax.rp .rp-scroll > * { min-width: 0; }
+@media (max-width: 320px) {
+  .ax.rp .part { grid-template-columns: minmax(0, 1fr); }
+  .ax.rp details.disc .body, .ax.rp details.disc .body > * { min-width: 0; }
+  .ax.rp .chip { white-space: normal; padding: 0 var(--s3); }
+  .ax.rp .chip-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 320px) {
+  .ax.rp .btn { white-space: normal; height: auto; padding-top: var(--s2); padding-bottom: var(--s2); }
+  .ax.rp .rowbtns, .ax.rp .field, .ax.rp .hint { min-width: 0; max-width: 100%; }
+}

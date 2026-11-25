@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from . import routing_ui
+from . import report_form, routing_ui
 from . import ui_foundation as ui
 
 WEB = Path(__file__).with_name("web") / "map"
@@ -73,6 +73,22 @@ def _map_js() -> str:
     return (WEB / "map.js").read_text().replace("/*__NAV__*/", (WEB / "nav.js").read_text())
 
 
+def _ratecfg() -> dict | None:
+    from .map_viewer import ratings_config
+
+    return ratings_config()
+
+
+def _region_js() -> str:
+    """window.atlasRegion(): the region the map is showing (the selected place, else the region nearest the map centre)."""
+    return (
+        "window.atlasRegion=function(){var A=window.AtlasMap,c=window.__MAPCFG;if(!A)return Object.keys(window.__MAPDATA)[0];"
+        "if(A.S.it&&A.S.it.p.region)return A.S.it.p.region;var m=A.map.getCenter(),best=null,bd=1e9;"
+        "Object.keys(window.__MAPDATA).forEach(function(r){var v=c.view[r];if(!v)return;var d=Math.hypot((v[0][0]-m.lat)*111,(v[0][1]-m.lng)*85);if(d<bd){bd=d;best=r;}});"
+        "return best||Object.keys(window.__MAPDATA)[0];};"
+    )
+
+
 def page_html(data: dict, title: str = "Accessibility Map", nav: str = "") -> str:
     cfg = {"view": VIEW, "routing": routing_ui.config(), "title": title}
     top = ui.topbar("map", _hrefs())
@@ -112,12 +128,15 @@ def page_html(data: dict, title: str = "Accessibility Map", nav: str = "") -> st
         '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>'
         '<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">'
         '<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>\n'
-        f"<style>\n{ui.css()}\n{(WEB / 'map.css').read_text()}\n</style></head>"
+        f"<style>\n{ui.css()}\n{(WEB / 'map.css').read_text()}\n{report_form.css()}\n</style></head>"
         f'<body class="ax mapapp">{ui.body_snippet()}\n{body}\n'
         f"<script>{ui.js()}</script>\n"
         f"<script>window.__MAPCFG={_json(cfg)};window.__MAPDATA={_json(data)};</script>\n"
         f"<script>window.__ROUTECORE={_json(_core())};</script>\n"
         f"<script>{_map_js()}\n"
+        "</script>\n"
+        # B2 hook: the Rate or report form (settings, the region the map shows, the form itself)
+        f"<script>{report_form.config_js(_ratecfg())}\n{_region_js()}\n{report_form.js()}\n</script>\n<script>"
         "document.getElementById('settings-desk')&&document.getElementById('settings-desk').addEventListener('click',function(e){e.preventDefault();document.getElementById('settings').click();});</script>"
         "</body></html>"
     )

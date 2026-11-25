@@ -86,7 +86,7 @@ The checks run the page at 375 and 1280 px in Light and Dark and fail on: text u
 |---|---|---|
 | `src/atlas/ui_foundation.py`, `src/atlas/web/foundation/*` (CSS, JS, icons, fonts), `src/atlas/ui_checks.py`, `src/atlas/ui_components_page.py`, `tests/test_ui_foundation.py`, this doc | B0 | read only; ask for a new component or icon by adding it here in a follow-up B0 change, not by editing in a screen build |
 | New map app: `src/atlas/map_app.py`, `src/atlas/web/map/{map.css,map.js,nav.js}`, `tests/test_map_app.py`; `map_viewer.render()` dispatch (`legacy=True` keeps the old page) | B1 | call the builders; listens for `atlas:open-saved`, fires `atlas:open-report` and `atlas:open-ask` |
-| Report form (`report_ui.py`, `supabase/ratings.sql` and the report JS) | B2 | listens for `atlas:open-report` |
+| Rate or report form: `src/atlas/report_form.py`, `src/atlas/web/report/{report.js,report.css}`, `tests/test_report_form.py`, the contract tests in `tests/test_report_sql.py`. The old `report_ui.py` and the SQL are unchanged. | B2 | listens for `atlas:open-report`; closes on `atlas:open-saved` and `atlas:open-ask`; one hook block in `map_app.py` (B1's file) |
 | Chat page (`assistant/page.py`, `web/assistant/*`) | B3 | listens for `atlas:open-ask`; Settings Appearance row uses `appearance_group()` |
 | City switcher and first-open sheet (new files) | B4 | emits and listens for `atlas:region-changed` |
 
@@ -104,3 +104,13 @@ Screen-specific CSS goes in the screen's own file, scoped under `.ax`, built fro
 - Not in `harbor.css` although the chosen frames use them: `.tile-grid.three` and `.tile.sm` (type tiles), `.opt` (a bordered group), `h3.sec`, a `[hidden]` rule that beats `.btn { display: inline-flex }`, hiding the native clear button in `input[type=search]`, and a 44 px minimum for inline links inside the panel (`.dfact a`, `ul.plain a`). B1 defines these under `.ax` in `map.css`; if B2 and B3 need them too, move them into `harbor.css`.
 - The desktop frames have no Back control; B1 adds one in the panel (D-76).
 - `atlas.ui.toast` has no way to place itself above a docked panel; on phone it overlaps the bottom of the sheet for 6 to 10 seconds.
+
+## Gaps B2 found in the foundation (worked around in `report.js`, B0 to decide)
+
+- `atlas.ui.sheet.open` binds only the first `[data-sheet-close]` in the sheet, so a second close button (for example "Got it") did nothing. B2 closes the sheet from a delegated handler in `report.js`; the fix belongs in `foundation.js` (bind every match).
+- The form needed `.chip-grid`, a two-column chip layout, `.timeline`, `.photo-prev` and the like: defined in `report.css` under `.ax`.
+
+## Event contract notes from B2
+
+- `atlas:open-report {placeId?, region?}`: with a `placeId` the form opens with that place; without, with no place. The form is only hooked when `window.__RATECFG` is set; otherwise the Report tab follows its link.
+- `window.atlasRegion()` (defined in the map page) returns the region the map is showing; B4 should keep it right when the city changes.

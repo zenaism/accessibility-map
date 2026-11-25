@@ -19,6 +19,41 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-81: "My ratings and reports on this device" is built, from local ids only (2026-11-24, accepted)
+Decision: at send time the form saves the report id, its code and what was sent in `atlas-my-reports` (and the rating in `atlas-rated-<place>`, the key the old page used). The list shows ratings with Change and problems with Delete (the existing `delete_problem_report`, both ids). A rating cannot be deleted (no SQL function for it). The list says it is only on this device and cannot show the team's status.
+Why: the owner's decision was "include" (CHOSEN_DESIGN.md); the cost is a local list and the existing delete function.
+Alternatives: a server-side list (needs accounts or a read function, which would expose reports).
+Costs / revisit if: clearing browser data empties the list while reports stay up to 24 months; the 24-month purge function exists in `problem_reports.sql` but is not scheduled (owner to run or schedule it).
+Basis: recorded ([design/CHOSEN_DESIGN.md](design/CHOSEN_DESIGN.md), local-only; D-V2B-7 and D-V2B-20).
+
+### D-80: The privacy line says what is stored, and a test holds the code to it (2026-11-24, accepted)
+Decision: "No name needed. We keep your report, device type and page address." with a What we keep sheet. `tests/test_report_form.py` checks that the problem call sends exactly the twelve parameters `submit_problem_report` takes (report id, device code, category, text, place id and name, region, contact, photo, page address without the part after #, user agent, the robot-trap field) and nothing else; the rating call sends exactly the eleven of `submit_rating`. "No IP address in our tables" is true of our tables; Supabase may log requests (not checked).
+Why: "Anonymous" over-promised (improvement_plan 3.6, audit A14); a claim about what is kept must fail a test when the code changes.
+Alternatives: wording only, no test.
+Costs / revisit if: new fields need the sheet, the line and the test changed together; retention for ratings is not promised (no purge in `ratings.sql`).
+Basis: recorded (code read, tests).
+
+### D-79: Ratings only where the database accepts them (2026-11-24, accepted)
+Decision: the stars and Rate more appear only for places in cincinnati and oxford (`ratings.sql` has `check region in (...)`; the owner decided on 2026-11-24 not to widen it). In other cities the form says "Ratings are not open for <city> yet. You can still report a problem." and sends the problem with that region. A whole-map report sends the region the map is showing (`window.atlasRegion()`, B4 makes it dynamic), never null.
+Why: a rating for Dayton or DC would be refused by the database after the person did the work.
+Alternatives: show stars and fail on send (bad); widen the check (owner said not yet).
+Costs / revisit if: widening the SQL check and the `RATING_REGIONS` list in `report.js` (a test compares the two lists).
+Basis: recorded (CHOSEN_DESIGN.md follow-up 6).
+
+### D-78: Rating and problem are two separate calls; what saved is never sent again (2026-11-24, accepted)
+Decision: Send both calls `submit_rating` then `submit_problem_report`. If one fails the screen keeps both answers and says which part saved ("Rating saved. Problem not sent. Try again."); the next try sends only the part that did not save. The problem keeps one report id from the first try until it is sent, so a retry can never be stored twice; an id already in "my reports" shows "Already sent. Your code is X." as information. Photos go only with a problem; the chip name becomes the text when nothing is typed, and a comment under 5 characters is prefixed with the chip so the database accepts it. Limit messages: 40 ratings a day, 10 problems a day, 200 an hour.
+Why: D-V2B-12 to 17; no SQL change.
+Alternatives: one combined function (SQL change).
+Costs / revisit if: the same comment is stored in both tables when both are sent; the photo is not kept if the form is closed.
+Basis: recorded (design/report/DECISIONS.md, local-only).
+
+### D-77: Rate or report is one overlay in its own files, hooked into the map page in one place (2026-11-24, accepted)
+Decision: `src/atlas/report_form.py` with `web/report/report.js` and `report.css`, built on the B0 foundation. It listens for `atlas:open-report {placeId, region}` (place card Report button, details, Report tab, desktop button) and closes on `atlas:open-saved` and `atlas:open-ask`. On phone it covers the map above the tab bar; on desktop it is a 560 px dialog. The old `report_ui.py` is untouched and still serves the legacy page. The one hook in the map page is a block in `map_app.py` that adds the CSS, the public settings, `window.atlasRegion()` and the script; `window.AtlasMap` also exports `map` for it.
+Why: B1 and B2 run in parallel and must not edit each other's files; events are the contract (D-70).
+Alternatives: edit `map.js` to open the form itself (couples the two builds).
+Costs / revisit if: until I1 the old `report_ui.py` and the new form both exist.
+Basis: recorded (B2 brief).
+
 ### D-76: Desktop gets an in-panel Back button; the phone keeps the app-bar one (2026-11-24, accepted)
 Decision: the new map app shows Back in the panel on desktop (the phone app bar is hidden there) and in the app bar on phone. Search, results, card, details, route and Saved are one history, so Back always returns to the step before.
 Why: the first browser test found no way back on desktop (the frames draw the app bar only on phone). Found by the keyboard-only test.
