@@ -278,12 +278,13 @@ Alternatives: keep the chip row; one shared live region.
 Costs / revisit if: testing shows people miss the greeting chips once the list scrolls.
 Basis: inferred (needs confirming). Source: [design/chat/DECISIONS.md](design/chat/DECISIONS.md) notes 4, 7 and 8.
 
-### D-57: Three style directions proposed; recommend B Signal, owner has not chosen (2026-11-24, proposed; owner chose A, see D-58)
+### D-57: Three style directions built; B Signal was recommended (2026-11-24, superseded by D-58: the owner chose A Harbor)
 Decision: three directions were built as a style board ([design/style](design/style/index.html)): A Harbor (teal, soft, Figtree, Lucide), B Signal (ink, bold, Atkinson Hyperlegible, Tabler), C Meadow (green, pill shapes, Lexend, Phosphor). Each has light and dark tokens in its own CSS file. Recommendation: B, then C, then A. The structure is the one in `prototypes/CHOSEN.md`; only the look differs.
 Why: the audience is outdoors on phones, many with low vision or tremor; B has the heaviest text and borders, solid badges and a font built for low vision (Braille Institute page read). All 240 colour pairs (text 4.5:1, controls 3:1) pass in all three, light and dark, computed by `palettes.py`. Fonts are SIL OFL and icons ISC or MIT, all self-hosted and inlined, so the page makes no outside requests (privacy rule).
 Alternatives: keep the grey minimal look (the owner no longer wants it as the target); a dark basemap (not available: the USGS basemap stays light, so pins use fixed colours with a dark outline and white halo in both modes).
 Costs / revisit if: dark mode was ruled out for v1 (Q13) but is designed here and passes, the owner decides whether to ship it; the pattern research (bottom sheets, floating search, status badges) is *assumed*, one source did not load; no screen reader, real phone or sunlight test yet; Lexend is wide, long place names need a check.
 Basis: recorded (owner's V1 request); measurements are computed, pattern claims assumed.
+Status: the recommendation of B was not taken; the owner chose A Harbor (D-58). The measurements and the three token sets stay valid.
 
 ### D-49: Live location uses the bottom card (2A.1 option A) (2026-11-24, accepted)
 Decision: follow-me dot, accuracy ring and next step use the bottom card layout; Stop is kept visible above notices; stop after 5 minutes without moving; Previous and Next step always shown; 50 m rough limit.
@@ -311,7 +312,8 @@ Decision: keep Report a problem in the list footer on phone and in the header on
 Why: the floating button covered the map and collided with the legend (audit A6). It is the prototype default.
 Alternatives: floating button; one fixed place on every screen (checklist item 18), which the prototypes do not yet meet.
 Costs / revisit if: it is harder to find on a phone; the V2 designs should try a fixed entry on every screen and show the owner.
-Basis: inferred (README open question B, default taken; owner has not stated it).
+Basis: inferred (README open question B, default taken); the owner then decided differently in D-59 (a fourth tab on phone, a top-bar button on desktop).
+Status: superseded by D-59; the list footer is no longer the place for Report a problem.
 
 ### D-53: Favourites use the Saved tab and page with C's Edit list (2B option A) (2026-11-24, accepted)
 Decision: bottom tab Saved (n) and a Saved page; name "Saved places"; device snapshot; all change notices; redirect table and one small shared index in the release; no file download; assistant may read the list on the device; link warning as a private note.
