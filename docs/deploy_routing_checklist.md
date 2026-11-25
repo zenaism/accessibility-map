@@ -22,7 +22,7 @@ Branch: `deploy/routing-pages` (from `integration/routing-assistant`, which merg
 6. **Share the link** and say what it is: routes are suggestions from OpenStreetMap and elevation data, not checked on site; Guided chat mode only (no local model, photos or voice-to-model on the hosted site).
 
 ## Known limits to tell testers
-- Needs internet for the map library (unpkg) and USGS map tiles; works in modern phone and desktop browsers (tested in headless Chromium only: not tried on a real phone, Safari, Firefox or with a screen reader).
+- Needs internet for the USGS map tiles (the map library is inside the page); works in modern phone and desktop browsers (tested in headless Chromium only: not tried on a real phone, Safari, Firefox or with a screen reader).
 - The chat's Local model mode, photo and model voice need your own computer and do not work on the hosted page.
 - Oxford only for Directions.
 

@@ -67,7 +67,7 @@ On GitHub Pages the graph files in `data/map/routing/` must be published next to
 python -m pytest -q tests/test_export_routing.py tests/test_routing.py
 node --test tests/js/*.test.js
 npm install axe-core@4.10.2 --no-save --prefix ./.axe        # once, for the accessibility checks (skipped if missing)
-python -m pytest -q tests/test_directions_ui.py              # Chromium via Playwright; Leaflet is fetched once from unpkg
+python -m pytest -q tests/test_directions_ui.py              # Chromium via Playwright; Leaflet is inside the page, no download
 ```
 
 ## Limits

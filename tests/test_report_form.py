@@ -37,21 +37,9 @@ def _data():
 
 
 @pytest.fixture(scope="module")
-def cdn(tmp_path_factory):
-    import requests
-
-    d = tmp_path_factory.mktemp("cdn")
-    files = {}
-    for path in CDN:
-        try:
-            r = requests.get(f"https://unpkg.com/{path}", timeout=20)
-            r.raise_for_status()
-        except Exception as e:
-            pytest.skip(f"Leaflet could not be downloaded ({e})")
-        f = d / path.replace("/", "_")
-        f.write_bytes(r.content)
-        files[path] = f
-    return files
+def cdn():
+    """Leaflet is vendored in the page now (atlas.leaflet): nothing is downloaded. Kept so tests keep their signature."""
+    return {}
 
 
 @pytest.fixture(scope="module")
@@ -123,7 +111,9 @@ def open_map(browser, cdn, site, width=375, height=812, theme="light", init=None
         geolocation={"latitude": 39.5075, "longitude": -84.734, "accuracy": 10},
         has_touch=touch,
     )
-    ctx.add_init_script(f"try{{localStorage.setItem('atlas.theme','{theme}');if(!localStorage.getItem('atlas-region'))localStorage.setItem('atlas-region','oxford')}}catch(e){{}}")
+    ctx.add_init_script(
+        f"try{{localStorage.setItem('atlas.theme','{theme}');if(!localStorage.getItem('atlas-region'))localStorage.setItem('atlas-region','oxford')}}catch(e){{}}"
+    )
     if init:
         ctx.add_init_script(init)
     pg = ctx.new_page()
@@ -141,16 +131,6 @@ def open_map(browser, cdn, site, width=375, height=812, theme="light", init=None
     pg.requests = []
     pg.on("request", lambda r: pg.requests.append(r.url))
 
-    def unpkg(route):
-        url = route.request.url.split("unpkg.com/", 1)[1]
-        f = cdn.get(url)
-        route.fulfill(
-            status=200 if f else 404,
-            content_type="text/css" if url.endswith(".css") else "text/javascript",
-            body=f.read_bytes() if f else "",
-        )
-
-    pg.route("https://unpkg.com/**", unpkg)
     pg.route(
         "**/basemap.nationalmap.gov/**", lambda r: r.fulfill(status=200, content_type="image/png", body=PNG)
     )
@@ -209,7 +189,8 @@ def test_opens_from_the_event_with_the_place_filled_in_and_from_the_tab_without(
     name = first_place(pg)["name"]
     assert pg.get_by_role("heading", name="Rate or report").is_visible()
     assert (
-        name in pg.locator("#rp-place").inner_text() and pg.get_by_role("button", name="Change place").is_visible()
+        name in pg.locator("#rp-place").inner_text()
+        and pg.get_by_role("button", name="Change place").is_visible()
     )
     assert (
         pg.locator("label.star").count() == 5

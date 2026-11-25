@@ -88,16 +88,6 @@ def open_page(
     )
     pg.on("load", lambda _: pg.calls.append("load"))
 
-    def unpkg(route):
-        url = route.request.url.split("unpkg.com/", 1)[1]
-        f = cdn.get(url)
-        route.fulfill(
-            status=200 if f else 404,
-            content_type="text/css" if url.endswith(".css") else "text/javascript",
-            body=f.read_bytes() if f else "",
-        )
-
-    pg.route("https://unpkg.com/**", unpkg)
     pg.route(
         "**/basemap.nationalmap.gov/**", lambda r: r.fulfill(status=200, content_type="image/png", body=PNG)
     )

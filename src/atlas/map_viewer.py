@@ -16,6 +16,7 @@ import yaml
 from .assistant.page import css as assistant_css  # Openway Assistant panel (ASSISTANT markers below)
 from .assistant.page import js_bundle as assistant_js
 from .core import ROOT
+from .leaflet import head as leaflet_head
 from .report_ui import CSS as REPORT_CSS
 from .report_ui import JS as REPORT_JS
 from .routing_ui import CSS as ROUTING_CSS
@@ -83,10 +84,7 @@ TEMPLATE = r"""<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Wheelchair accessibility of places, restrooms, trails and events, with sources.">
 <meta name="theme-color" content="#ffffff">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+__LEAFLET__
 
 <style>
  :root{--ink:#111827;--muted:#6b7280;--line:#eceef1;--soft:#f6f7f9;--accent:#111827;--focus:#2563eb;--side:380px;--head:60px;
@@ -1076,7 +1074,7 @@ def render(
 
         return app_render(data, title, nav, switch)
     return (
-        TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False).replace("<", "\\u003c"))
+        TEMPLATE.replace("__LEAFLET__", leaflet_head()).replace("__DATA__", json.dumps(data, ensure_ascii=False).replace("<", "\\u003c"))
         .replace("__TITLE__", title)
         .replace("__SWITCH__", switch)
         .replace("__H1__", title.split(" ", 1)[1] if switch and " " in title else title)

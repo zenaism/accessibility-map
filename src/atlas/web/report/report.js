@@ -39,6 +39,8 @@
     }
   }
   const placeById = (id) => PLACES.find((p) => p.id === id) || null;
+  // pages without the map's data (the chat page) hand over their places after they load
+  function setPlaces(list) { PLACES.length = 0; list.forEach((p) => PLACES.push(p)); }
   const currentRegion = () => (window.atlasRegion && window.atlasRegion()) || Object.keys(window.__MAPDATA || {})[0] || null;
 
   // ---- state
@@ -62,6 +64,7 @@
     R = fresh();
     const place = ctx && ctx.placeId ? placeById(ctx.placeId) : null;
     if (place) R.place = place;
+    else if (ctx && ctx.text && !ctx.placeId) R.noPlace = true;   // a problem with an answer is about the assistant, not one place
     else if (ctx && ctx.placeId) R.place = { id: ctx.placeId, name: 'this place', region: ctx.region || currentRegion(), rating: 'unknown', layer: 'Place' };
     else R.noPlace = false;
     const ex = R.place && rated(R.place.id);
@@ -69,6 +72,7 @@
     const d = json(draftKey(), null);
     if (d && !ex) { R.stars = d.stars || 0; R.parts = d.parts || {}; R.visit = d.visit || ''; R.who = d.who || ''; R.problem = d.problem || ''; R.comment = d.comment || ''; R.contact = d.contact || ''; if (d.pid) R.ids.problem = d.pid; R.openMore = Object.values(R.parts).some(Boolean) || !!R.visit || !!R.who; R.openExtra = !!(R.comment || R.contact); }
     else if (d && ex) { R.problem = d.problem || ''; R.contact = d.contact || ''; if (d.pid) R.ids.problem = d.pid; }
+    if (ctx && ctx.text) { R.comment = String(ctx.text).slice(0, 500); R.openExtra = true; }
     const sent = mine().find((m) => m.k === 'problem' && m.id === R.ids.problem);
     if (sent) { R.sent.problem = true; R.ref = sent.ref; R.banner = { kind: 'info', icon: 'check', text: 'Already sent. Your code is ' + sent.ref + '.', action: ['See my report', 'mine'] }; }
     root = document.createElement('div');
@@ -76,7 +80,9 @@
     root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-labelledby', 'rp-title');
     document.body.appendChild(root);
     held = [];
-    [...document.body.children].forEach((c) => { if (c !== root && !c.classList.contains('only-phone') && !c.classList.contains('portal') && c.id !== 'live' && !c.inert && c.tagName !== 'SCRIPT') { c.inert = true; held.push(c); } });
+    // a page can name what to freeze with data-rp-inert (the chat page keeps its tab bar usable); else every other child of <body>
+    const marked = [...document.querySelectorAll('[data-rp-inert]')];
+    (marked.length ? marked : [...document.body.children].filter((c) => c !== root && !c.classList.contains('only-phone') && !c.classList.contains('portal') && c.id !== 'live' && c.tagName !== 'SCRIPT')).forEach((c) => { if (!c.inert) { c.inert = true; held.push(c); } });
     lastTab = $('.tabbar .tab[aria-current="page"]');
     ui.setTab('report');
     document.addEventListener('keydown', onKey, true);
@@ -310,7 +316,7 @@
     if (left === 'Rating' && kind === 'limit-rating' && todo.problem && savedProblem) R.banner = { kind: 'warn', icon: 'clock', text: 'Problem sent. You rated 40 places today, so the stars are not saved. They are back tomorrow.' };
     render('#rp-send'); say(R.banner.text);
   }
-  function say(t) { const l = $('#live'); if (!l) return; l.textContent = ''; setTimeout(() => { l.textContent = t; }, 30); }
+  function say(t) { const l = $('#live') || $('#ch-live'); if (!l) return; l.textContent = ''; setTimeout(() => { l.textContent = t; }, 30); }
 
   // ---- change place sheet
   function placeSheet() {
@@ -425,5 +431,5 @@
   document.addEventListener('toggle', (e) => { if (!root || !R) return; if (e.target.id === 'rp-more') R.openMore = e.target.open; if (e.target.id === 'rp-extra') R.openExtra = e.target.open; }, true);
   ['atlas:open-saved', 'atlas:open-ask'].forEach((n) => document.addEventListener(n, () => { if (root) close({ noFocus: true }); }));
   if (CFG) atlas.on('atlas:open-report', (d) => open(d || {}));
-  window.AtlasReport = { open, close, state: () => R, PLACES, validate: () => R && validate() };
+  window.AtlasReport = { open, close, setPlaces, state: () => R, PLACES, validate: () => R && validate() };
 })();

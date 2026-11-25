@@ -129,3 +129,8 @@ Screen-specific CSS goes in the screen's own file, scoped under `.ax`, built fro
 - `window.__REGIONS` (the catalog without layer lists) is written into the map page and the chat page by their builders; `report.js` reads city names from it.
 - The map files and the new pages contain no city names; `test_no_city_names_are_written_into_the_map_files` keeps it so.
 - New foundation gap: the top bar (`ui.topbar`) has no slot for a city control; `map_app.py` inserts the button after the brand with a string replace.
+
+## Notes from the final fixes
+
+- The report form (`report.js`) now runs on the map page and the chat page. A page without the map's data calls `AtlasReport.setPlaces([{id, name, region, rating, layer, pt}])`; `data-rp-inert` on an element tells the form to freeze that element (and only those) while it is open.
+- Leaflet is vendored: write `atlas.leaflet.head()` into a page head instead of linking a library from a CDN.

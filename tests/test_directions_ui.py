@@ -101,21 +101,9 @@ def site(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
-def cdn(tmp_path_factory):
-    import requests
-
-    d = tmp_path_factory.mktemp("cdn")
-    files = {}
-    for path in CDN:
-        try:
-            r = requests.get(f"https://unpkg.com/{path}", timeout=20)
-            r.raise_for_status()
-        except Exception as e:  # offline
-            pytest.skip(f"Leaflet could not be downloaded ({e})")
-        f = d / path.replace("/", "_")
-        f.write_bytes(r.content)
-        files[path] = f
-    return files
+def cdn():
+    """Leaflet is vendored in the page now (atlas.leaflet): nothing is downloaded. Kept so tests keep their signature."""
+    return {}
 
 
 @pytest.fixture(scope="module")  # module scope: other test files start their own Playwright in the same run
