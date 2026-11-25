@@ -123,7 +123,7 @@ def open_map(browser, cdn, site, width=375, height=812, theme="light", init=None
         geolocation={"latitude": 39.5075, "longitude": -84.734, "accuracy": 10},
         has_touch=touch,
     )
-    ctx.add_init_script(f"try{{localStorage.setItem('atlas.theme','{theme}')}}catch(e){{}}")
+    ctx.add_init_script(f"try{{localStorage.setItem('atlas.theme','{theme}');if(!localStorage.getItem('atlas-region'))localStorage.setItem('atlas-region','oxford')}}catch(e){{}}")
     if init:
         ctx.add_init_script(init)
     pg = ctx.new_page()
@@ -209,7 +209,7 @@ def test_opens_from_the_event_with_the_place_filled_in_and_from_the_tab_without(
     name = first_place(pg)["name"]
     assert pg.get_by_role("heading", name="Rate or report").is_visible()
     assert (
-        name in pg.locator("#rp-place").inner_text() and pg.get_by_role("button", name="Change").is_visible()
+        name in pg.locator("#rp-place").inner_text() and pg.get_by_role("button", name="Change place").is_visible()
     )
     assert (
         pg.locator("label.star").count() == 5
@@ -642,7 +642,7 @@ def test_the_robot_trap_is_hidden_and_sent_empty(browser, cdn, site):
 
 def test_change_place_sheet_search_near_me_and_not_about_one_place(browser, cdn, site):
     pg = open_form(open_map(browser, cdn, site))
-    pg.get_by_role("button", name="Change").click()
+    pg.get_by_role("button", name="Change place").click()
     pg.wait_for_selector("[role=dialog] #rp-pq")
     pg.fill("#rp-pq", "library")
     names = pg.locator("[role=dialog] [data-pid]:not([data-pid=__none]) .nm").all_inner_texts()
@@ -652,7 +652,7 @@ def test_change_place_sheet_search_near_me_and_not_about_one_place(browser, cdn,
     assert (
         "Library" in pg.locator("#rp-place").inner_text() or names[0] in pg.locator("#rp-place").inner_text()
     )
-    pg.get_by_role("button", name="Change").click()
+    pg.get_by_role("button", name="Change place").click()
     pg.locator("[data-near]").click()
     pg.wait_for_selector("text=Near you")
     pg.locator("[data-pid=__none]").click()

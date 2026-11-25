@@ -56,22 +56,35 @@
     const $ = (sel) => root.querySelector(sel);
     const log = $('#ch-log'), input = $('#q'), form = $('#ch-form'), sendBtn = $('#ch-send'), micBtn = $('#ch-mic'), photoBtn = $('#ch-photo');
     const settingsEl = $('#settings'), settingsBtn = $('#ch-settings-btn'), live = $('#ch-live'), hintEl = $('#ch-hint'), voiceHost = $('#ch-voice'), banner = $('#ch-banner'), fileInput = $('#ch-file'), modeEl = $('#ch-mode');
-    const S = { prefs: Object.assign({ size: '1', plain: false, engine: 'guided', rate: '1' }, readJSON('openway.prefs', {})), needs: readJSON('openway.needs', {}), location: null, busy: false, ctrl: null, guided: null, local: null, health: null, image: null, lastQ: null, answers: 0, speaking: null, voice: 'idle', voiceInfo: {} };
+    const REGS = g.__REGIONS || [], regShort = (id) => (REGS.find((r) => r.id === id) || {}).short || id;
+    const validRegion = (id) => (REGS.some((r) => r.id === id) ? id : null);
+    const chosenRegion = () => validRegion(new URLSearchParams(g.location.search).get('region')) || validRegion(store.get('atlas-region'));
+    const S = { region: null, prefs: Object.assign({ size: '1', plain: false, engine: 'guided', rate: '1' }, readJSON('openway.prefs', {})), needs: readJSON('openway.needs', {}), location: null, busy: false, ctrl: null, guided: null, local: null, health: null, image: null, lastQ: null, answers: 0, speaking: null, voice: 'idle', voiceInfo: {} };
+    S.region = chosenRegion();
     const rules = () => O.rules;
     const say = (t) => { live.textContent = ''; g.setTimeout(() => { live.textContent = t; }, 40); };
     const hint = (t) => { hintEl.textContent = t || ''; hintEl.hidden = !t; };
+    // which city the answers are about: always said in plain words under the title (not a control)
+    const cityLine = $('#ch-city-line');
+    function setCityLine(other) {
+      const fullNames = REGS.filter((r) => r.tier === 'full').map((r) => r.short);
+      cityLine.textContent = other ? 'Showing ' + regShort(other) + ' for this question' : S.region ? 'Answering for ' + regShort(S.region) : 'Answering for ' + (fullNames.join(' and ') || 'our cities');
+    }
+    setCityLine();
+    g.addEventListener('storage', (e) => { if (e.key === 'atlas-region') { S.region = chosenRegion(); setCityLine(); } });
+    document.addEventListener('atlas:region-changed', (e) => { S.region = validRegion(e.detail && e.detail.region); setCityLine(); });
     const savePrefs = () => store.set('openway.prefs', JSON.stringify(S.prefs));
     const applySize = () => { root.style.setProperty('--ch-scale', S.prefs.size); };
     applySize();
     const fire = (name, detail) => !g.dispatchEvent(new g.CustomEvent(name, { detail, cancelable: true }));
-    const regionOf = (pid) => { const p = S.guided && S.guided.kb.byId.get(pid); return p ? p.region : options.region || 'cincinnati'; };
+    const regionOf = (pid) => { const p = S.guided && S.guided.kb.byId.get(pid); return p ? p.region : S.region || options.region || null; };
     const mapUrl = (pid) => (options.mapBase || '') + regionOf(pid) + '.html#place=' + encodeURIComponent(pid);
     const ctxNow = () => {
       const n = S.needs || {}, needs = {};
       if (n.mobility) needs.mobility = n.mobility;
       if (n.steps) needs.steps = n.steps;
       if (n.rely && n.rely.length) needs.rely = n.rely.slice();
-      return { today: deviceToday(), region: options.region || null, location: S.location, needs, plain: !!S.prefs.plain };
+      return { today: deviceToday(), region: S.region || options.region || null, location: S.location, needs, plain: !!S.prefs.plain };
     };
     // a finished answer can be taller than the list: show its start (your question and the sentence), not its end
     const scrollToAnswer = (el) => { try { (el.previousElementSibling || el).scrollIntoView({ block: 'start', behavior: 'auto' }); } catch (e) { /* old browser */ } };
@@ -189,7 +202,7 @@
     function greeting() {
       log.textContent = '';
       log.append(h('div', { class: 'msg bot' }, h('h2', { class: 'vh', text: 'Assistant' }),
-        h('div', { class: 'bubble bot', text: 'Hi. Ask me about a place in Cincinnati or Oxford. I use saved data and tell you when I do not know.' }), chips(SUGGEST, 'Ideas')));
+        h('div', { class: 'bubble bot', text: 'Hi. Ask me about a place in ' + (S.region ? regShort(S.region) : 'Cincinnati or Oxford') + '. I use saved data and tell you when I do not know.' }), chips(SUGGEST, 'Ideas')));
     }
     function emptyHistory() {
       log.textContent = '';
@@ -266,6 +279,7 @@
             msg.append(row);
           }
           const lead = A.cards.find((c) => c.lead) || A.cards[0];
+          { const rs = [...new Set(A.cards.map((c) => regionOf(c.place_id)).filter(Boolean))]; setCityLine(S.region && rs.length === 1 && rs[0] !== S.region ? rs[0] : null); }
           const conf = (A.meta && A.meta.confidence) || '';
           if (lead && !lead.event) msg.append(placeCard(lead));
           else if (lead && lead.event) msg.append(eventCard(lead));

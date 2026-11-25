@@ -127,7 +127,7 @@ def open_map(browser, cdn, site, width=375, height=812, theme="light", init=None
         permissions=["geolocation"],
         geolocation={"latitude": 39.5075, "longitude": -84.734, "accuracy": 10},
     )
-    ctx.add_init_script(f"try{{localStorage.setItem('atlas.theme','{theme}')}}catch(e){{}}")
+    ctx.add_init_script(f"try{{localStorage.setItem('atlas.theme','{theme}');if(!localStorage.getItem('atlas-region'))localStorage.setItem('atlas-region','oxford')}}catch(e){{}}")
     if init:
         ctx.add_init_script(init)
     pg = ctx.new_page()

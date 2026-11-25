@@ -88,7 +88,7 @@ The checks run the page at 375 and 1280 px in Light and Dark and fail on: text u
 | New map app: `src/atlas/map_app.py`, `src/atlas/web/map/{map.css,map.js,nav.js}`, `tests/test_map_app.py`; `map_viewer.render()` dispatch (`legacy=True` keeps the old page) | B1 | call the builders; listens for `atlas:open-saved`, fires `atlas:open-report` and `atlas:open-ask` |
 | Rate or report form: `src/atlas/report_form.py`, `src/atlas/web/report/{report.js,report.css}`, `tests/test_report_form.py`, the contract tests in `tests/test_report_sql.py`. The old `report_ui.py` and the SQL are unchanged. | B2 | listens for `atlas:open-report`; closes on `atlas:open-saved` and `atlas:open-ask`; one hook block in `map_app.py` (B1's file) |
 | Chat screen: `src/atlas/assistant/page.py` (`app_html`, `build(legacy=)`), `src/atlas/web/chat/{chat.js,speech.js,chat.css}`, the answer composer (`assistant/composer.py`, `web/assistant/composer.js`, `engine.js`, `schema.py`, `llm.py`), `tests/test_chat_app.py`, `tests/test_assistant_short_answers.py`, the golden files | B3 | fires `atlas:open-report`, `atlas:show-places`, `atlas:route-to`; the Ask tab target is `ask.html` |
-| City switcher and first-open sheet (new files) | B4 | emits and listens for `atlas:region-changed` |
+| City switcher: `src/atlas/web/map/region.js`, `regionui.js` (inserted into `map.js` at `/*__REGION__*/`), `config/regions.yaml`, `src/atlas/regions.py` (catalog, closest, notice), `tests/test_region_switcher.py`, `tests/test_regions_catalog.py`, `tests/js/regions*.{js,json}`; the Ask city line in `web/chat/chat.js` | B4 | emits `atlas:region-changed {region}`; `window.atlasRegion()` returns the current city; the chat reads `?region=` then `atlas-region` |
 
 Screen-specific CSS goes in the screen's own file, scoped under `.ax`, built from tokens. Do not add colours, icons or events to the foundation from a screen build.
 
@@ -122,3 +122,10 @@ Screen-specific CSS goes in the screen's own file, scoped under `.ax`, built fro
 - `ui.sheet.open` binds only the first `[data-sheet-close]`: My needs closes the sheet from its own handler (same gap B2 found).
 - `ui.topbar` renders a `<header>`: on the chat page it is turned into a `<div>` (and the brand is `aria-hidden`) so the page has one banner landmark.
 - `.ax .opt` style inputs need `inset: -2px` to reach 44 px inside a 1.5 px border (done in `chat.css`).
+
+## Notes from B4
+
+- Every page that has a notion of "the city" reads it in this order: `?region=` in the address, then `localStorage atlas-region`. The map page owns writing `atlas-region`.
+- `window.__REGIONS` (the catalog without layer lists) is written into the map page and the chat page by their builders; `report.js` reads city names from it.
+- The map files and the new pages contain no city names; `test_no_city_names_are_written_into_the_map_files` keeps it so.
+- New foundation gap: the top bar (`ui.topbar`) has no slot for a city control; `map_app.py` inserts the button after the brand with a string replace.

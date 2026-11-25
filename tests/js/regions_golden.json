@@ -1,0 +1,62 @@
+[
+ {
+  "label": "Oxford, Miami University campus",
+  "lat": 39.507,
+  "lon": -84.7452,
+  "expected": "oxford"
+ },
+ {
+  "label": "Downtown Cincinnati",
+  "lat": 39.1031,
+  "lon": -84.512,
+  "expected": "cincinnati"
+ },
+ {
+  "label": "Hamilton, Ohio (inside the Cincinnati buffer)",
+  "lat": 39.3995,
+  "lon": -84.5613,
+  "expected": "cincinnati"
+ },
+ {
+  "label": "Columbus, Ohio",
+  "lat": 39.9612,
+  "lon": -82.9988,
+  "expected": null
+ },
+ {
+  "label": "Downtown Dayton",
+  "lat": 39.7589,
+  "lon": -84.1916,
+  "expected": "dayton"
+ },
+ {
+  "label": "Washington, DC",
+  "lat": 38.8977,
+  "lon": -77.0365,
+  "expected": "dc"
+ },
+ {
+  "label": "Baltimore (hidden)",
+  "lat": 39.2904,
+  "lon": -76.6122,
+  "expected": null
+ },
+ {
+  "label": "Middle of the Atlantic",
+  "lat": 30.0,
+  "lon": -40.0,
+  "expected": null
+ },
+ {
+  "label": "Cincinnati airport side (Kentucky)",
+  "lat": 39.0489,
+  "lon": -84.6678,
+  "expected": "cincinnati"
+ },
+ {
+  "label": "Springboro, Ohio (between Dayton and Cincinnati)",
+  "lat": 39.5523,
+  "lon": -84.2333,
+  "expected": "dayton"
+ }
+]

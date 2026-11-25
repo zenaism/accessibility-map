@@ -24,18 +24,22 @@
   const badge = (k) => ui.badge(k, WORD[k]);
 
   // ------------------------------------------------------------------ items
-  const ITEMS = [];
-  let n = 0;
-  for (const region of Object.keys(DATA)) {
-    for (const f of DATA[region].features) {
+  const ITEMS = [], byId = new Map();
+  let n = 0, markersReady = false;
+  function addItems(region, fc) {
+    for (const f of fc.features) {
       const p = f.properties;
       const pts = p.layer === 'trail'
         ? (f.geometry.type === 'LineString' ? [f.geometry.coordinates] : (f.geometry.coordinates || [])).flat().map((c) => [c[1], c[0]])
         : [[f.geometry.coordinates[1], f.geometry.coordinates[0]]];
-      ITEMS.push({ i: n++, p, f, pts, dist: null, marker: null, text: (p.name + ' ' + (p.summary || '') + ' ' + (LAYER[p.layer] || '')).toLowerCase() });
+      p.region = p.region || region;
+      const it = { i: n++, p, f, pts, dist: null, marker: null, text: (p.name + ' ' + (p.summary || '') + ' ' + (LAYER[p.layer] || '')).toLowerCase() };
+      ITEMS.push(it); byId.set(p.link_id, it);
+      if (markersReady) makeMarker(it);
     }
+    if (markersReady) adoptFavRegions();
   }
-  const byId = new Map(ITEMS.map((it) => [it.p.link_id, it]));
+  for (const region of Object.keys(DATA)) addItems(region, DATA[region]);
   const asOf = Object.values(DATA)[0].generated;
 
   // ------------------------------------------------------------------ small helpers
@@ -88,20 +92,34 @@
   ];
 
   // ------------------------------------------------------------------ saved places (device only)
-  const FAV_KEY = 'atlas-favs', SNAP_KEY = 'atlas-fav-snap', LINK_KEY = 'atlas-fav-link';
+  const FAV_KEY = 'atlas-favs', FAV2_KEY = 'atlas-favs-v2', SNAP_KEY = 'atlas-fav-snap', LINK_KEY = 'atlas-fav-link';
   const readJson = (k, d) => { try { return JSON.parse(store.get(k)) || d; } catch (e) { return d; } };
-  let FAVS = readJson(FAV_KEY, []).filter((x) => typeof x === 'string');
+  // saved places are {id, region} in atlas-favs-v2; atlas-favs keeps the plain ids for the old page. Old lists are migrated:
+  // the region of an old id is looked up in the loaded data (see adoptFavRegions) and is filled in as soon as it is known.
+  const FREG = {};
+  let FAVS = [];
+  (function readFavs() {
+    const v2 = readJson(FAV2_KEY, null);
+    if (Array.isArray(v2)) { for (const x of v2) if (x && typeof x.id === 'string') { FAVS.push(x.id); if (x.region) FREG[x.id] = x.region; } }
+    else FAVS = readJson(FAV_KEY, []).filter((x) => typeof x === 'string');
+  })();
+  function adoptFavRegions() {
+    let changed = false;
+    for (const id of FAVS) { if (!FREG[id] && byId.has(id)) { FREG[id] = byId.get(id).p.region; changed = true; } }
+    if (changed) persist();
+  }
+  const favRegion = (id) => FREG[id] || (SNAP[id] && SNAP[id].g) || null;
   let SNAP = readJson(SNAP_KEY, {});
   let storageOk = true;
   const isFav = (it) => FAVS.includes(it.p.link_id);
   const snapOf = (it) => ({ n: it.p.name, r: it.p.access_rating, g: it.p.region, t: Date.now(), k: JSON.stringify(it.p.keys || []) });
   function persist() {
-    storageOk = store.set(FAV_KEY, JSON.stringify(FAVS)) && store.set(SNAP_KEY, JSON.stringify(SNAP));
+    storageOk = store.set(FAV2_KEY, JSON.stringify(FAVS.map((id) => ({ id, region: FREG[id] || null })))) && store.set(FAV_KEY, JSON.stringify(FAVS)) && store.set(SNAP_KEY, JSON.stringify(SNAP));
   }
   function setFav(it, on) {
     const id = it.p.link_id;
-    if (on && !FAVS.includes(id)) { FAVS.push(id); SNAP[id] = snapOf(it); bumpChanges(); }
-    if (!on && FAVS.includes(id)) { FAVS = FAVS.filter((x) => x !== id); delete SNAP[id]; bumpChanges(); }
+    if (on && !FAVS.includes(id)) { FAVS.push(id); FREG[id] = it.p.region; SNAP[id] = snapOf(it); bumpChanges(); }
+    if (!on && FAVS.includes(id)) { FAVS = FAVS.filter((x) => x !== id); delete SNAP[id]; delete FREG[id]; bumpChanges(); }
     persist();
     refreshPins();
   }
@@ -109,6 +127,7 @@
   // what changed since the place was saved: shown as "Needs a look"
   function lookReason(id) {
     const it = byId.get(id), s = SNAP[id];
+    if (!it && favRegion(id) && !LOADED.has(favRegion(id))) return '';   // that city is not loaded yet: nothing is known to have changed
     if (!it) return s ? 'No longer in the data. Report if wrong.' : 'No longer in the data.';
     if (!s) return '';
     if (s.r !== it.p.access_rating) return 'Rating changed from ' + (WORD[RK[s.r]] || 'Not known') + ' to ' + WORD[rating(it)] + '.';
@@ -116,7 +135,7 @@
     return '';
   }
   function restoreLink() {
-    return location.href.split('#')[0] + '#saved=' + FAVS.map(encodeURIComponent).join(',');
+    return location.href.split('#')[0] + '#saved=' + FAVS.map(encodeURIComponent).join(',');   // restore links carry ids only; the cities are looked up on the device
   }
 
   // ------------------------------------------------------------------ map
@@ -142,7 +161,7 @@
       html: '<div class="pin ' + k + (sel ? ' sel' : '') + '">' + icon(k) + '</div>' + (fav ? '<span class="pinfav" style="position:absolute;right:-6px;top:-6px;width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid #11181D;display:grid;place-items:center;color:#B3167B">' + icon('save').replace('class="ic"', 'class="ic" style="width:11px;height:11px;fill:currentColor"') + '</span>' : ''),
     });
   }
-  for (const it of ITEMS) {
+  function makeMarker(it) {
     if (it.p.layer === 'trail') {
       const col = { yes: '#0072B2', partial: '#E69F00', no: '#B84A00', unknown: '#59646C' }[rating(it)];
       it.marker = L.geoJSON(it.f, { style: { color: col, weight: 5, opacity: 0.9 } });
@@ -152,6 +171,9 @@
       it.marker.on('click', () => openPlace(it));
     }
   }
+  ITEMS.forEach(makeMarker);
+  markersReady = true;
+  adoptFavRegions();
   function syncMap(list) {
     const key = list.map((it) => it.i).join(',');
     if (key === shownKey) return;
@@ -194,7 +216,7 @@
   new MutationObserver(() => document.querySelectorAll('#map .leaflet-marker-icon:not([data-q])').forEach((e) => { e.setAttribute('tabindex', '-1'); e.setAttribute('aria-hidden', 'true'); e.dataset.q = 1; })).observe($('#map'), { childList: true, subtree: true });
 
   // ------------------------------------------------------------------ state and panel
-  const S = { view: 'start', q: '', type: null, shown: 10, here: null, near: false, az: false, edit: false, prev: [], it: null, more: false, step: 0 };
+  const S = { region: null, regionFrom: null, kept: null, linkBanner: null, savedFilter: false, chooseWhy: '', useCity: null, prevView: 'start', view: 'start', q: '', type: null, shown: 10, here: null, near: false, az: false, edit: false, prev: [], it: null, more: false, step: 0 };
   const panel = $('#panel'), body = $('#panel-body'), live = $('#live');
   const say = (t) => { live.textContent = ''; setTimeout(() => { live.textContent = t; }, 30); };
   function show(html, o) {
@@ -230,7 +252,7 @@
   // ------------------------------------------------------------------ search and results
   function results() {
     const t = S.q.trim().toLowerCase();
-    let list = ITEMS.filter((it) => (!S.type || TYPES.find((x) => x.id === S.type).test(it)) && (!t || t.split(/\s+/).every((w) => it.text.includes(w))));
+    let list = ITEMS.filter((it) => it.p.region === S.region && (!S.type || TYPES.find((x) => x.id === S.type).test(it)) && (!t || t.split(/\s+/).every((w) => it.text.includes(w))));
     if (S.here) list.forEach((it) => { it.dist = Math.min(...it.pts.map((p) => metres(S.here, p))); });
     const nameCmp = (a, b) => a.p.name.localeCompare(b.p.name, undefined, { sensitivity: 'base', numeric: true });
     if (S.az) list.sort(nameCmp);
@@ -241,7 +263,7 @@
   const rowSub = (it) => layerLabel(it) + (it.dist != null ? ' · ' + fmtDist(it.dist) + (S.near ? '' : ' straight line') : '');
   function viewStart() {
     syncMap([]); $('#hint').hidden = false;
-    show('<h2 class="vh" id="h-start" tabindex="-1">Start</h2>'
+    show('<h2 class="vh" id="h-start" tabindex="-1">Start</h2>' + linkBannerHtml() + limitedNotice()
       + '<a class="savedrow" href="#saved" data-go="saved">' + icon('save') + '<span>Saved places</span><span class="cnt">' + FAVS.length + ' saved</span>' + icon('right') + '</a>'
       + '<p class="lead" style="font-size:var(--fs-body)">Search, or pick a type.</p>'
       + '<div class="tile-grid three" role="group" aria-label="Place types">' + TYPES.map((t) => '<button type="button" class="tile sm" data-type="' + t.id + '">' + icon(t.icon) + '<span>' + t.label + '</span></button>').join('') + '</div>'
@@ -259,6 +281,7 @@
     }
     const shown = list.slice(0, S.shown);
     show('<div class="head-row"><h2 id="h-res" tabindex="-1">' + list.length + ' place' + (list.length === 1 ? '' : 's') + '</h2><button type="button" class="btn btn-ghost" data-go="legend">' + icon('list') + '<span>Legend</span></button></div>'
+      + (S.kept ? '<div class="banner info" role="status">' + icon('check') + '<span>Showing ' + esc(cityName(S.region)) + '. Your search stays. Results are for ' + esc(cityName(S.region)) + ' now.</span><button type="button" class="btn btn-secondary" data-search-other="' + S.kept.from + '">Search ' + esc(cityName(S.kept.from)) + ' instead</button></div>' : '')
       + '<p class="muted small">' + (S.az ? 'A to Z.' : S.near ? 'Nearest first.' : 'Best known first' + (S.here ? ', then nearest.' : '.')) + '</p>'
       + '<div class="chip-row" role="group" aria-label="Place types">' + TYPES.map((t) => ui_chip(t, S.type === t.id)).join('') + '</div>'
       + '<ul class="plain" id="rows">' + shown.map((it) => '<li><button type="button" class="listrow' + (it === selected ? ' sel' : '') + '" data-open="' + it.i + '"><span class="nm">' + esc(it.p.name) + '</span>' + badge(rating(it)) + '<span class="sub">' + esc(rowSub(it)) + '</span></button></li>').join('') + '</ul>'
@@ -288,7 +311,7 @@
   function viewCard(it) {
     $('#hint').hidden = true;
     const k = rating(it);
-    show('<div class="place">'
+    show(linkBannerHtml() + placeNotice(it) + '<div class="place">'
       + '<div style="display:flex;gap:12px;align-items:center"><span class="ratetile ' + k + '">' + icon(k) + '</span><div style="display:grid;gap:6px;min-width:0"><h2 class="name" tabindex="-1" id="h-card">' + esc(it.p.name) + '</h2>' + badge(k) + '</div></div>'
       + '<div class="stat3">' + stat(it, 'Entrance', 'door', /entrance|door/i) + stat(it, 'Restroom', 'toilet', /restroom|toilet/i) + stat(it, 'Parking', 'parking', /parking/i) + '</div>'
       + '<p class="conf">' + icon('clock') + '<span>' + esc(sourceLine(it)) + '</span></p>'
@@ -324,7 +347,7 @@
   }
   function viewDetails(it) {
     const k = rating(it);
-    show('<div style="display:flex;gap:12px;align-items:center"><span class="ratetile ' + k + '">' + icon(k) + '</span><div style="display:grid;gap:6px;min-width:0"><h2 class="name" tabindex="-1" id="h-det">' + esc(it.p.name) + '</h2>' + badge(k) + '</div></div>'
+    show(linkBannerHtml() + placeNotice(it) + '<div style="display:flex;gap:12px;align-items:center"><span class="ratetile ' + k + '">' + icon(k) + '</span><div style="display:grid;gap:6px;min-width:0"><h2 class="name" tabindex="-1" id="h-det">' + esc(it.p.name) + '</h2>' + badge(k) + '</div></div>'
       + (confLine(it) ? '<p class="conf">' + icon('check') + '<span>' + esc(confLine(it)) + '</span></p>' : '')
       + '<p class="conf">' + icon('clock') + '<span>' + esc(sourceLine(it)) + '</span></p>'
       + '<div class="rowbtns" style="display:grid;grid-template-columns:' + (routeOn(it) ? '2fr 1fr' : '1fr') + '">' + (routeOn(it) ? '<button type="button" class="btn btn-primary" data-route="' + it.i + '">' + icon('route') + '<span>Route here</span></button>' : '') + saveBtn(it) + '</div>'
@@ -342,6 +365,7 @@
   }
 
 /*__NAV__*/
+/*__REGION__*/
   // ------------------------------------------------------------------ legend
   function viewLegend() {
     show('<div class="head-row"><h2 id="h-leg" tabindex="-1">Legend</h2></div>'
@@ -352,18 +376,25 @@
   }
 
   // ------------------------------------------------------------------ saved places
+  const cityTag = (id) => { const r = favRegion(id); return r ? '<span class="citytag">' + esc(cityName(r)) + '</span>' : ''; };
   function favRow(id) {
     const it = byId.get(id), reason = lookReason(id), s = SNAP[id];
     const name = it ? it.p.name : (s && s.n) || 'A saved place';
-    const sub = it ? badge(rating(it)) + '<span>' + esc(layerLabel(it) + (S.here ? ' · ' + fmtDist(Math.min(...it.pts.map((p) => metres(S.here, p)))) : '')) + '</span>' : '';
-    return '<li class="favrow' + (reason ? ' look' : '') + '"><span class="nm">' + esc(name) + '</span>'
-      + (S.edit ? '<button type="button" class="btn btn-icon btn-ghost" data-unsave="' + esc(id) + '" aria-label="Remove ' + esc(name) + '">' + icon('trash') + '</button>' : (it ? '<button type="button" class="btn btn-icon btn-ghost" data-open="' + it.i + '" aria-label="Open ' + esc(name) + '">' + icon('right') + '</button>' : '<span></span>'))
+    const k = it ? rating(it) : s ? (RK[s.r] || 'unknown') : null;
+    const sub = (k ? badge(k) : '') + (it ? '<span>' + esc(layerLabel(it) + (S.here ? ' · ' + fmtDist(Math.min(...it.pts.map((p) => metres(S.here, p)))) : '')) + '</span>' : '');
+    const other = !it && favRegion(id) && !LOADED.has(favRegion(id));
+    const openBtn = it ? '<button type="button" class="btn btn-icon btn-ghost" data-open="' + it.i + '" aria-label="Open ' + esc(name) + '">' + icon('right') + '</button>'
+      : other ? '<button type="button" class="btn btn-icon btn-ghost" data-open-saved="' + esc(id) + '" aria-label="Open ' + esc(name) + ' in ' + esc(cityName(favRegion(id))) + '">' + icon('right') + '</button>' : '<span></span>';
+    return '<li class="favrow' + (reason ? ' look' : '') + '"><span class="nm">' + esc(name) + cityTag(id) + '</span>'
+      + (S.edit ? '<button type="button" class="btn btn-icon btn-ghost" data-unsave="' + esc(id) + '" aria-label="Remove ' + esc(name) + '">' + icon('trash') + '</button>' : openBtn)
       + (reason ? '<span class="sub" style="flex-wrap:nowrap;align-items:flex-start">' + icon('alert') + '<span>' + esc(reason) + '</span></span>' : '<span class="sub">' + sub + '</span>') + '</li>';
   }
   const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
   function viewSaved() {
     $('#hint').hidden = true;
-    const look = FAVS.filter(lookReason), rest = FAVS.filter((id) => !look.includes(id));
+    const cities = [...new Set(FAVS.map(favRegion).filter(Boolean))];
+    const shownIds = S.savedFilter && S.region ? FAVS.filter((id) => favRegion(id) === S.region || !favRegion(id)) : FAVS, hiddenN = FAVS.length - shownIds.length;
+    const look = shownIds.filter(lookReason), rest = shownIds.filter((id) => !look.includes(id));
     const link = readJson(LINK_KEY, null);
     let h = '<h2 class="vh" id="h-saved" tabindex="-1">Saved places</h2>';
     if (!storageOk) h += '<div class="banner" role="status">' + icon('alert') + '<span>This browser would not keep your saved places. Copy your restore link.</span></div>';
@@ -372,11 +403,13 @@
       h += ui_state('No saved places yet', 'Tap Save on a place to keep it here, on this device only.', 'save')
         + '<div class="opt stack"><label class="lbl" for="rl">Have a restore link?</label><input class="input" id="rl" placeholder="Paste it here" autocomplete="off"><span class="hint">It stays on this device.</span><button type="button" class="btn btn-secondary" data-restore-paste>' + icon('check') + '<span>Restore</span></button></div>';
     } else {
-      h += '<p class="muted" role="status">' + FAVS.length + ' saved place' + (FAVS.length > 1 ? 's' : '') + '</p>';
+      h += '<p class="muted" role="status">' + (S.savedFilter && S.region ? shownIds.length + ' saved in ' + esc(cityName(S.region)) : FAVS.length + ' saved place' + (FAVS.length > 1 ? 's' : '') + (cities.length > 1 ? ' in ' + cities.length + ' cities' : '')) + '</p>';
+      if (S.region && (cities.length > 1 || S.savedFilter)) h += '<div class="chip-row" role="group" aria-label="City filter"><button type="button" class="chip" data-saved-filter aria-pressed="' + S.savedFilter + '">' + icon('check', 'tick') + '<span>Show only ' + esc(cityName(S.region)) + '</span></button></div>';
       if (look.length) h += '<h3 class="groupt">' + icon('alert') + 'Needs a look · ' + look.length + '</h3><ul class="plain">' + look.map(favRow).join('') + '</ul>';
       h += '<h3 class="groupt">All places · ' + rest.length + '</h3><ul class="plain' + (FAVS.length > 12 ? ' compact' : '') + '">' + rest.map(favRow).join('') + '</ul>'
         + '<div class="rowbtns" style="display:grid;grid-template-columns:1fr 1fr"><button type="button" class="btn btn-secondary" data-edit aria-pressed="' + S.edit + '">' + icon(S.edit ? 'check' : 'list') + '<span>' + (S.edit ? 'Done' : 'Edit list') + '</span></button><button type="button" class="btn btn-secondary" data-sketch>' + icon('map') + '<span>Sketch map</span></button></div>'
         + '<button type="button" class="btn btn-secondary block" data-copy-restore>' + icon('share') + '<span>Copy restore link</span></button>'
+        + (hiddenN ? '<p class="note">' + icon('info') + '<span>' + hiddenN + ' saved in another city ' + (hiddenN > 1 ? 'are' : 'is') + ' hidden.</span></p>' : '') + (cities.length > 1 || hiddenN ? '<p class="note">' + icon('info') + '<span>Open a place in another city and the map switches to that city.</span></p>' : '')
         + (link ? '<p class="note">' + icon('clock') + '<span>Link last copied ' + ago(link.t) + '.' + (link.c ? ' ' + link.c + ' change' + (link.c > 1 ? 's' : '') + ' since.' : '') + '</span></p>' : '');
     }
     show(h, { label: 'Saved places', title: 'Saved places', tall: true });
@@ -401,8 +434,8 @@
   function suggest() {
     const t = q.value.trim().toLowerCase();
     if (!t) return closeSug();
-    const types = TYPES.filter((x) => x.label.toLowerCase().includes(t)).map((x) => ({ kind: 'type', id: x.id, label: x.label, sub: ITEMS.filter(x.test).length + ' places', icon: x.icon }));
-    const layers = [...new Set(ITEMS.map((it) => it.p.layer))].filter((l) => LAYER[l].toLowerCase().includes(t)).map((l) => ({ kind: 'layer', id: l, label: LAYER[l], sub: ITEMS.filter((it) => it.p.layer === l).length + ' places', icon: 'search' }));
+    const types = TYPES.filter((x) => x.label.toLowerCase().includes(t)).map((x) => ({ kind: 'type', id: x.id, label: x.label, sub: ITEMS.filter((it) => it.p.region === S.region && x.test(it)).length + ' places', icon: x.icon }));
+    const layers = [...new Set(ITEMS.filter((it) => it.p.region === S.region).map((it) => it.p.layer))].filter((l) => LAYER[l].toLowerCase().includes(t)).map((l) => ({ kind: 'layer', id: l, label: LAYER[l], sub: ITEMS.filter((it) => it.p.region === S.region && it.p.layer === l).length + ' places', icon: 'search' }));
     const places = results().slice(0, 4).map((it) => ({ kind: 'place', it, label: it.p.name, sub: it.dist != null ? fmtDist(it.dist) : layerLabel(it), icon: 'pin' }));
     sugRows = [...types, ...layers, ...places];
     if (!sugRows.length) return closeSug();
@@ -446,9 +479,20 @@
   function nearMe() {
     const done = (pos, acc, note) => { S.here = pos; S.near = true; S.az = false; S.q = ''; q.value = ''; S.type = null; S.shown = 10; drawYou(pos, acc); clearSel(); go('results'); fit(results().slice(0, 6), 16); say(note); };
     const centre = () => { const c = map.getCenter(); done([c.lat, c.lng], 0, 'Location not shared. Distances are from the middle of the map.'); };
+    // Near me asks before the map jumps to another city (the check is on this device)
+    const check = (p) => {
+      const c = AtlasRegion.closest(CATALOG, p.coords.latitude, p.coords.longitude);
+      if (c && c.id === S.region) return done([p.coords.latitude, p.coords.longitude], p.coords.accuracy, 'Measured from your location. Distances are straight lines.');
+      S.nearCity = c ? c.id : null; S.prevView = S.view; S.view = 'nearfar'; render();
+    };
     if (!navigator.geolocation) return centre();
     say('Finding your location.');
-    navigator.geolocation.getCurrentPosition((p) => done([p.coords.latitude, p.coords.longitude], p.coords.accuracy, 'Measured from your location. Distances are straight lines.'), centre, { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 });
+    navigator.geolocation.getCurrentPosition(check, centre, { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 });
+  }
+  function viewNearFar() {
+    const c = S.nearCity;
+    show(c ? '<h2 id="h-far" tabindex="-1">You are far from ' + esc(cityName(S.region)) + '. Switch to ' + esc(cityName(c)) + '?</h2><div class="stack"><button type="button" class="btn btn-primary" data-switch-near="' + c + '">' + icon('check') + '<span>Switch to ' + esc(cityName(c)) + '</span></button><button type="button" class="btn btn-secondary" data-stay-city>Stay in ' + esc(cityName(S.region)) + '</button></div>'
+      : '<h2 id="h-far" tabindex="-1">You are outside our cities.</h2><p class="muted">Near me works inside a covered city.</p><div class="stack"><button type="button" class="btn btn-primary" data-choose-city>' + icon('list') + '<span>Choose a city</span></button><button type="button" class="btn btn-secondary" data-stay-city>Stay in ' + esc(cityName(S.region)) + '</button></div>', { label: 'Near me', title: 'Near me' });
   }
 
   // ------------------------------------------------------------------ rendering and events
@@ -460,15 +504,20 @@
     else if (S.view === 'details' && it) viewDetails(it);
     else if (S.view === 'route' && it) navRender();
     else if (S.view === 'legend') viewLegend();
-    else if (S.view === 'saved') { syncMap(FAVS.map((id) => byId.get(id)).filter(Boolean)); viewSaved(); }
+    else if (S.view === 'locating') viewLocating();
+    else if (S.view === 'choose') viewChoose(S.chooseWhy);
+    else if (S.view === 'usecity' && S.useCity) viewUseCity(S.useCity);
+    else if (S.view === 'nearfar') viewNearFar();
+    else if (S.view === 'saved') { syncMap(FAVS.map((id) => byId.get(id)).filter((x) => x && x.p.region === S.region)); viewSaved(); }
     else viewStart();
   }
   function toast(msg, action) { ui.toast(msg, action ? { action } : {}); }
+  function shareUrl(it) { const u = new URL(location.href); u.search = ''; u.searchParams.set('region', it.p.region); u.hash = '#place=' + encodeURIComponent(it.p.link_id); return u.href; }
   function copyText(text, ok) {
     (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(() => toast(ok), () => toast('Copy this: ' + text));
   }
   document.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-back],[data-go],[data-type],[data-az],[data-open],[data-more],[data-clear],[data-save],[data-details],[data-route],[data-more-details],[data-report],[data-copy],[data-unsave],[data-edit],[data-sketch],[data-copy-restore],[data-restore-paste],[data-restore-do],[data-restore-cancel],#back,#settings,#near');
+    const t = e.target.closest('[data-back],[data-go],[data-type],[data-az],[data-open],[data-open-saved],[data-saved-filter],[data-more],[data-clear],[data-save],[data-details],[data-route],[data-more-details],[data-report],[data-copy],[data-unsave],[data-edit],[data-sketch],[data-copy-restore],[data-restore-paste],[data-restore-do],[data-restore-cancel],#back,#settings,#near');
     if (!t) return;
     const d = t.dataset;
     if (t.id === 'back' || 'back' in d) { back(); return; }
@@ -477,7 +526,9 @@
     if ('go' in d) { e.preventDefault(); if (d.go === 'saved') S.edit = false; go(d.go); return; }
     if ('type' in d) { S.type = S.type === d.type && S.view === 'results' ? null : d.type; S.shown = 10; S.az = false; S.near = false; S.q = ''; q.value = ''; clearSel(); go('results', { push: S.view !== 'results' }); fit(results()); return; }
     if ('az' in d) { S.az = true; S.type = null; S.q = ''; S.shown = 10; go('results'); return; }
-    if ('open' in d) { openPlace(ITEMS[+d.open]); return; }
+    if ('open' in d) { const it = ITEMS[+d.open]; if (it.p.region !== S.region) { switchTo(it.p.region, { silent: true }).then(() => openPlace(it)); } else openPlace(it); return; }
+    if ('openSaved' in d) { const id = d.openSaved, r = favRegion(id); switchTo(r, { silent: true }).then((ok) => { const it = byId.get(id); if (ok && it) openPlace(it); }); return; }
+    if ('savedFilter' in d) { S.savedFilter = !S.savedFilter; viewSaved(); const b = $('[data-saved-filter]'); if (b) b.focus(); return; }
     if ('more' in d) { S.shown += 10; viewResults(); const rows = $('#rows'); const nxt = rows && rows.children[S.shown - 10]; if (nxt) nxt.querySelector('button').focus(); return; }
     if ('clear' in d) { S.q = ''; q.value = ''; S.type = null; S.prev = []; go('start', { push: false }); return; }
     if ('save' in d) { const it = ITEMS[+d.save], was = isFav(it); setFav(it, !was); render(); say((!was ? 'Saved ' : 'Removed ') + it.p.name + '.'); toast(!was ? 'Saved ' + it.p.name : 'Removed ' + it.p.name, was ? { label: 'Undo', onClick: () => { setFav(it, true); render(); } } : null); return; }
@@ -486,7 +537,7 @@
     if ('moreDetails' in d) { S.more = !S.more; viewDetails(S.it); const b = $('[data-more-details]'); if (b) b.focus(); return; }
     if ('route' in d) { navOpen(ITEMS[+d.route]); return; }
     if ('report' in d) { atlas.emit('atlas:open-report', { placeId: ITEMS[+d.report].p.link_id, region: ITEMS[+d.report].p.region }); return; }
-    if ('copy' in d) { const it = ITEMS[+d.copy]; copyText(location.href.split('#')[0] + '#place=' + encodeURIComponent(it.p.link_id), 'Link copied.'); return; }
+    if ('copy' in d) { const it = ITEMS[+d.copy]; copyText(shareUrl(it), 'Link copied.'); return; }
     if ('edit' in d) { S.edit = !S.edit; viewSaved(); const b = $('[data-edit]'); if (b) b.focus(); return; }
     if ('sketch' in d) { const list = FAVS.map((id) => byId.get(id)).filter(Boolean); if (list.length) { fit(list, 16); say('Showing your saved places on the map.'); } return; }
     if ('copyRestore' in d) { store.set(LINK_KEY, JSON.stringify({ t: Date.now(), c: 0 })); copyText(restoreLink(), 'Restore link copied.'); viewSaved(); return; }
@@ -506,14 +557,14 @@
   function openFromHash(initial) {
     const h = location.hash;
     let m = /^#place=(.+)$/.exec(h);
-    if (m) { const it = byId.get(decodeURIComponent(m[1])); if (it) { S.prev = []; openPlace(it, { details: true }); } return; }
+    if (m) { const it = byId.get(decodeURIComponent(m[1])); if (it) { S.prev = []; if (it.p.region !== S.region) switchTo(it.p.region, { save: false, silent: true, url: false }).then(() => openPlace(it, { details: true })); else openPlace(it, { details: true }); } return; }
     if (h === '#saved' && initial === true) { S.prev = []; S.edit = false; go('saved', { push: false }); return; }   // the Saved tab of the other pages links here
     m = /^#saved=(.*)$/.exec(h);
     if (m) { const ids = parseRestore(h); if (ids && ids.length) { S.prev = [{ view: 'start' }]; S.view = 'restore'; viewRestore(ids); } }
   }
   window.addEventListener('hashchange', () => openFromHash());
-  window.AtlasMap = { S, ITEMS, map, openPlace, go, results, openNow, nearMe };
-  render();
-  openFromHash(true);
+  window.AtlasMap = { S, ITEMS, map, openPlace, go, results, openNow, nearMe, REG, CATALOG, switchTo, cityName };
+  updateCityButtons();
+  bootRegion().then(() => openFromHash(true));
   document.documentElement.setAttribute('data-map-ready', '1');
 })();

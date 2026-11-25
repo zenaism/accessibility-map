@@ -1,27 +1,56 @@
 # Regions are pinned to OSM boundary relations, never matched by name
 # ("Manhattan" matched Manhattan, KS in the predecessor project).
 # buffer_km: destinations (parks, trails, museums, events) are collected this far outside the
-# city limits; street-level layers stay clipped to the city itself.
+# city limits; street-level layers stay clipped to the city itself. On the device a position
+# counts as covered by a region when it is inside bbox grown by buffer_km.
+# short: label for a narrow app bar. tier: full (all layers) or limited (places and what the city publishes).
+# center [lat, lon] and bbox [south, west, north, east] come from the pinned relation (atlas.regions.describe),
+# bbox WITHOUT the buffer. zoom: map zoom for the city.
 cincinnati:
   name: Cincinnati, Ohio
+  short: Cincinnati
+  tier: full
   osm_relation: 183453   # admin_level=8, wikidata Q43196
   buffer_km: 25
+  center: [39.1365, -84.5137]
+  bbox: [39.0521, -84.7124, 39.221, -84.3696]
+  zoom: 12
 oxford:
   name: Oxford, Ohio
+  short: Oxford
+  tier: full
   osm_relation: 182574   # admin_level=8, wikidata Q990940 (includes Miami University main campus)
   buffer_km: 15
+  center: [39.5071, -84.7472]
+  bbox: [39.4839, -84.7807, 39.5302, -84.7028]
+  zoom: 13
 dc:
   name: Washington, District of Columbia
+  short: DC
+  tier: limited
   osm_relation: 5396194
   buffer_km: 15.0
+  center: [38.8938, -76.988]
+  bbox: [38.7916, -77.1198, 38.996, -76.9094]
+  zoom: 12
   # area 177.2 km2; UTM zone EPSG:32618
 dayton:
   name: Dayton, Ohio
+  short: Dayton
+  tier: limited
   osm_relation: 182954
   buffer_km: 20.0
+  center: [39.7794, -84.1992]
+  bbox: [39.7019, -84.3114, 39.9208, -84.0929]
+  zoom: 12
   # area 147.1 km2; UTM zone EPSG:32616
 baltimore:
   name: Baltimore, Maryland
+  short: Baltimore
+  tier: limited
   osm_relation: 133345
   buffer_km: 15.0
+  center: [39.2829, -76.6205]
+  bbox: [39.1972, -76.7113, 39.372, -76.5297]
+  zoom: 12
   # area 238.1 km2; UTM zone EPSG:32618

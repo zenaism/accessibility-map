@@ -34,6 +34,16 @@ MAP_HREF = "index.html"
 REPORT_FALLBACK = "https://github.com/zenaism/accessibility-map/issues/new"
 
 
+def _regions_json() -> str:
+    """The visible cities (short names and tiers) so the chat can say which city it answers about."""
+    import json
+
+    from .. import regions
+
+    keep = ("id", "short", "tier")
+    return json.dumps([{k: r[k] for k in keep} for r in regions.catalog()]).replace("</", "<\\/")
+
+
 def app_html(inline: str = "") -> str:
     """The new chat screen: header, settings, conversation, compose area A, voice bar, tab bar (Ask active)."""
     from .. import ui_foundation as ui
@@ -57,7 +67,7 @@ def app_html(inline: str = "") -> str:
     )
     head = (
         '<header class="chat-head"><div class="titles"><h1>Assistant</h1>'
-        '<p class="sub"><span id="ch-mode">Guided mode</span> \u00b7 Cincinnati and Oxford</p></div>'
+        '<p class="sub"><span class="vh" id="ch-mode">Guided mode</span><span id="ch-city-line">Answering for Cincinnati and Oxford</span></p></div>'
         + settings
         + ui.button("Close", "ghost", "close", icon_only=True, href=MAP_HREF, id="ch-close")
         + "</header>"
@@ -101,7 +111,7 @@ def app_html(inline: str = "") -> str:
         + ui.head_snippet()
         + f"\n<style>\n{ui.css()}\n{(CHAT / 'chat.css').read_text()}\n</style></head>"
         + f'<body class="ax chatapp">{ui.body_snippet().replace("</defs>", VOLUME + "</defs>")}\n{body}\n'
-        f"<script>{ui.js()}</script>\n<script>{inline}\n{scripts}\n"
+        f"<script>{ui.js()}</script>\n<script>window.__REGIONS={_regions_json()};{inline}\n{scripts}\n"
         "(function () { var root = document.querySelector('.ch-app'); var api = Openway.chat.mount(root, {base: 'assistant/'}); window.openwayAssistant = api;\n"
         "  var d = document.getElementById('settings-desk'); if (d) d.addEventListener('click', function (e) { e.preventDefault(); document.getElementById('ch-settings-btn').click(); }); })();</script></body></html>"
     )

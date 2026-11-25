@@ -19,6 +19,48 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-92: Hard-coded city names removed where they could be tested; the rest is listed (2026-11-24, accepted)
+Decision: the map page, the chat page and the report form no longer write city names or centres into their code: they read the catalog (`atlas.regions.catalog()`, built from `config/regions.yaml`). `ROUTING_REGIONS = ["oxford"]` stays the single source for routes and `RATING_REGIONS` (report form) the single source for ratings. Left alone because the pipeline cannot be run here (needs `data/processed`): `export_map.py` lines about trail features, the gazetteer, the per-city select and "Cincinnati and Oxford" title, the GTFS feed choice and Oxford-only event and restaurant rules; `fusion.py` `PAIRS` (DC-only functions, not a label); `report_ui.py` whole-map region (legacy form; the new form sends the region). `test_no_city_names_are_written_into_the_map_files` keeps the new files clean.
+Why: the owner wants the region as a variable; changing untested pipeline code risks silent output changes.
+Alternatives: refactor export_map.py blind.
+Costs / revisit if: adding a city still needs a `gtfs_source` key and a look at `export_map.py`; do that with the data present.
+Basis: recorded (B4 brief, region DECISIONS).
+
+### D-91: The assistant always says which city it answers about, and looks elsewhere when the city has nothing (2026-11-24, accepted)
+Decision: a plain line under the chat title, not a control: "Answering for Oxford" (the city chosen on the map: `?region=` first, then `atlas-region`; before any choice "Answering for Cincinnati and Oxford"), and "Showing Cincinnati for this question" when the answer's places are in another city. The saved city never changes. The guided engine answers for the chosen city first; if that gives "I don't know", no data or out of area, it tries the same question without the city, so a place named in another city is found. The greeting names the city.
+Why: owner answer to the Ask city question; the same question has different answers in different cities.
+Alternatives: only inside each answer; a tappable line (needs a taller header).
+Costs / revisit if: the frame's sentence "Findlay Market is in Cincinnati, so I looked there." is not spoken, only the line shows it; the local-model engine is not given the retry.
+Basis: recorded (CHOSEN_DESIGN.md follow-up 9, region frames).
+
+### D-90: Saved places keep {id, region}; shared links carry ?region= and a way back (2026-11-24, accepted)
+Decision: `atlas-favs-v2` holds `[{id, region}]`; `atlas-favs` keeps the plain ids for the old page; old lists are migrated by looking each id up as its city loads. Saved shows a city tag, "N saved places in K cities", a "Show only <city>" chip and "N saved in another city are hidden"; opening a place from another city switches to that city. Copy link builds `?region=<city>#place=<id>`; opening a link in a different city shows "This link is in Cincinnati." with Back to Oxford; a link does not change the saved choice. Old links without a region open the place if its data is in the page.
+Why: D-V2D-8 and D-V2D-10; saved places are personal and must survive a city switch.
+Alternatives: Saved for the current city only.
+Costs / revisit if: restore links carry ids only (cities are looked up on the device).
+Basis: recorded (region DECISIONS).
+
+### D-89: Limited cities say "Less data here" and drop what they cannot do (2026-11-24, accepted)
+Decision: DC and Dayton are "Limited data" cities (Baltimore is hidden because it has no cards). The start view shows "Less data here. Places only. Ratings not open yet." (dismiss is remembered per city), a place card says "No rating yet. No route yet." and has no Route here, and the report form has no Rate part (problems still send the city). The coverage line is built from flags: Cincinnati "Places, ratings", Oxford "Places, routes, ratings", DC "Places and curb ramps", Dayton "Places only"; Cincinnati becomes "Places, routes, ratings" by itself if `ROUTING_REGIONS` gains it. DC and Dayton have no mapped places yet (`has_detail` false), so their map is empty and says so.
+Why: owner answers (follow-ups 9 and 10); `ratings.sql` accepts only cincinnati and oxford.
+Alternatives: disabled stars; hiding Report.
+Costs / revisit if: a limited city gets an `<id>_atlas.geojson` file: the page fetches it on demand.
+Basis: recorded (CHOSEN_DESIGN.md, region frames, code read).
+
+### D-88: The closest city is found on the device with the grown box; ties go to the smaller distance over buffer (2026-11-24, accepted)
+Decision: a position is covered by a region when it is inside the region's bounding box grown by `buffer_km` (`config/regions.yaml` now has `center`, `bbox`, `zoom`, `short`, `tier`). If several cover it, the smallest (km to the centre / buffer_km) wins, not the plain nearest centre, because Hamilton, Ohio is closer to Oxford's centre but well inside Cincinnati's area. Python (`atlas.regions.closest`) and JavaScript (`web/map/region.js`) share ten golden cases (`tests/js/regions_golden.json`). The position is compared on the device and never sent.
+Why: the owner's privacy rule and D-V2D-3; the plain rule gave a wrong city for a whole suburb.
+Alternatives: ask a server (breaks the privacy rule).
+Costs / revisit if: boxes are rectangles: a corner can be covered by two cities.
+Basis: recorded (owner rule) plus a tested deviation from the first idea.
+
+### D-87: One map page, the city is a variable; link, saved choice, closest city, Choose a city (2026-11-24, accepted)
+Decision: the city switcher changes the region in place (map recentres, search and results scope change, the old map stays until the new data is ready: Loading, Showing, or Could not load with Try again; an open search keeps its words and has a link back). Order at first open: `?region=` (this visit only), then the choice saved in `atlas-region`, then the closest covered city (asked once: "You seem to be in Oxford. Use Oxford?" with Choose another), then the Choose a city list (outside the areas, location off or denied). Picking in the switcher saves the choice and updates the address. The control is the city name with a chevron in the Map app bar (phone: bottom sheet, desktop: dropdown); `atlas:region-changed {region}` is fired and `window.atlasRegion()` returns the city. Near me asks before switching ("You are far from Oxford. Switch to Cincinnati?", or "You are outside our cities.").
+Why: owner's rule: the region is a variable and a shared link wins.
+Alternatives: one page per city (the old select), silent use of the closest city.
+Costs / revisit if: the first-open prompt asks for the position at page load; a city whose data is not in the page is fetched as `<id>_atlas.geojson`.
+Basis: recorded (B4 brief, region DECISIONS D-V2D-1 to 13).
+
 ### D-86: Settings keeps its content, gains Appearance, and My needs uses the foundation sheet (2026-11-24, accepted)
 Decision: Settings opens a panel under the header (at most 60 percent of the screen, scrolls inside itself, never squeezes the list below 56 px): How I answer, Text size, Appearance (Light or Dark through `atlasTheme`, Light default, native radios named `atlas-theme`), Plain language, Use my location, My needs, What can I ask?, Clear conversation. The cog is 44 px; the word Settings is visible on desktop and is the accessible name on phones. My needs (three optional questions, saved on the device) is the foundation's modal sheet with focus trap and inert page. Clear conversation shows the empty-history state.
 Why: CHOSEN_DESIGN.md follow-up 2 and the settings frames; reuse of B0 for the dialog.

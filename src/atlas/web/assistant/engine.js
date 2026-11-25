@@ -50,7 +50,14 @@
     return v;
   };
   GuidedEngine.prototype.ask = async function* (text, ctx) {
-    try { for (const e of toEvents(this.answer(text, ctx))) yield e; }
+    try {
+      // Answer for the chosen city first. If that city has nothing, try the same question without the city, so a place
+      // named in another city is found there (the chat then says "Showing Cincinnati for this question").
+      const bad = ['unknown', 'no_data', 'out_of_area'];
+      let a = this.answer(text, ctx);
+      if (ctx && ctx.region && bad.includes(a.kind)) { const b = this.answer(text, Object.assign({}, ctx, { region: null })); if (!bad.includes(b.kind)) a = b; }
+      for (const e of toEvents(a)) yield e;
+    }
     catch (err) { yield { type: 'error', message: 'Something went wrong while looking that up. Please try again or use a button.' }; }
   };
   GuidedEngine.prototype.info = async function () { return { engine: 'guided', model: false, as_of: this.be.as_of() }; };
