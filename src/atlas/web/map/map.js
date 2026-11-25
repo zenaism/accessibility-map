@@ -295,7 +295,7 @@
   function sourceLine(it) {
     const hosts = [...new Set((it.p.facts || []).map((f) => host(f.source)).filter(Boolean))];
     const when = fmtMonth(it.p.newest_source);
-    return hosts.length || when ? (hosts[0] || 'Sources') + (when ? ', ' + when : '') : 'No source yet';
+    return hosts.length || when ? (hosts[0] || 'Sources') + ', ' + (when || 'no date given') : 'No source yet';
   }
   const confLine = (it) => { const s = new Set((it.p.facts || []).map((f) => f.source).filter(Boolean)); return s.size ? 'Confirmed by ' + s.size + ' source' + (s.size > 1 ? 's' : '') + '.' : ''; };
   const KEYWORD = { yes: 'Yes', partly: 'Partly', no: 'No', 'not known': 'Not known' };

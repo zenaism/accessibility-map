@@ -207,7 +207,7 @@ Our position: we accept a harder build to get trustworthy, explainable answers. 
 |---|---|
 | Cincinnati and Oxford data (maps, 311, transit, slope, venue facts with quotes, posters, events) | ✅ built |
 | Map and text pages (GitHub Pages) | ✅ built |
-| New map app: search-first map, place card, details, step-free route with live position and compass, Saved places (branch `ui/map`, `map_app.py`, `web/map/`) | 🟡 built on the branch, not yet merged or deployed; real-phone check of compass and location still needed (`ui_components.md`) |
+| New UI on the Harbor foundation (B0 to B4): map with search, place card, details, step-free route with live position, Saved places, city switcher (Cincinnati, Oxford, DC and Dayton as limited), Rate or report form, chat with short answers and voice, Light or Dark | 🟡 built and merged on `integration/ui`, tested in Chromium; the pages in `data/map/` are not regenerated or deployed yet; real iPhone and Android checks open (`ui_components.md`) |
 | DuckDB knowledge base and four lookup tools; tools-only evaluation 29/29 | ✅ built |
 | Visitor ratings (Supabase) | ✅ built |
 | Region resolver (Census and OSM) for new regions | 🔵 planned |

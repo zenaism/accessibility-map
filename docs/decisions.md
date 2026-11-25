@@ -208,7 +208,7 @@ Alternatives: app-bar button (top of screen, hard to reach); floating button (co
 Costs / revisit if: four tabs are about 93 to 94 px wide at 375 px (all pass 44 px) but CHOSEN.md warned of a crowded bar; at 188 px (200 percent zoom) labels become hidden names. Test on a real phone. Map, report and chat frames must all use the same four-item bar.
 Basis: recorded (owner's decision, V2A follow-up). Source: [design/map/DECISIONS.md](design/map/DECISIONS.md) V2A-2, [design/report/DECISIONS.md](design/report/DECISIONS.md) D-V2B-1, [design/chat/DECISIONS.md](design/chat/DECISIONS.md) note 3.
 
-### D-60: Defaults assumed pending the owner's answer (2026-11-24, accepted by default)
+### D-60: Defaults assumed pending the owner's answer (2026-11-24, accepted by default; the dark mode part is superseded by D-69)
 Decision: keep the word "Partly accessible"; dark mode is designed, light is the default; the USGS basemap stays light; Near me and Ask sit under the search; no seventh "Near me" tile because the button is already under the search. Dark mode designed supersedes the light-theme-only line of D-31 for design purposes; whether to ship it is still open (D-57).
 Why: the owner did not answer style README questions 1 to 7; these are the defaults the style README and CHOSEN.md already drew.
 Alternatives: other wording for partial (README lists them); dark basemap (not available).
@@ -250,7 +250,7 @@ Alternatives: keep "Anonymous"; build send-when-online (needs a queue and online
 Costs / revisit if: the "no IP address" claim holds for our table only (Supabase request logs not checked); retention of 24 months is still the owner's proposal to confirm (compliance.md section 4); an offline person must press Try again; the photo is lost if the form is closed.
 Basis: recorded (code read). Source: D-V2B-5, D-V2B-6, D-V2B-10.
 
-### D-66: "My reports on this device" list is optional and needs a small build (2026-11-24, proposed)
+### D-66: "My reports on this device" list is optional and needs a small build (2026-11-24, accepted: owner chose include, built in B2, see D-81)
 Decision: one frame draws the list (kind, place, date, code, Delete) with an "only on this device" note. It is not in the current system. Building it means saving the report id and device code in the browser at send time, then using the existing delete function.
 Why: the code stores no ids and has no read function today; the cost is small, so drawing it lets the owner decide.
 Alternatives: no list (people cannot find their code or delete later).
@@ -490,7 +490,7 @@ Alternatives: meet only AA 24 px.
 Costs / revisit if: layouts get crowded on small phones.
 Basis: recorded (W3C Understanding pages read; audit measurements).
 
-### D-31: Confidence shown quietly, "Reported accessible" for weak single tags, light theme only (2026-11-23, accepted by default)
+### D-31: Confidence shown quietly, "Reported accessible" for weak single tags, light theme only (2026-11-23, accepted by default; "light theme only" is superseded by D-69)
 Decision: three states (Confirmed, Reported, Not known); labels shown only when weaker or old, always in details; a place with one weak or crowd tag reads "Reported accessible" and sorts below confirmed ones (needs a `confidence` field in the export, flagged for the other team); no dark mode in v1; prototypes are static HTML under `docs/prototypes/`.
 Why: the trust engine rates everything but the exported data and UI show none of it; "Area History" ranked first on one OSM tag.
 Alternatives: always show confidence (overload); percentages (false precision).

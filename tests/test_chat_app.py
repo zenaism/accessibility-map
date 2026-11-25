@@ -769,3 +769,13 @@ def test_the_link_city_wins_over_the_saved_city_in_the_chat_too(browser, site):
     pg = c.new_page()
     pg.goto(f"{site}/ask.html?today={TODAY}&region=cincinnati")
     assert pg.locator("#ch-city-line").inner_text() == "Answering for Cincinnati"
+
+
+def test_every_link_that_opens_a_new_tab_says_so(browser, site):
+    pg = open_chat(browser, site)
+    ask(pg, Q_NEAR)
+    pg.locator(".msg.bot").last.get_by_role("button", name="More").click()
+    bad = pg.evaluate(
+        "[...document.querySelectorAll('a[target=_blank]')].filter((a) => !/new tab/i.test(a.textContent)).map((a) => a.href)"
+    )
+    assert bad == []

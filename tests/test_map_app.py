@@ -127,7 +127,9 @@ def open_map(browser, cdn, site, width=375, height=812, theme="light", init=None
         permissions=["geolocation"],
         geolocation={"latitude": 39.5075, "longitude": -84.734, "accuracy": 10},
     )
-    ctx.add_init_script(f"try{{localStorage.setItem('atlas.theme','{theme}');if(!localStorage.getItem('atlas-region'))localStorage.setItem('atlas-region','oxford')}}catch(e){{}}")
+    ctx.add_init_script(
+        f"try{{localStorage.setItem('atlas.theme','{theme}');if(!localStorage.getItem('atlas-region'))localStorage.setItem('atlas-region','oxford')}}catch(e){{}}"
+    )
     if init:
         ctx.add_init_script(init)
     pg = ctx.new_page()
@@ -521,3 +523,13 @@ def test_the_saved_link_from_other_pages_opens_the_saved_places_view(browser, cd
         or "No saved places yet" in pg.locator("#panel-body").inner_text()
     )
     assert pg.locator(".tabbar .tab[aria-current=page]").get_attribute("data-tab") == "saved"
+
+
+def test_a_source_with_no_date_says_so_instead_of_leaving_it_out(browser, cdn, site):
+    pg = open_map(browser, cdn, site)
+    pg.fill("#q", "library")
+    pg.keyboard.press("Enter")
+    pg.wait_for_selector("#rows")
+    open_first(pg)
+    t = pg.locator(".conf").first.inner_text()
+    assert re.search(r"(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4}|no date given", t), t
