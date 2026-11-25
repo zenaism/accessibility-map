@@ -65,7 +65,7 @@ body.ax.chatapp { background: var(--bg); color: var(--text); font-family: var(--
 .ax .tools { display: flex; flex-wrap: wrap; gap: var(--s2); }
 .ax .tools .btn { flex: 1 1 auto; }
 .ax .followups, .ax .suggest { display: flex; flex-wrap: wrap; gap: var(--s2); }
-.ax .followups .chip, .ax .suggest .chip { font-size: var(--fs-small); }
+.ax .followups .chip, .ax .suggest .chip { font-size: var(--fs-body); }
 .ax .log .state { width: 100%; }
 .ax .state .rowbtns { justify-content: center; }
 .ax .dots { display: inline-flex; gap: 6px; align-items: center; }

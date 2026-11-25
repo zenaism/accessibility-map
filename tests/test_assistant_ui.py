@@ -473,7 +473,7 @@ def test_the_panel_on_a_map_page(browser, base):
         pg.wait_for_function("document.querySelectorAll('#list li').length > 0", timeout=15000)
     except Exception:
         ctx.close()
-        pytest.skip("the map page needs Leaflet from unpkg.com (no network)")
+        pytest.skip("the map page could not load")
     btn = pg.locator("#ask-open")
     assert btn.get_attribute("aria-expanded") == "false"
     btn.click()

@@ -34,6 +34,12 @@ MAP_HREF = "index.html"
 REPORT_FALLBACK = "https://github.com/zenaism/accessibility-map/issues/new"
 
 
+def _ratecfg() -> dict | None:
+    from ..map_viewer import ratings_config
+
+    return ratings_config()
+
+
 def _regions_json() -> str:
     """The visible cities (short names and tiers) so the chat can say which city it answers about."""
     import json
@@ -46,6 +52,7 @@ def _regions_json() -> str:
 
 def app_html(inline: str = "") -> str:
     """The new chat screen: header, settings, conversation, compose area A, voice bar, tab bar (Ask active)."""
+    from .. import report_form
     from .. import ui_foundation as ui
 
     hrefs = {"map": MAP_HREF, "saved": MAP_HREF + "#saved", "report": REPORT_FALLBACK, "ask": "ask.html"}
@@ -93,8 +100,8 @@ def app_html(inline: str = "") -> str:
     body = (
         '<a class="skip" href="#q">Skip to the question box</a>'
         '<div class="ch-app">'
-        f'<div class="only-desktop">{top}</div>'
-        '<div class="ch-col">'
+        f'<div class="only-desktop" data-rp-inert>{top}</div>'
+        '<div class="ch-col" data-rp-inert>'
         + head
         + '<section class="settings" id="settings" aria-label="Settings" hidden></section>'
         '<main class="mw" id="main"><div id="ch-banner"></div><div class="log" id="ch-log" role="log" aria-live="polite" aria-relevant="additions" aria-label="Conversation" tabindex="0"></div></main>'
@@ -109,9 +116,12 @@ def app_html(inline: str = "") -> str:
         '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">'
         '<meta name="description" content="Ask about accessible places, restrooms, parking, food, events and trails in Cincinnati and Oxford. Answers come with sources and dates.">\n'
         + ui.head_snippet()
-        + f"\n<style>\n{ui.css()}\n{(CHAT / 'chat.css').read_text()}\n</style></head>"
+        + f"\n<style>\n{ui.css()}\n{(CHAT / 'chat.css').read_text()}\n{report_form.css()}\n</style></head>"
         + f'<body class="ax chatapp">{ui.body_snippet().replace("</defs>", VOLUME + "</defs>")}\n{body}\n'
         f"<script>{ui.js()}</script>\n<script>window.__REGIONS={_regions_json()};{inline}\n{scripts}\n"
+        f"{report_form.config_js(_ratecfg())}\n"
+        "window.atlasRegion=function(){var a=window.openwayAssistant;return (a&&a.state.region)||((window.__REGIONS||[])[0]||{}).id||null;};\n"
+        f"{report_form.js()}\n"
         "(function () { var root = document.querySelector('.ch-app'); var api = Openway.chat.mount(root, {base: 'assistant/'}); window.openwayAssistant = api;\n"
         "  var d = document.getElementById('settings-desk'); if (d) d.addEventListener('click', function (e) { e.preventDefault(); document.getElementById('ch-settings-btn').click(); }); })();</script></body></html>"
     )

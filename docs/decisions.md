@@ -19,6 +19,20 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-100: The report form is on the chat page too; Copy link is one tap on the place card (2026-11-24, accepted)
+Decision: the chat page includes the Rate or report form (same files as the map: `report.js`, `report.css`), so the Report tab, the Report button on an answer and "Report what you know" open it instead of the GitHub link. The assistant hands its places (from its own data files) to the form through `AtlasReport.setPlaces`; a problem with an answer is a whole-map report with the question in the comment; the tab bar stays usable while the form is open (`data-rp-inert` names what is frozen). The map's place card has an icon button "Copy link to <place>" (one tap, 44 px) that copies `?region=<city>#place=<id>`. Chat follow-up chips use the 16 px body size and a phone number is offered once per answer.
+Why: the final review (task 8 took two taps; the Report tab behaved differently on two pages; chips were 14 px; the same phone number appeared twice).
+Alternatives: keep the GitHub fallback on the chat page.
+Costs / revisit if: the chat page grows by about 60 KB; the form needs the same Supabase setup as the map.
+Basis: recorded (final review list).
+
+### D-99: Leaflet is vendored, no script or style comes from another host (2026-11-24, accepted)
+Decision: Leaflet 1.9.4 (BSD 2-Clause) and Leaflet.markercluster 1.5.3 (MIT) live in `src/atlas/web/vendor/leaflet/` with their licences and a README; `atlas.leaflet.head()` puts them inline in the map page and in the legacy page. The pages no longer request anything from `unpkg.com`; the browser contacts only the page's own host, the USGS basemap and, when someone sends or deletes a report, Supabase. Tests no longer download Leaflet. The two images Leaflet's stylesheet names (layer control, default markers) are not used and not copied.
+Why: privacy rule and the ux_brief checklist (no scripts from another host); it also removes a point of failure and lets the tests run offline.
+Alternatives: link the files from `data/map/vendor/` (cached across pages, but another set of committed files); keep unpkg with an integrity hash.
+Costs / revisit if: each map page grows by about 200 KB (about 55 KB gzipped); update by replacing the four files and the versions in the README.
+Basis: recorded (privacy rule; final review problem 1).
+
 ### D-92: Hard-coded city names removed where they could be tested; the rest is listed (2026-11-24, accepted)
 Decision: the map page, the chat page and the report form no longer write city names or centres into their code: they read the catalog (`atlas.regions.catalog()`, built from `config/regions.yaml`). `ROUTING_REGIONS = ["oxford"]` stays the single source for routes and `RATING_REGIONS` (report form) the single source for ratings. Left alone because the pipeline cannot be run here (needs `data/processed`): `export_map.py` lines about trail features, the gazetteer, the per-city select and "Cincinnati and Oxford" title, the GTFS feed choice and Oxford-only event and restaurant rules; `fusion.py` `PAIRS` (DC-only functions, not a label); `report_ui.py` whole-map region (legacy form; the new form sends the region). `test_no_city_names_are_written_into_the_map_files` keeps the new files clean.
 Why: the owner wants the region as a variable; changing untested pipeline code risks silent output changes.

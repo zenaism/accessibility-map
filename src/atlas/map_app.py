@@ -1,7 +1,7 @@
 # ruff: noqa: E501
 """The map app (session B1): the search-first map, place card, details, route steps and Saved places, built on the
 B0 foundation (src/atlas/ui_foundation.py). One self-contained HTML page: foundation CSS and JS, map.css and map.js,
-and the data inside. Leaflet and its cluster plugin come from unpkg as in the old page; the basemap is USGS.
+and the data inside. Leaflet and its cluster plugin are vendored (atlas.leaflet, no request to another host); the basemap is USGS.
 
     from atlas.map_app import render
     html = render(data, title="Accessibility Map", nav="")
@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from . import regions, report_form, routing_ui
+from . import leaflet, regions, report_form, routing_ui
 from . import ui_foundation as ui
 
 WEB = Path(__file__).with_name("web") / "map"
@@ -147,11 +147,9 @@ def page_html(data: dict, title: str = "Accessibility Map", nav: str = "") -> st
         '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">'
         '<meta name="description" content="Wheelchair accessibility of places, restrooms, trails and events, with sources.">\n'
         + ui.head_snippet()
-        + '\n<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">'
-        '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>'
-        '<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">'
-        '<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>\n'
-        f"<style>\n{ui.css()}\n{(WEB / 'map.css').read_text()}\n{report_form.css()}\n</style></head>"
+        + "\n"
+        + leaflet.head()
+        + f"<style>\n{ui.css()}\n{(WEB / 'map.css').read_text()}\n{report_form.css()}\n</style></head>"
         f'<body class="ax mapapp">{ui.body_snippet()}\n{body}\n'
         f"<script>{ui.js()}</script>\n"
         f"<script>window.__MAPCFG={_json(cfg)};window.__MAPDATA={_json(data)};window.__REGIONS={_json(_regions())};</script>\n"

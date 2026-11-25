@@ -31,6 +31,7 @@
     del(k) { delete this.mem[k]; try { g.localStorage.removeItem(k); } catch (e) { /* blocked */ } },
   };
   const readJSON = (k, d) => { try { const v = store.get(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
+  const LAYER_NAME = { culture: 'Museum', park: 'Park', restroom: 'Restroom', adaptive_recreation: 'Recreation', lodging: 'Lodging', event: 'Event venue', building: 'Building', food_drink: 'Food and drink', service: 'Shop', trail: 'Trail' };
   const SIZES = [['1', 'Normal'], ['1.25', 'Large'], ['1.5', 'Extra large']];
   const MOBILITY = [['manual', 'Manual wheelchair'], ['power', 'Power chair'], ['cane', 'Cane or guide'], ['other', 'Something else'], ['', 'Prefer not to say']];
   const STEPS = [['cannot', 'No, I cannot use steps'], ['some', 'A few steps are fine'], ['', 'Not sure']];
@@ -284,7 +285,7 @@
           if (lead && !lead.event) msg.append(placeCard(lead));
           else if (lead && lead.event) msg.append(eventCard(lead));
           else if (conf) msg.append(h('p', { class: 'conf' }, ic('info'), h('span', { text: conf })));
-          if (A.call) msg.append(h('p', { class: 'conf' }, ic('ask'), h('span', {}, 'Call ' + A.call.name + ': ', h('a', { href: 'tel:' + String(A.call.phone).replace(/[^0-9+]/g, ''), text: A.call.phone }))));
+          if (A.call && !(lead && lead.phone && String(lead.phone).replace(/\D/g, '') === String(A.call.phone).replace(/\D/g, ''))) msg.append(h('p', { class: 'conf' }, ic('ask'), h('span', {}, 'Call ' + A.call.name + ': ', h('a', { href: 'tel:' + String(A.call.phone).replace(/[^0-9+]/g, ''), text: A.call.phone }))));
           const more = A.kind === 'clarify' ? null : moreBlock(A, lead);
           if (more) msg.append(more.btn, more.box);
           if (A.followups.length) msg.append(h('div', { class: 'followups', role: 'group', 'aria-label': 'Ask next' }, A.followups.slice(0, 3).map((f) => h('button', { type: 'button', class: 'chip', onclick: () => ask(f.message), text: f.label }))));
@@ -480,6 +481,7 @@
         const inl = g.__OPENWAY_DATA;
         const [r, cinc, ox] = inl ? [inl.rules, inl.cincinnati, inl.oxford] : await Promise.all([get(base + 'rules.json'), get(base + 'cincinnati.json'), get(base + 'oxford.json')]);
         S.guided = new O.engine.GuidedEngine([cinc, ox], r);
+        if (g.AtlasReport) g.AtlasReport.setPlaces(S.guided.kb.places.filter((p) => p.layer !== 'event').map((p) => ({ id: p.link_id, name: p.name, region: p.region, rating: RK[p.rating] || 'unknown', layer: LAYER_NAME[p.layer] || 'Place', pt: p.lat == null ? null : [p.lat, p.lon] })));
         hint(''); sendBtn.removeAttribute('aria-disabled'); root.dispatchEvent(new g.CustomEvent('ow:ready'));
         checkHealth();
       } catch (e) {

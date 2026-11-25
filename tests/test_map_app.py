@@ -2,7 +2,7 @@
 """The new map app (B1) in a real browser (Playwright + Chromium): search, results, place card, details, saved places,
 route steps with a simulated position, theme, events, and measured accessibility at 375 and 1280 px in Light and Dark.
 
-Pages are rendered into a temporary site with the Oxford graph and served over HTTP. Leaflet comes from unpkg: downloaded
+Pages are rendered into a temporary site with the Oxford graph and served over HTTP. Leaflet is vendored in the page (atlas.leaflet).
 once and served locally; the basemap tiles are replaced by a blank image (nothing leaves the machine)."""
 
 import functools
@@ -14,7 +14,7 @@ import threading
 
 import pytest
 
-from atlas import map_app, ui_checks
+from atlas import leaflet, map_app, ui_checks
 from atlas.core import ROOT
 
 pytest.importorskip("playwright")
@@ -53,14 +53,14 @@ def test_render_has_no_template_leftovers_and_uses_the_foundation():
     assert "/*__NAV__*/" not in html
 
 
-def test_no_third_party_requests_except_leaflet_and_usgs():
+def test_no_third_party_requests_except_the_basemap_and_the_database():
     html = map_app.render(
         {"oxford": {"generated": "x", "features": []}}, "Oxford"
     )  # the data (source links) is not a request
+    html = html.replace(leaflet.head(), "")  # the vendored library has links in its comments: not requests
     urls = set(re.findall(r"https?://[^\s'\")<>]+", html))
     hosts = {re.sub(r"^https?://([^/]+).*", r"\1", u) for u in urls}
     allowed = {
-        "unpkg.com",
         "basemap.nationalmap.gov",
         "www.google.com",
         "github.com",
@@ -77,21 +77,9 @@ def test_no_third_party_requests_except_leaflet_and_usgs():
 
 
 @pytest.fixture(scope="module")
-def cdn(tmp_path_factory):
-    import requests
-
-    d = tmp_path_factory.mktemp("cdn")
-    files = {}
-    for path in CDN:
-        try:
-            r = requests.get(f"https://unpkg.com/{path}", timeout=20)
-            r.raise_for_status()
-        except Exception as e:
-            pytest.skip(f"Leaflet could not be downloaded ({e})")
-        f = d / path.replace("/", "_")
-        f.write_bytes(r.content)
-        files[path] = f
-    return files
+def cdn():
+    """Leaflet is vendored in the page now (atlas.leaflet): nothing is downloaded. Kept so tests keep their signature."""
+    return {}
 
 
 @pytest.fixture(scope="module")
@@ -146,18 +134,6 @@ def open_map(browser, cdn, site, width=375, height=812, theme="light", init=None
     pg.requests = []
     pg.on("request", lambda r: pg.requests.append(r.url))
 
-    def unpkg(route):
-        url = route.request.url.split("unpkg.com/", 1)[1]
-        f = cdn.get(url)
-        if f is None:
-            return route.fulfill(status=404, body="")
-        route.fulfill(
-            status=200,
-            content_type="text/css" if url.endswith(".css") else "text/javascript",
-            body=f.read_bytes(),
-        )
-
-    pg.route("https://unpkg.com/**", unpkg)
     pg.route(
         "**/basemap.nationalmap.gov/**", lambda r: r.fulfill(status=200, content_type="image/png", body=PNG)
     )
@@ -373,9 +349,7 @@ def test_route_here_then_follow_with_a_simulated_position_and_arrive(browser, cd
     pg.context.set_geolocation({"latitude": end[1], "longitude": end[0], "accuracy": 8})
     pg.wait_for_selector("text=You are here")
     assert pg.evaluate("AtlasNav.N.watch") is None  # location watching stops on arrival
-    assert not [
-        r for r in pg.requests if "127.0.0.1" not in r and "unpkg.com" not in r and "nationalmap" not in r
-    ]
+    assert not [r for r in pg.requests if "127.0.0.1" not in r and "nationalmap" not in r]
 
 
 def test_stop_and_resume_and_denied(browser, cdn, site):
@@ -533,3 +507,20 @@ def test_a_source_with_no_date_says_so_instead_of_leaving_it_out(browser, cdn, s
     open_first(pg)
     t = pg.locator(".conf").first.inner_text()
     assert re.search(r"(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4}|no date given", t), t
+
+
+def test_copy_link_is_one_tap_on_the_place_card(browser, cdn, site):
+    pg = open_map(browser, cdn, site)
+    pg.fill("#q", "library")
+    pg.keyboard.press("Enter")
+    pg.wait_for_selector("#rows")
+    open_first(pg)
+    pg.evaluate(
+        "window.__copied = null; navigator.clipboard.writeText = (t) => { window.__copied = t; return Promise.resolve(); }"
+    )
+    btn = pg.get_by_role("button", name=re.compile("^Copy link to"))
+    assert btn.bounding_box()["width"] >= 44 and btn.bounding_box()["height"] >= 44
+    btn.click()
+    link = pg.evaluate("window.__copied")
+    assert "#place=" in link and "region=" in link
+    assert pg.locator(".toast", has_text="Link copied.").count() == 1

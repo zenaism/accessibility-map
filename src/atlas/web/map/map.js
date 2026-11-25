@@ -316,7 +316,7 @@
       + '<div class="stat3">' + stat(it, 'Entrance', 'door', /entrance|door/i) + stat(it, 'Restroom', 'toilet', /restroom|toilet/i) + stat(it, 'Parking', 'parking', /parking/i) + '</div>'
       + '<p class="conf">' + icon('clock') + '<span>' + esc(sourceLine(it)) + '</span></p>'
       + (routeOn(it) ? '<button type="button" class="btn btn-primary block" data-route="' + it.i + '">' + icon('route') + '<span>Route here</span></button>' : '<a class="btn btn-primary block" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + it.pts[0][0] + ',' + it.pts[0][1] + '&travelmode=walking">' + icon('route') + '<span>Directions in Google Maps</span><span class="vh"> (opens in a new tab)</span></a>')
-      + '<div class="rowbtns" style="display:grid;grid-template-columns:1fr 1fr">' + saveBtn(it) + '<button type="button" class="btn btn-secondary" data-details="' + it.i + '">' + icon('info') + '<span>More details</span></button></div></div>', { label: it.p.name });
+      + '<div class="rowbtns" style="display:grid;grid-template-columns:1fr 1fr auto">' + saveBtn(it) + '<button type="button" class="btn btn-secondary" data-details="' + it.i + '">' + icon('info') + '<span>More details</span></button><button type="button" class="btn btn-secondary btn-icon" data-copy="' + it.i + '" aria-label="Copy link to ' + esc(it.p.name) + '">' + icon('share') + '</button></div></div>', { label: it.p.name });
   }
   function dfact(it, label, icn, re) {
     const f = factsFor(it, re)[0], k = keyVal(it, label.toLowerCase());
