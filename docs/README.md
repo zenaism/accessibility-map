@@ -7,6 +7,7 @@ One topic per file. Where two files touch the same subject, the "owner" below is
 | [`research_questions.md`](research_questions.md) | The four (revised) research questions, papers, venues, plan | RQs, paper plan, timeline |
 | [`improvement_plan.md`](improvement_plan.md) | Bugs and improvements found in the 2026-11-18 review, in the order to fix them | what to do next |
 | [`ux_brief.md`](ux_brief.md) | UX brief: users, tasks, UI audit, research, style guide, screens, prototype plan (draft, awaiting owner answers) | designing or changing any screen |
+| [`ui_components.md`](ui_components.md) | UI foundation: Harbor CSS, icons, theme API, event contracts, component and class names, which build owns which file | building or changing any screen |
 | [`study_design.md`](study_design.md) | Method and threats to validity | how we test the RQs |
 | [`literature/`](literature/) | `literature_review.md` is the short synthesis with the gap map; `topic1` to `topic7` are the detailed notes behind it | related work |
 | [`national_data_plan.md`](national_data_plan.md) | Plan for automated, nationwide collection (draft) | discovery, fetching, storage, release format |

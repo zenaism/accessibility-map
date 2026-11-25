@@ -428,3 +428,23 @@ flowchart TD
   classDef ext fill:#eee,stroke:#888,color:#111
 ```
 
+## 15. UI foundation and event contracts (B0, 2026-11-24)
+
+```mermaid
+flowchart TD
+  F["ui_foundation.py<br/>Harbor CSS, icon sprite, JS"]:::built
+  ASSETS["web/foundation<br/>tokens light and dark, Figtree, Lucide"]:::built --> F
+  F --> TH["atlasTheme.get and set<br/>Light default, stored on device"]:::built
+  F --> EV["atlas events on document"]:::built
+  F --> CH["ui_checks: contrast, targets, names,<br/>requests, scroll"]:::built
+  TAB["Tab bar and place card"]:::built -->|"atlas:open-report"| B2["B2 Report form"]:::plan
+  TAB -->|"atlas:open-saved"| B1["B1 Map and Saved"]:::plan
+  TAB -->|"atlas:open-ask"| B3["B3 Chat"]:::plan
+  B4["B4 City switcher"]:::plan -->|"atlas:region-changed"| B1
+  TH -->|"atlas:theme-changed"| ANY["any screen"]:::plan
+  F -.->|"no third party requests"| EXT["Fonts and icons<br/>from this repo only"]:::ext
+  classDef built fill:#d4edda,stroke:#2e7d32,color:#111
+  classDef plan fill:#e0f2fe,stroke:#0369a1,color:#111
+  classDef ext fill:#eee,stroke:#888,color:#111
+```
+
