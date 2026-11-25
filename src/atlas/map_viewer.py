@@ -1058,8 +1058,16 @@ def render(
     title: str = "Accessibility Map",
     nav: str = "",
     switch: str = "",
+    legacy: bool = False,
 ) -> str:
-    """data = {region: FeatureCollection}; nav = extra HTML after the date (e.g. a link to the other city)."""
+    """data = {region: FeatureCollection}; nav = extra HTML after the date (e.g. a link to the other city).
+
+    Since B1 the default is the new map app (atlas.map_app, built on the B0 foundation; nav and switch are not used:
+    the city switcher is B4). legacy=True renders the old list-first template below, kept until the integration."""
+    if not legacy:
+        from .map_app import render as app_render
+
+        return app_render(data, title, nav, switch)
     return (
         TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False).replace("<", "\\u003c"))
         .replace("__TITLE__", title)

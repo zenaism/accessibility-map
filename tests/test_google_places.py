@@ -119,7 +119,7 @@ def test_existing_map_uses_saved_google_details_without_live_api_or_key():
         }
     }
 
-    html = render(data)
+    html = render(data, legacy=True)
 
     assert "basemap.nationalmap.gov" in html
     assert "maps.googleapis.com/maps/api/js" not in html
@@ -131,7 +131,7 @@ def test_existing_map_uses_saved_google_details_without_live_api_or_key():
 
 
 def test_existing_map_keeps_its_original_basemap_without_browser_key():
-    html = render({"cincinnati": {"features": []}})
+    html = render({"cincinnati": {"features": []}}, legacy=True)
 
     assert "basemap.nationalmap.gov" in html
     assert "maps.googleapis.com/maps/api/js" not in html

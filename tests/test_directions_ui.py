@@ -59,7 +59,7 @@ def site(tmp_path_factory):
     root = tmp_path_factory.mktemp("site")
     for name in ("oxford", "index"):
         data, title, nav = _page_data(name)
-        (root / f"{name}.html").write_text(render(data, title, nav))
+        (root / f"{name}.html").write_text(render(data, title, nav, legacy=True))
         for region, fc in data.items():
             for f in fc["features"]:
                 PLACES[f["properties"]["name"]] = f["properties"]["link_id"]
@@ -80,7 +80,7 @@ def site(tmp_path_factory):
             map_viewer.ROUTING_JS = saved.replace(
                 marker, json.dumps({**routing_ui.config(), "regions": regions})
             )
-            (root / f"{name}.html").write_text(render(data, title, nav))
+            (root / f"{name}.html").write_text(render(data, title, nav, legacy=True))
     finally:
         map_viewer.ROUTING_JS = saved
     graph = ROOT / "data" / "map" / "routing" / "oxford.graph.json"

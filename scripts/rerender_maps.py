@@ -17,8 +17,12 @@ for name in ("index", "cincinnati", "oxford"):
     f = ROOT / "data" / "map" / f"{name}.html"
     old = f.read_text()
     title = re.search(r"<title>(.*?) · Accessibility Map</title>", old).group(1)
-    nav = re.search(r'<span id="asof"></span>(.*?)</p></div>', old, re.S).group(1)
-    raw = old.split("const DATA = ", 1)[1].split(", RATINGS = ", 1)[0]
+    m = re.search(r'<span id="asof"></span>(.*?)</p></div>', old, re.S)
+    nav = m.group(1) if m else ""
+    if "window.__MAPDATA=" in old:  # a page of the new map app
+        raw = old.split("window.__MAPDATA=", 1)[1].split(";</script>", 1)[0]
+    else:
+        raw = old.split("const DATA = ", 1)[1].split(", RATINGS = ", 1)[0]
     data = json.loads(raw.replace("\\u003c", "<"))
     new = render(data, title, nav)
     f.write_text(new)
