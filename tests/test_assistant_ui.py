@@ -244,7 +244,7 @@ def test_text_size_and_plain_language(page, base):
     page.get_by_label("Your question").fill("closest accessible restroom near downtown")
     page.keyboard.press("Enter")
     page.wait_for_selector(".ow-a .ow-main")
-    assert page.locator(".ow-main").first.inner_text().startswith("Closest with")
+    assert page.locator(".ow-main").first.inner_text().startswith("Closest I can confirm")
 
 
 def test_clarifying_question_has_buttons_and_asks_only_once(page, base):
@@ -254,7 +254,7 @@ def test_clarifying_question_has_buttons_and_asks_only_once(page, base):
     assert page.get_by_role("button", name="Use my location").count() == 1
     page.get_by_role("button", name="Downtown Cincinnati").click()
     page.wait_for_function("document.querySelectorAll('.ow-a').length >= 2")
-    assert "closest place I found" in page.locator(".ow-a .ow-main").last.inner_text()
+    assert "closest one I can confirm" in page.locator(".ow-a .ow-main").last.inner_text()
 
 
 def test_voice_unavailable_is_explained_in_words(browser, base):

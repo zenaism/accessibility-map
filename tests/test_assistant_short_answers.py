@@ -48,6 +48,10 @@ QUESTIONS = _questions()
 
 @pytest.fixture(scope="module")
 def eng():
+    from atlas.core import ROOT
+
+    if not (ROOT / "data" / "processed" / "cincinnati" / "slope_3dep_local.entities.parquet").exists():
+        pytest.skip("processed data is not in this checkout (the area questions need it)")
     return Engine()
 
 

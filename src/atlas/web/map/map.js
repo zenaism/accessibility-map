@@ -503,16 +503,17 @@
   $('#asof').textContent = asOf;
 
   // ------------------------------------------------------------------ start
-  function openFromHash() {
+  function openFromHash(initial) {
     const h = location.hash;
     let m = /^#place=(.+)$/.exec(h);
     if (m) { const it = byId.get(decodeURIComponent(m[1])); if (it) { S.prev = []; openPlace(it, { details: true }); } return; }
+    if (h === '#saved' && initial === true) { S.prev = []; S.edit = false; go('saved', { push: false }); return; }   // the Saved tab of the other pages links here
     m = /^#saved=(.*)$/.exec(h);
     if (m) { const ids = parseRestore(h); if (ids && ids.length) { S.prev = [{ view: 'start' }]; S.view = 'restore'; viewRestore(ids); } }
   }
-  window.addEventListener('hashchange', openFromHash);
+  window.addEventListener('hashchange', () => openFromHash());
   window.AtlasMap = { S, ITEMS, map, openPlace, go, results, openNow, nearMe };
   render();
-  openFromHash();
+  openFromHash(true);
   document.documentElement.setAttribute('data-map-ready', '1');
 })();

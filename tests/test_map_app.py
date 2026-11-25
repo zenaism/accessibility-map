@@ -512,3 +512,12 @@ def test_axe_finds_nothing_in_each_state(browser, cdn, site, width, height, them
         pg.wait_for_selector(".stepcard")
         found["route follow"] = pg.evaluate(run)
     assert {k: v for k, v in found.items() if v} == {}
+
+
+def test_the_saved_link_from_other_pages_opens_the_saved_places_view(browser, cdn, site):
+    pg = open_map(browser, cdn, site, hash_="#saved")
+    assert (
+        pg.get_by_role("heading", name="Saved places", level=2).count() == 1
+        or "No saved places yet" in pg.locator("#panel-body").inner_text()
+    )
+    assert pg.locator(".tabbar .tab[aria-current=page]").get_attribute("data-tab") == "saved"

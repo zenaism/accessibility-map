@@ -87,7 +87,7 @@
       if (doc.activeElement === input) scrollEnd(input);
     }
     if (vv) { vv.addEventListener('resize', layout); vv.addEventListener('scroll', layout); layout(); }
-    input.addEventListener('focus', () => g.setTimeout(() => { layout(); log.scrollTop = log.scrollHeight; }, 250));
+    input.addEventListener('focus', () => g.setTimeout(layout, 250));
     const grow = () => { if (input.readOnly) return; input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 110) + 'px'; };
     input.addEventListener('input', () => { grow(); sendBtn.removeAttribute('aria-disabled'); });
 
