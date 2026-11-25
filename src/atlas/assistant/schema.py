@@ -198,6 +198,10 @@ class Card:
     lat: float | None = None
     lon: float | None = None
     event: dict | None = None  # {"title", "start", "when_text", "url", "access"} for event cards
+    confidence: str = (
+        ""  # "Confirmed · host, Mon YYYY" | "Old record · ..." | "Reported · ..." | "Not known · ..."
+    )
+    lead: bool = False  # True on the first card (the one the headline names)
 
     def to_dict(self) -> dict:
         d = asdict(self)
@@ -236,6 +240,8 @@ class Answer:
     removed: int = 0  # sentences the verifier removed
     plan: dict | None = None
     engine: str = "rules"
+    confidence: str = ""  # one line: how sure we are and from what source (repeats the lead card's)
+    followups: list = field(default_factory=list)  # exactly 3 {"label", "message"} chips
 
     def validate(self) -> Answer:
         _need(self.kind in ANSWER_KINDS, f"unknown answer kind {self.kind!r}")
@@ -271,4 +277,6 @@ class Answer:
             "removed": self.removed,
             "plan": self.plan,
             "engine": self.engine,
+            "confidence": self.confidence,
+            "followups": [dict(x) for x in self.followups],
         }

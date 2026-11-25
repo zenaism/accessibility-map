@@ -528,3 +528,38 @@ flowchart TD
   classDef ext fill:#eee,stroke:#888,color:#111
 ```
 
+## 18. The chat screen and short answers (B3, 2026-11-24)
+
+```mermaid
+flowchart TD
+  Q["Question: typed or spoken"]:::built --> PL["Planner and tools<br/>saved data, no model needed"]:::built
+  PL --> CO["Composer, templates or local model"]:::built
+  CO --> SH["Short answer rules<br/>one sentence up to 25 words,<br/>confidence line, nearest confirmed leads,<br/>three follow-up chips"]:::plan
+  SH --> VE["Verifier: every claim has a source"]:::built
+  VE --> EV["Events: text, card, followups, meta"]:::built
+  EV --> UI["Chat screen<br/>sentence, one place card, More, chips"]:::plan
+  UI -->|"Route here, Show on map"| MAP["Map page"]:::built
+  UI -->|"atlas:open-report"| RP["Rate or report form"]:::plan
+  MIC["Speech in: 60 s, restart after a pause"]:::plan --> Q
+  classDef built fill:#d4edda,stroke:#2e7d32,color:#111
+  classDef plan fill:#e0f2fe,stroke:#0369a1,color:#111
+```
+
+```mermaid
+stateDiagram-v2
+  [*] --> Idle
+  Idle --> Recording: tap the microphone
+  Idle --> Denied: permission refused
+  Recording --> TenLeft: 50 seconds
+  TenLeft --> Limit: 60 seconds
+  Recording --> Restarting: browser ends at a pause
+  Restarting --> Recording: after 350 ms, words kept
+  Recording --> Processing: Stop
+  TenLeft --> Processing: Stop
+  Processing --> Transcript: last words added
+  Transcript --> Recording: Add more
+  Transcript --> Idle: Clear or Send
+  Limit --> Recording: Add more
+  Denied --> Idle: Type instead
+```
+

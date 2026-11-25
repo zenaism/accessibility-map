@@ -13,7 +13,7 @@ import math
 import re
 
 from . import rules as R
-from .dates import range_text, when_text
+from .dates import MONTHS, range_text, when_text
 from .schema import Answer, Card, Context, Fact, Plan, Sentence, Source, ToolResult
 from .tools import NEEDS, POSITIVE
 
@@ -141,6 +141,289 @@ def to_fact(f: dict, pid: str) -> Fact:
     )
 
 
+# ------------------------------------------------ short answers: confidence, shortening, chips ----
+MAX_WORDS = 25
+LONG_OK = ("unknown", "no_data", "out_of_area")  # these may keep two short sentences
+ABBREVIATIONS = {"mt", "st", "dr", "ave", "jr", "sr", "no", "vs", "ft", "inc", "co", "mr", "mrs", "ms"}
+
+
+def host_of(url: str) -> str:
+    m = re.match(r"https?://(?:www\.)?([^/]+)", str(url or "").lower())
+    return m.group(1) if m else ""
+
+
+def date_short(d: str) -> str:
+    """Oct 2026 (or just 2016 when only the year is known)."""
+    if len(d) >= 7 and d[4] == "-" and d[5:7].isdigit() and 1 <= int(d[5:7]) <= 12:
+        return f"{MONTHS[int(d[5:7]) - 1][:3].title()} {d[:4]}"
+    return d[:4]
+
+
+def is_old(d: str, today: str) -> bool:
+    return bool(d[:4].isdigit() and int(today[:4]) - int(d[:4]) >= 2)
+
+
+def card_confidence(card: Card, need: str | None, today: str) -> str:
+    spec = NEEDS.get(need or "") or {}
+    attrs = {fact_label(a) for a in spec.get("facts") or []}
+    layer_ok = bool(spec.get("restroom_layer")) and card.type == R.TYPE_LABELS["restroom"]
+
+    def pos(f) -> bool:
+        return str(f.value).split(";")[-1].strip() in POSITIVE
+
+    general = not need or need == "listed_wheelchair_accessible"
+    positives = [f for f in card.facts if pos(f) and (not need or f.label in attrs or layer_ok)]
+    if general and card.rating != "accessible":
+        positives = []  # a partly accessible place is "reported", not "confirmed", by one positive fact
+
+    def newest(fs):
+        best = None
+        for f in fs:
+            if f.date and (best is None or f.date > best.date):
+                best = f
+        return best
+
+    def line(best, fresh_word: str) -> str:
+        host = host_of(best.source) or "a listed source"
+        if is_old(best.date, today):
+            return f"Old record · {host}, {best.date[:4]}. May be out of date."
+        return f"{fresh_word} · {host}, {date_short(best.date)}"
+
+    if positives:
+        best = newest(positives)
+        if best:
+            return line(best, "Confirmed")
+        return f"Reported · {host_of(positives[0].source) or 'a listed source'}, no date"
+    if card.rating == "unknown":
+        hosts = {host_of(f.source) for f in card.facts if f.source}
+        if hosts and hosts == {"openstreetmap.org"}:
+            return "Not known · OpenStreetMap lists the place, with no access details"
+        return "Not known · no access details in our data"
+    best = newest(card.facts)
+    if best:
+        return line(best, "Reported")
+    src = next((f.source for f in card.facts if f.source), "")
+    if src:
+        return f"Reported · {host_of(src) or 'a listed source'}, no date"
+    return "Not known · no access details in our data"
+
+
+def _newest_year(card: Card) -> str:
+    ds = [f.date for f in card.facts if f.date]
+    return max(ds)[:4] if ds else ""
+
+
+def need_word(need: str | None, place_type: str | None = None) -> str:
+    lab = need_label(need) or R.TYPE_LABELS.get(place_type or "", "") or "access"
+    lab = re.sub(r"^(an|a) ", "", lab)
+    return re.sub(r"^accessible ", "", lab)
+
+
+def closer_note(card: Card, need: str | None, place_type: str | None) -> str | None:
+    w = need_word(need, place_type)
+    if card.confidence.startswith("Old record"):
+        return f"Closer, but the {w} record is from {_newest_year(card)} and may be out of date."
+    if card.confidence.startswith("Not known"):
+        return f"Closer, but I have no {w} details for it."
+    return None
+
+
+def _wc(text: str) -> int:
+    return len(text.split())
+
+
+def _is_boundary(w: str, nxt: str) -> bool:
+    if not w or w[-1] not in ".!?" or not nxt or not ("A" <= nxt[0] <= "Z"):
+        return False
+    if w[-1] == ".":
+        base = w.rstrip(".!?").lower()
+        if len(base) == 1 or base in ABBREVIATIONS:
+            return False  # an initial ("D.") or an abbreviation ("Mt."), not the end of a sentence
+    return True
+
+
+def split_sentences(text: str) -> list[str]:
+    words = text.split(" ")
+    out, cur = [], []
+    for i, w in enumerate(words):
+        cur.append(w)
+        if i + 1 < len(words) and _is_boundary(w, words[i + 1]):
+            out.append(" ".join(cur))
+            cur = []
+    if cur:
+        out.append(" ".join(cur))
+    return out
+
+
+def _balanced(words: list[str]) -> bool:
+    t = " ".join(words)
+    return t.count("(") == t.count(")")
+
+
+def _upper_first(t: str) -> str:
+    for i, ch in enumerate(t):
+        if ch.isalpha():
+            return t[:i] + ch.upper() + t[i + 1 :]
+    return t
+
+
+def cut_sentence(text: str, limit: int = MAX_WORDS) -> tuple[str, str]:
+    """(kept, rest): kept has at most `limit` words and ends with a full stop; rest is "" when nothing was cut."""
+    words = text.split()
+    if len(words) <= limit:
+        return text, ""
+    n = 0
+    for k in range(limit, 2, -1):
+        if (words[k - 1].endswith(",") or words[k].startswith("(")) and _balanced(words[:k]):
+            n = k
+            break
+    if not n:
+        n = next((k for k in range(limit, 2, -1) if _balanced(words[:k])), limit)
+    head = " ".join(words[:n]).rstrip(",;:")
+    if head[-1] not in ".!?":
+        head += "."
+    rest = _upper_first(" ".join(words[n:]).lstrip(",;: "))
+    if rest[-1] not in ".!?…":
+        rest += "."
+    return head, rest
+
+
+def shorten(a: Answer) -> Answer:
+    """The main answer is one sentence of at most 25 words (two short ones for unknown / no_data / out_of_area).
+    Whatever is not kept moves, in order, to the front of the details with the same refs, so nothing is lost."""
+    units = []
+    for s in a.headline:
+        for piece in split_sentences(s.text):
+            units.append(Sentence(piece, list(s.refs), s.kind, list(s.derived)))
+    if not units:
+        return a
+    two = a.kind in LONG_OK and len(units) >= 2 and _wc(units[0].text) + _wc(units[1].text) <= MAX_WORDS
+    keep, moved = (2 if two else 1), []
+    kept = units[:keep]
+    if not two:
+        head, rest = cut_sentence(units[0].text)
+        if rest:
+            u = units[0]
+            kept = [Sentence(head, list(u.refs), u.kind, list(u.derived))]
+            moved.append(Sentence(rest, list(u.refs), u.kind, list(u.derived)))
+    moved += units[keep:]
+    a.headline = kept
+    a.details = moved + list(a.details)
+    return a
+
+
+HELP_CHIPS = {
+    "restroom": ("Restroom near me", "Where is the closest accessible restroom?"),
+    "parking": ("Accessible parking", "Where is accessible parking near me?"),
+    "food": ("Step-free food", "Find food with no steps at the door"),
+    "events": ("Events this week", "What events are on this week?"),
+    "trails": ("Paved trails", "What paved trails are there?"),
+}
+AT_PLACE = {
+    "parking": ("Parking at", "Does {n} have accessible parking?"),
+    "entrance": ("Entrance at", "Does {n} have a step-free entrance?"),
+    "restroom": ("Restroom at", "Does {n} have an accessible restroom?"),
+}
+NEED_CATEGORY = {
+    "accessible_restroom": "restroom",
+    "accessible_parking": "parking",
+    "step_free_entrance": "entrance",
+}
+TYPE_CATEGORY = {"restroom": "restroom", "food_drink": "food", "trail": "trails"}
+MAX_LABEL = 28
+
+
+def short_name(name: str) -> str:
+    n = re.sub(r"\s+for the .*$", "", name.strip())
+    if len(n.split()) > 1:
+        n = re.sub(r"^The\s+", "", n)
+    return n.strip(" ,")
+
+
+def place_label(prefix: str, name: str) -> str:
+    words = short_name(name).split()[:3]
+    while words and words[-1].lower() in ("&", "and", "of", "the", "for", "at"):
+        words.pop()
+    while words:
+        label = f"{prefix} {' '.join(words)}"
+        if len(label) <= MAX_LABEL:
+            return label
+        words.pop()
+    return f"{prefix} there"[:MAX_LABEL]
+
+
+def answered_category(pl: Plan) -> str | None:
+    if pl.intent == "events":
+        return "events"
+    return NEED_CATEGORY.get(pl.need or "") or TYPE_CATEGORY.get(pl.place_type or "")
+
+
+def make_followups(a: Answer, pl: Plan) -> list[dict]:
+    """Exactly three follow-up chips: never the need just answered; the real place named in the answer when
+    there is one; the help tiles as the fallback."""
+    done = answered_category(pl) if a.kind == "answer" else None
+    chips, used = [], set()
+    name = ""
+    if a.kind == "answer" and a.cards and pl.intent != "events" and a.cards[0].type != "event":
+        name = a.cards[0].name
+        if a.cards[0].type == R.TYPE_LABELS["restroom"]:
+            name = ""  # a bare restroom has no entrance or parking of its own to ask about
+    elif a.kind == "answer" and pl.place:
+        name = pl.place.get("name") or ""
+    if name:
+        for cat in ("parking", "entrance", "restroom"):
+            if cat == done or len(chips) == 2:
+                continue
+            prefix, msg = AT_PLACE[cat]
+            chips.append({"label": place_label(prefix, name), "message": msg.format(n=name)})
+            used.add("restroom" if cat == "restroom" else cat)
+    for cat in ("restroom", "parking", "food", "events", "trails"):
+        if len(chips) == 3:
+            break
+        if cat == done or cat in used:
+            continue
+        label, msg = HELP_CHIPS[cat]
+        chips.append({"label": label, "message": msg})
+    for t in R.HELP_TILES:
+        if len(chips) == 3:
+            break
+        if all(t["message"] != c["message"] for c in chips):
+            chips.append({"label": t["label"], "message": t["message"]})
+    return chips[:3]
+
+
+KIND_CONFIDENCE = {
+    "unknown": "Not known · nothing in our data answers this",
+    "no_data": "Not known · we have no data on this topic yet",
+    "out_of_area": "Not known · outside Cincinnati and Oxford",
+}
+
+
+def answer_confidence(a: Answer, pl: Plan) -> str:
+    if a.kind in KIND_CONFIDENCE:
+        return KIND_CONFIDENCE[a.kind]
+    if a.kind != "answer":
+        return "Guide · not a data answer"
+    if pl.intent.endswith("_trust"):
+        return "Guide · not a data answer"
+    if pl.intent in ("route", "area"):
+        return "Computed · map data, not checked on site"
+    if a.cards and a.cards[0].confidence:
+        return a.cards[0].confidence
+    return "Guide · not a data answer"
+
+
+def finish(a: Answer, pl: Plan) -> Answer:
+    """Post-processing for every answer (templates and the model alike): short headline, a confidence line,
+    the lead card, three follow-up chips. Safe to run twice."""
+    shorten(a)
+    for i, c in enumerate(a.cards):
+        c.lead = i == 0
+    a.confidence = answer_confidence(a, pl)
+    a.followups = make_followups(a, pl)
+    return a
+
+
 def card_for(row: dict, need: str | None, ctx: Context, k: int = 4) -> Card:
     facts = pick_facts(row.get("facts") or [], need, k)
     seen, sources = set(), []
@@ -150,7 +433,7 @@ def card_for(row: dict, need: str | None, ctx: Context, k: int = 4) -> Card:
             seen.add(key)
             sources.append(Source(key, f.get("date") or "", f.get("quote") or "", source_words(key)))
     phone = fmt_phone(row.get("phone"))
-    return Card(
+    card = Card(
         place_id=row["link_id"],
         name=row["name"],
         type=R.TYPE_LABELS.get(row.get("type"), row.get("type") or ""),
@@ -165,9 +448,11 @@ def card_for(row: dict, need: str | None, ctx: Context, k: int = 4) -> Card:
         lat=row.get("lat"),
         lon=row.get("lon"),
     )
+    card.confidence = card_confidence(card, need, ctx.today)
+    return card
 
 
-def event_card(e: dict, ctx: Context) -> Card:
+def event_card(e: dict, ctx: Context, as_of: str | None = None) -> Card:
     c = Card(
         place_id=e["link_id"],
         name=e["place"],
@@ -183,6 +468,7 @@ def event_card(e: dict, ctx: Context) -> Card:
             "access": [R.ACCESS_WORDS.get(a, a) for a in e.get("access") or []],
         },
     )
+    c.confidence = f"Reported · {host_of(e.get('url')) or 'event listing'}, {date_short(as_of or ctx.today)}"
     return c
 
 
@@ -242,7 +528,7 @@ def compose(pl: Plan, results: list[ToolResult], ctx: Context, as_of: str | None
     a = fn(pl, results, ctx, as_of)
     a.plan = pl.to_dict()
     a.as_of = as_of if pl.intent not in ("emergency", "out_of_area", "help", "clarify") else None
-    return a
+    return finish(a, pl)
 
 
 def _emergency(pl, res, ctx, as_of):
@@ -488,7 +774,18 @@ def _list(pl, res, ctx, as_of):
             unknown=[ask or "that"] + [f"{w}" for w in pl.unsupported],
             details=[S("Try another area or another need, or call the place to ask.", [], "meta")],
         )
-    cards = [card_for(x, need, ctx) for x in rows[:MAX_CARDS]]
+    # the nearest card with a confirmed, recent record leads; closer cards with old or unknown records get a note
+    all_cards = [card_for(x, need, ctx) for x in rows]
+    lead_i = next((i for i, c in enumerate(all_cards) if c.confidence.startswith("Confirmed")), 0)
+    confirmed = all_cards[lead_i].confidence.startswith("Confirmed")
+    order = [lead_i] + [i for i in range(len(rows)) if i != lead_i]
+    for i in range(lead_i):
+        note = closer_note(all_cards[i], pl.need, pl.place_type)
+        if note:
+            c = all_cards[i]
+            c.note = f"{c.note}. {note}" if c.note else note
+    rows = [rows[i] for i in order]
+    cards = [all_cards[i] for i in order][:MAX_CARDS]
     first = rows[0]
     nm = first["name"]
     refs = [first["link_id"]]
@@ -496,25 +793,33 @@ def _list(pl, res, ctx, as_of):
         anchor_t = "you" if pl.anchor["name"] == "your location" else pl.anchor["name"]
         dist = cards[0].distance_text
         of = f"{dist} {first['direction']} of {anchor_t}"
-        lead = (
-            f"The closest place I found with {ask} is {nm}, {of}."
-            if pl.need
-            else f"The closest {ask or 'place'} I found is {nm}, {of}."
-        )
+        if confirmed:
+            lead = f"The closest one I can confirm is {nm}, {of}."
+        else:
+            lead = (
+                f"The closest place I found with {ask} is {nm}, {of}."
+                if pl.need
+                else f"The closest {ask or 'place'} I found is {nm}, {of}."
+            )
         if pl.anchor["name"] == nm:
             lead = f"{nm} itself has {ask} on record." if pl.need else f"{nm} itself is the closest."
         if plain:
-            lead = f"Closest with {ask}: {nm}, {of}." if pl.need else f"Closest: {nm}, {of}."
+            lead = (
+                f"Closest I can confirm: {nm}, {of}."
+                if confirmed
+                else (f"Closest with {ask}: {nm}, {of}." if pl.need else f"Closest: {nm}, {of}.")
+            )
     else:
+        pick = "The first I can confirm is" if confirmed else "The first is"
         if pl.need:
             lead = (
-                f"{len(rows)} places have {ask} on record. The first is {nm}."
+                f"{len(rows)} places have {ask} on record; {pick[0].lower() + pick[1:]} {nm}."
                 if len(rows) > 1
                 else f"One place has {ask} on record: {nm}."
             )
         else:
             lead = (
-                f"I found {len(rows)} places that match. The first is {nm}."
+                f"I found {len(rows)} places that match; {pick[0].lower() + pick[1:]} {nm}."
                 if len(rows) > 1
                 else f"I found one place that matches: {nm}."
             )
@@ -721,7 +1026,7 @@ def _events(pl, res, ctx, as_of):
                     [e["link_id"]],
                 )
             )
-            cards = [event_card(e, ctx) for e in nrows[:MAX_CARDS]]
+            cards = [event_card(e, ctx, as_of) for e in nrows[:MAX_CARDS]]
             return Answer(
                 "unknown",
                 head,
@@ -735,12 +1040,12 @@ def _events(pl, res, ctx, as_of):
     e = rows[0]
     ctitle = e["title"]
     s1 = (
-        f"I found {len(rows)} {adj}events {label}. The first is {ctitle}, {when_text(e['start'])}, at {e['place']}."
+        f"I found {len(rows)} {adj}events {label}; the first is {ctitle}, {when_text(e['start'])}, at {e['place']}."
         if len(rows) > 1
         else f"I found one {adj}event {label}: {ctitle}, {when_text(e['start'])}, at {e['place']}."
     )
     head = [S(s1, [e["link_id"]], "claim", [str(len(rows))]), snap]
-    cards = [event_card(x, ctx) for x in rows[:MAX_CARDS]]
+    cards = [event_card(x, ctx, as_of) for x in rows[:MAX_CARDS]]
     det = []
     for x in rows[1:8]:
         acc = ", ".join(R.ACCESS_WORDS.get(a, a) for a in x.get("access") or [])

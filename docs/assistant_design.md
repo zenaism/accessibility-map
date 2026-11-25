@@ -31,6 +31,7 @@ The model never answers from memory. It calls tools over the two stores, and the
 - When sources disagree, say both and which is newer.
 - Give distance and a plain note on the route (hills, steps, missing ramps) when the question is about getting somewhere.
 - Never guess hours or event dates. Never say a place is "ADA compliant".
+- **Short answers (B3):** one sentence of 25 words or fewer (an "I don't know" answer may use two short sentences within 25 words); a confidence line always; the nearest place confirmed by a recent source leads and closer old or unknown ones are noted; three follow-up chips; everything else is behind More. Enforced in `composer.py` and `composer.js` and tested in `tests/test_assistant_short_answers.py`. See D-83.
 
 **Multimodal input.** Users can send a photo, for example an entrance, a flyer or a trail poster. A vision model reads it and passes the text and features to the same tools. Voice input can use the phone's speech-to-text.
 

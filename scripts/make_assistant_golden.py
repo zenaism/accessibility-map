@@ -33,6 +33,8 @@ def view(a, plan) -> dict:
                 "direction": c.direction,
                 "phone": c.phone,
                 "event": c.event,
+                "confidence": c.confidence,
+                "lead": c.lead,
                 "facts": [[f.label, f.value, f.detail, f.source, f.date] for f in c.facts],
             }
             for c in a.cards
@@ -44,6 +46,8 @@ def view(a, plan) -> dict:
         "sources": [s.url for s in a.sources],
         "verified": a.verified,
         "removed": a.removed,
+        "confidence": a.confidence,
+        "followups": a.followups,
         "plan": plan.to_dict(),
     }
 
