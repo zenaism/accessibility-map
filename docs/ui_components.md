@@ -87,7 +87,7 @@ The checks run the page at 375 and 1280 px in Light and Dark and fail on: text u
 | `src/atlas/ui_foundation.py`, `src/atlas/web/foundation/*` (CSS, JS, icons, fonts), `src/atlas/ui_checks.py`, `src/atlas/ui_components_page.py`, `tests/test_ui_foundation.py`, this doc | B0 | read only; ask for a new component or icon by adding it here in a follow-up B0 change, not by editing in a screen build |
 | New map app: `src/atlas/map_app.py`, `src/atlas/web/map/{map.css,map.js,nav.js}`, `tests/test_map_app.py`; `map_viewer.render()` dispatch (`legacy=True` keeps the old page) | B1 | call the builders; listens for `atlas:open-saved`, fires `atlas:open-report` and `atlas:open-ask` |
 | Rate or report form: `src/atlas/report_form.py`, `src/atlas/web/report/{report.js,report.css}`, `tests/test_report_form.py`, the contract tests in `tests/test_report_sql.py`. The old `report_ui.py` and the SQL are unchanged. | B2 | listens for `atlas:open-report`; closes on `atlas:open-saved` and `atlas:open-ask`; one hook block in `map_app.py` (B1's file) |
-| Chat page (`assistant/page.py`, `web/assistant/*`) | B3 | listens for `atlas:open-ask`; Settings Appearance row uses `appearance_group()` |
+| Chat screen: `src/atlas/assistant/page.py` (`app_html`, `build(legacy=)`), `src/atlas/web/chat/{chat.js,speech.js,chat.css}`, the answer composer (`assistant/composer.py`, `web/assistant/composer.js`, `engine.js`, `schema.py`, `llm.py`), `tests/test_chat_app.py`, `tests/test_assistant_short_answers.py`, the golden files | B3 | fires `atlas:open-report`, `atlas:show-places`, `atlas:route-to`; the Ask tab target is `ask.html` |
 | City switcher and first-open sheet (new files) | B4 | emits and listens for `atlas:region-changed` |
 
 Screen-specific CSS goes in the screen's own file, scoped under `.ax`, built from tokens. Do not add colours, icons or events to the foundation from a screen build.
@@ -114,3 +114,11 @@ Screen-specific CSS goes in the screen's own file, scoped under `.ax`, built fro
 
 - `atlas:open-report {placeId?, region?}`: with a `placeId` the form opens with that place; without, with no place. The form is only hooked when `window.__RATECFG` is set; otherwise the Report tab follows its link.
 - `window.atlasRegion()` (defined in the map page) returns the region the map is showing; B4 should keep it right when the city changes.
+
+## Gaps B3 found in the foundation (worked around in the chat files, B0 to decide)
+
+- `ui.button(..., type="submit")` is ignored: the builder forces `type="button"`, so a submit button needs a string replace (done in `page.py`).
+- The sprite has no speaker icon: `page.py` adds a `lucide-volume` symbol to the sprite for Read aloud.
+- `ui.sheet.open` binds only the first `[data-sheet-close]`: My needs closes the sheet from its own handler (same gap B2 found).
+- `ui.topbar` renders a `<header>`: on the chat page it is turned into a `<div>` (and the brand is `aria-hidden`) so the page has one banner landmark.
+- `.ax .opt` style inputs need `inset: -2px` to reach 44 px inside a 1.5 px border (done in `chat.css`).

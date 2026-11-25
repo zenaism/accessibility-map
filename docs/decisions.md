@@ -19,6 +19,41 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-86: Settings keeps its content, gains Appearance, and My needs uses the foundation sheet (2026-11-24, accepted)
+Decision: Settings opens a panel under the header (at most 60 percent of the screen, scrolls inside itself, never squeezes the list below 56 px): How I answer, Text size, Appearance (Light or Dark through `atlasTheme`, Light default, native radios named `atlas-theme`), Plain language, Use my location, My needs, What can I ask?, Clear conversation. The cog is 44 px; the word Settings is visible on desktop and is the accessible name on phones. My needs (three optional questions, saved on the device) is the foundation's modal sheet with focus trap and inert page. Clear conversation shows the empty-history state.
+Why: CHOSEN_DESIGN.md follow-up 2 and the settings frames; reuse of B0 for the dialog.
+Alternatives: a native `<dialog>` as the old page used (a second dialog mechanism).
+Costs / revisit if: the sheet is a bottom sheet, the frames also draw a bottom sheet, so no difference; the Ask city line is B4.
+Basis: recorded (design/chat frames and DECISIONS.md, local-only).
+
+### D-85: The compose area never moves under a finger; the screen fits the visible viewport (2026-11-24, accepted)
+Decision: one field with Speak, Add photo and Send inside it (variant A, about 12 percent of an 812 px phone); no quick chips in the compose area (they live in the list). Hints and short messages float above the compose area instead of pushing it. The shell is `position: fixed` with `height: var(--app-h, 100dvh)`, where `--app-h` and `--app-top` follow `visualViewport` (resize and scroll), so the compose area stays above the on-screen keyboard; the tab bar hides while the keyboard is open; the bottom padding uses `env(safe-area-inset-bottom)`. Landscape on a phone is two columns (list left, compose right) with the tabs as a left rail. At 188 px (200 percent zoom) tab labels and the title become screen-reader only and nothing scrolls sideways.
+Why: the first browser test lost a tap because a hint pushed the mic button away on focus. The frames' keyboard view was a drawing, so the real `visualViewport` behaviour needs an iPhone.
+Alternatives: always-visible hint line (costs 7 percent of the height).
+Costs / revisit if: not verified on a real iPhone or Android keyboard (`interactive-widget=resizes-content` is also set).
+Basis: recorded (frames) plus measured here in Chromium.
+
+### D-84: Voice: tap to start, tap Stop, 60 seconds, restart after 350 ms, never auto-send, never lose words (2026-11-24, accepted)
+Decision: `web/chat/speech.js` wraps the browser's recognition. States: idle, recording, 10 seconds left, restarting, processing, transcript, limit reached, mic denied (and unavailable). When the browser ends recognition at a pause the controller keeps the words and starts again after 350 ms (gives up and shows the transcript after four instant restarts or a network error). The text box is read-only only while listening; Stop exists only in the voice bar; Add more continues from the edited text; Clear empties it. Nothing is sent until Send. The counter is `aria-hidden` and the live region speaks only state changes. The idle hint ("Your browser may send your voice to its maker") shows when the mic gets focus and before the first start.
+Why: CHOSEN_DESIGN.md and the voice frames; speech engines end at pauses and would otherwise drop words.
+Alternatives: continuous recognition (inconsistent across browsers).
+Costs / revisit if: tested only with a fake engine and a fake clock; real iPhone Safari behaviour (restart, permission prompt) needs a phone.
+Basis: recorded (frames, brief).
+
+### D-83: Short answers: one sentence, a confidence line, the nearest confirmed place leads, three follow-ups (2026-11-24, accepted)
+Decision: the composer (Python and its JavaScript port, same golden tests) now post-processes every answer: the headline is one sentence of 25 words or fewer (unknown, no-data and out-of-area answers may be two short sentences within 25 words); the rest moves to the front of the details behind More, nothing is dropped. Every card has a confidence line (Confirmed with source and month when a recent positive fact exists; Old record; Reported; Not known with the reason; Computed for routes; Guide for non-data answers) and the answer has one. The nearest Confirmed card leads (`card.lead`), closer old or unknown ones get a note ("Closer, but the restroom record is from 2016 and may be out of date."). Exactly three follow-up chips (28 characters or fewer, each planned by the real planner in a test, never repeating the need just answered). The local-model prompt states the same rules and its output goes through the same limits. Events: `card.confidence`, `card.lead`, `followups`, `meta.confidence`.
+Why: the owner chose short answer B and compose A; 63 of 90 golden answers were over 25 words before.
+Alternatives: only a prompt instruction (not enforceable, model-dependent).
+Costs / revisit if: undated facts (most OpenStreetMap restroom facts) show "Reported", never "Confirmed", so many OSM-only answers keep the old "closest I found" wording; two-sentence list and event templates became one sentence joined by a semicolon; the model path is covered by a fake-composer unit test, not by Ollama.
+Basis: recorded (CHOSEN_DESIGN.md, brief). Source: `tests/test_assistant_short_answers.py` (about 149 real questions).
+
+### D-82: The chat screen is a new page on the B0 foundation; the old page stays behind legacy=True (2026-11-24, accepted)
+Decision: `atlas.assistant.page.build()` and `build_standalone()` now build the new chat screen (`web/chat/chat.js`, `speech.js`, `chat.css` on the foundation, with the existing engine modules); `legacy=True` builds the old page, which the legacy map's panel still uses. The old page's tests run with `legacy=True`; the new screen has `tests/test_chat_app.py`. The Ask tab and the map's Ask button open `ask.html`. On the chat page the Report tab follows its link to the GitHub form and "Report a problem" fires `atlas:open-report` (no listener on this page yet). Pages under `data/map/` are not regenerated by this branch.
+Why: B1 and B2 did the same for the map and the report form; the frames are a new layout, not a restyle.
+Alternatives: edit `chat.js` in place (the legacy panel on the old map page would change under it).
+Costs / revisit if: two chat UIs exist until the integration; the desktop frames put the chat beside the map, but this page has no map, so on desktop the chat is a centred 760 px column.
+Basis: recorded (B3 brief).
+
 ### D-81: "My ratings and reports on this device" is built, from local ids only (2026-11-24, accepted)
 Decision: at send time the form saves the report id, its code and what was sent in `atlas-my-reports` (and the rating in `atlas-rated-<place>`, the key the old page used). The list shows ratings with Change and problems with Delete (the existing `delete_problem_report`, both ids). A rating cannot be deleted (no SQL function for it). The list says it is only on this device and cannot show the team's status.
 Why: the owner's decision was "include" (CHOSEN_DESIGN.md); the cost is a local list and the existing delete function.

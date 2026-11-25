@@ -15,7 +15,13 @@ pytest.importorskip("playwright")
 from playwright.sync_api import sync_playwright  # noqa: E402
 
 from atlas.assistant import server  # noqa: E402
-from atlas.assistant.page import build  # noqa: E402
+from atlas.assistant.page import build as _build  # noqa: E402
+
+
+def build(*a, **k):
+    """These tests are for the legacy chat page (the panel inside the old map page); the new chat screen is in tests/test_chat_app.py."""
+    return _build(*a, legacy=True, **k)
+
 
 AXE = Path(".axe/node_modules/axe-core/axe.min.js")
 TODAY = "2026-11-20"

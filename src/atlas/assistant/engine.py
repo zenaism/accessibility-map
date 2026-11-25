@@ -46,7 +46,7 @@ class Engine:
             try:
                 alt = self.composer(pl, results, ctx, as_of, ans)
                 if alt is not None:
-                    ans = alt
+                    ans = C.finish(alt, pl)  # the same short-answer limits hold for model answers
             except Exception:  # noqa: BLE001
                 pass
         ans, issues = verify(ans, results, pl, ctx, text)
@@ -69,8 +69,8 @@ def scrub_plan(plan: dict | None) -> dict | None:
 
 def events(a: Answer):
     """The event stream the chat component receives (see assistant_build_spec.md section 4):
-    clarify, text {delta, parts, kind}, detail {items}, card {card}, action {action, ...}, call {name, phone},
-    unknown {about, call}, sources {items}, meta, done {verified, removed}. Errors are {type: "error", message}."""
+    clarify, text {delta, parts, kind}, detail {items}, card {card}, followups {items}, action {action, ...}, call {name, phone},
+    unknown {about, call}, sources {items}, meta {as_of, notes, plan, engine, confidence}, done {verified, removed}. Errors are {type: "error", message}."""
     if a.clarify:
         yield {"type": "clarify", **a.clarify}
     yield {
@@ -83,6 +83,8 @@ def events(a: Answer):
         yield {"type": "detail", "items": [s.text for s in a.details]}
     for c in a.cards:
         yield {"type": "card", "card": c.to_dict()}
+    if a.followups:
+        yield {"type": "followups", "items": [dict(x) for x in a.followups]}
     for act in a.actions:
         yield {"type": "action", "action": act["type"], **{k: v for k, v in act.items() if k != "type"}}
     if a.call:
@@ -91,5 +93,12 @@ def events(a: Answer):
         yield {"type": "unknown", "about": list(a.unknown), "call": a.call}
     if a.sources:
         yield {"type": "sources", "items": [s.to_dict() for s in a.sources]}
-    yield {"type": "meta", "as_of": a.as_of, "notes": a.notes, "plan": scrub_plan(a.plan), "engine": a.engine}
+    yield {
+        "type": "meta",
+        "as_of": a.as_of,
+        "notes": a.notes,
+        "plan": scrub_plan(a.plan),
+        "engine": a.engine,
+        "confidence": a.confidence,
+    }
     yield {"type": "done", "verified": a.verified, "removed": a.removed}

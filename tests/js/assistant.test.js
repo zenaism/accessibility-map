@@ -13,9 +13,9 @@ const eng = guided();
 function view(a, plan) {
   return {
     kind: a.kind, headline: a.headline.map(s => s.text), details: a.details.map(s => s.text),
-    cards: a.cards.map(c => ({ place_id: c.place_id, name: c.name, rating: c.rating, distance_text: c.distance_text, direction: c.direction, phone: c.phone, event: c.event,
+    cards: a.cards.map(c => ({ place_id: c.place_id, name: c.name, rating: c.rating, distance_text: c.distance_text, direction: c.direction, phone: c.phone, event: c.event, confidence: c.confidence, lead: c.lead,
       facts: c.facts.map(f => [f.label, f.value, f.detail, f.source, f.date]) })),
-    unknown: a.unknown, call: a.call, actions: a.actions, as_of: a.as_of, sources: a.sources.map(s => s.url), verified: a.verified, removed: a.removed, plan,
+    unknown: a.unknown, call: a.call, actions: a.actions, as_of: a.as_of, sources: a.sources.map(s => s.url), verified: a.verified, removed: a.removed, confidence: a.confidence, followups: a.followups, plan,
   };
 }
 const norm = x => JSON.parse(JSON.stringify(x));
@@ -27,6 +27,8 @@ for (const g of golden) {
     assert.deepEqual(got.plan, g.expected.plan, 'plan differs');
     assert.deepEqual(got.headline, g.expected.headline, 'headline differs');
     assert.deepEqual(got.details, g.expected.details, 'details differ');
+    assert.deepEqual(got.followups, g.expected.followups, 'followups differ');
+    assert.deepEqual(got.confidence, g.expected.confidence, 'confidence differs');
     assert.deepEqual(got, g.expected);
   });
 }

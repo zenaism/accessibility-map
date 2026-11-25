@@ -1,0 +1,167 @@
+/* Openway chat screen (session B3). Foundation tokens only; every rule is under .ax. Layout from the chosen chat frames. */
+html, body { margin: 0; height: 100%; }
+body.ax.chatapp { background: var(--bg); color: var(--text); font-family: var(--font); overflow: hidden; }
+.ax .ch-app { --partial-ring: currentColor; position: fixed; left: 0; right: 0; top: var(--app-top, 0px); height: var(--app-h, 100dvh); display: flex; flex-direction: column; background: var(--bg); overflow: hidden; }
+.ax .ch-col { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; min-width: 0; }
+.ax .skip { position: absolute; left: 12px; top: -80px; background: var(--surface); color: var(--text); padding: 10px 14px; border-radius: var(--r-sm); z-index: 4000; box-shadow: var(--shadow); font-weight: var(--fw-med); }
+.ax .skip:focus { top: 10px; }
+.ax [hidden] { display: none !important; }
+.ax .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Header */
+.ax .chat-head { display: flex; align-items: center; gap: var(--s2); padding: var(--s2) var(--s3) var(--s2) var(--s4); background: var(--appbar); border-bottom: 1px solid var(--line); min-height: 60px; flex: none; }
+.ax .chat-head .titles { margin-right: auto; min-width: 0; }
+.ax .chat-head h1 { font-size: var(--fs-lead); font-weight: var(--fw-bold); line-height: 1.2; margin: 0; }
+.ax .chat-head .sub { margin: 0; color: var(--muted); font-size: var(--fs-small); }
+@media (min-width: 900px) { .ax .chat-head .btn.withlabel { width: auto; padding: 0 var(--s4) 0 var(--s3); } .ax .chat-head .btn .lbl { position: static; width: auto; height: auto; overflow: visible; clip-path: none; white-space: nowrap; font-weight: var(--fw-med); } }
+
+/* Message list: the only thing that scrolls */
+.ax .mw { flex: 1 0 56px; min-height: 56px; display: flex; flex-direction: column; }
+.ax .log, .ax .log * { overflow-wrap: anywhere; }
+.ax .log { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--s4); display: grid; gap: var(--s4); align-content: start; font-size: calc(var(--fs-body) * var(--ch-scale, 1)); scroll-padding-top: var(--s3); }
+.ax .log:focus-visible { outline-offset: -3px; }
+.ax .msg { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s3); min-width: 0; justify-items: start; }
+.ax .msg > * { max-width: 100%; }
+.ax .bubble { padding: var(--s3) var(--s4); border-radius: var(--r-card); display: block; }
+.ax .bubble.me { justify-self: end; background: var(--primary); color: var(--onprimary); border-bottom-right-radius: var(--r-sm); max-width: 88%; }
+.ax .bubble.bot { background: var(--surface); border: 1px solid var(--line); border-bottom-left-radius: var(--r-sm); font-weight: var(--fw-med); }
+.ax .log .card, .ax .log .list-item, .ax .more section { min-width: 0; width: 100%; }
+
+/* Place card B: rating band across the top, then name */
+.ax .place.pb { padding: 0; overflow: hidden; gap: 0; }
+.ax .pb .band { display: flex; align-items: center; gap: var(--s2); padding: var(--s2) var(--s4); font-weight: var(--fw-bold); }
+.ax .pb .band.yes { background: var(--yes-bg); color: var(--yes-fg); }
+.ax .pb .band.partial { background: var(--partial-bg); color: var(--partial-fg); border-bottom: 2px solid currentColor; }
+.ax .pb .band.no { background: var(--no-bg); color: var(--no-fg); }
+.ax .pb .band.unknown { background: var(--unknown-bg); color: var(--unknown-fg); }
+.ax .pb .band .dist { margin-left: auto; font-weight: var(--fw-med); }
+.ax .pb .band .ic { width: 22px; height: 22px; }
+.ax .pb .body { padding: var(--s4); display: grid; gap: var(--s3); }
+.ax .place .name { margin: 0; font-size: var(--fs-lead); }
+.ax .place .kind { margin: 0; }
+.ax .place .facts li { grid-template-columns: 24px 1fr auto; align-items: start; }
+.ax .place .facts .v { text-align: right; }
+.ax .place .actions { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.ax .place .actions .btn { flex: 1 1 auto; padding: 0 var(--s3); }
+.ax .conf { display: flex; gap: var(--s2); align-items: flex-start; margin: 0; font-size: var(--fs-small); color: var(--muted); }
+.ax .conf .ic { margin-top: 1px; }
+.ax .list-item { display: grid; gap: var(--s2); padding: var(--s3) var(--s4); border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); }
+.ax .list-item .badge { justify-self: start; }
+.ax .list-item .row1 { display: flex; justify-content: space-between; gap: var(--s2); align-items: baseline; }
+.ax .list-item .t { font-weight: var(--fw-bold); }
+.ax .list-item p { margin: 0; font-size: var(--fs-small); color: var(--muted); }
+.ax .list-item a { color: var(--link); display: inline-flex; align-items: center; min-height: var(--target); }
+.ax blockquote.q { margin: 0; padding: var(--s2) var(--s3); background: var(--surface2); border-radius: var(--r-sm); font-size: var(--fs-small); }
+
+/* More */
+.ax .more { display: grid; gap: var(--s4); width: 100%; }
+.ax .more h3 { font-size: var(--fs-body); font-weight: var(--fw-bold); margin: 0; }
+.ax .more section { display: grid; gap: var(--s2); }
+.ax .more ul.plain { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
+.ax .more ul.plain li { display: flex; gap: var(--s2); align-items: flex-start; font-size: var(--fs-small); }
+.ax .more ul.plain li .ic { width: 20px; height: 20px; margin-top: 1px; color: var(--muted); }
+.ax .btn.more-btn { justify-self: stretch; }
+.ax .btn.more-btn .ic.flip { transform: rotate(180deg); }
+.ax .tools { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.ax .tools .btn { flex: 1 1 auto; }
+.ax .followups, .ax .suggest { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.ax .followups .chip, .ax .suggest .chip { font-size: var(--fs-small); }
+.ax .log .state { width: 100%; }
+.ax .state .rowbtns { justify-content: center; }
+.ax .dots { display: inline-flex; gap: 6px; align-items: center; }
+.ax .dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--control); animation: sx-pulse 1.2s ease-in-out infinite; }
+.ax .dots i:nth-child(2) { animation-delay: .2s; } .ax .dots i:nth-child(3) { animation-delay: .4s; }
+.ax .typing { display: inline-flex; align-items: center; gap: var(--s3); flex-wrap: wrap; }
+.ax .offline-banner { margin: var(--s3) var(--s4) 0; }
+@media (prefers-reduced-motion: reduce) { .ax .dots i, .ax .voicebar .ic.spin { animation: none !important; } }
+
+/* Compose area A: one field with the icons inside. Always above the bottom edge. */
+.ax .compose { position: relative; flex: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s2); background: var(--surface); border-top: 1px solid var(--line); padding: var(--s3) var(--s3) max(var(--s3), env(safe-area-inset-bottom, 0px)); }
+.ax .ch-app[data-kb] .compose { padding-bottom: var(--s3); }
+.ax .compose > *, .ax .composer, .ax .voicebar { min-width: 0; }
+.ax .composer { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 2px; padding: 2px; border: var(--bw) solid var(--control); border-radius: var(--r-field); background: var(--surface); }
+.ax .composer:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; }
+.ax .composer:has(textarea[readonly]) { background: var(--surface2); }
+.ax .composer textarea { font: inherit; font-size: calc(16px * var(--ch-scale, 1)); line-height: 1.4; border: 0; background: transparent; outline: 0; resize: none; padding: 10px var(--s2); min-height: var(--target); max-height: 110px; flex: 1 1 90px; min-width: 0; width: 100%; color: var(--text); }
+.ax .composer textarea::placeholder { color: var(--muted); opacity: 1; }
+.ax .compose .hint { margin: 0; font-size: var(--fs-small); color: var(--muted); }
+.ax .compose .btn[aria-disabled="true"] { background: var(--surface2); color: var(--muted); border: var(--bw) dashed var(--control); cursor: not-allowed; }
+.ax .btn-send { background: var(--primary); color: var(--onprimary); border-color: var(--primary); }
+.ax .btn.mic[aria-pressed="true"] { background: var(--danger-bg); border-color: var(--danger-bd); color: var(--danger-fg); }
+.ax #ch-attach { display: flex; gap: var(--s2); align-items: center; padding: var(--s2); border: 1px solid var(--line); border-radius: var(--r-card); }
+.ax #ch-attach img { width: 44px; height: 44px; object-fit: cover; border-radius: var(--r-sm); }
+
+/* Voice bar */
+.ax .voicebar { display: grid; gap: var(--s2); padding: var(--s3); border: var(--bw) solid var(--control); border-radius: var(--r-card); background: var(--surface2); }
+.ax .voicebar.rec { background: var(--danger-bg); border-color: var(--danger-bd); color: var(--danger-fg); }
+.ax .voicebar.warn { background: var(--warn-bg); border-color: var(--warn-bd); color: var(--warn-fg); }
+.ax .voicebar.bad { background: var(--danger-bg); border-color: var(--danger-bd); color: var(--danger-fg); }
+.ax .voicebar.ok { background: var(--primarysoft); border-color: var(--primary); color: var(--text); }
+.ax .voicebar .vrow { display: flex; align-items: center; gap: var(--s2); }
+.ax .voicebar .vstate { display: inline-flex; align-items: center; gap: var(--s2); font-weight: var(--fw-bold); }
+.ax .voicebar .counter { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: var(--fw-bold); }
+.ax .voicebar .vprog { height: 8px; border-radius: 4px; background: color-mix(in srgb, currentColor 22%, transparent); overflow: hidden; }
+.ax .voicebar .vprog i { display: block; height: 100%; width: 0; background: currentColor; }
+.ax .voicebar p { margin: 0; font-size: var(--fs-small); color: inherit; }
+.ax .voicebar .vbtns { display: flex; gap: var(--s2); flex-wrap: wrap; }
+.ax .voicebar .vbtns .btn { flex: 1 1 auto; }
+.ax .voicebar .rdot { width: 14px; height: 14px; border-radius: 50%; background: currentColor; flex: none; }
+
+/* Settings panel under the header (scrolls inside itself, at most 60 percent of the screen) */
+.ax .settings { flex: 0 1 auto; min-height: 0; max-height: 60%; overflow-y: auto; background: var(--surface); border-bottom: 1px solid var(--line); padding: var(--s4); display: grid; gap: var(--s4); overscroll-behavior: contain; }
+.ax .settings fieldset, .ax .dlg-sheet fieldset, .ax form.stack3 fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: var(--s2); min-width: 0; }
+.ax .settings legend, .ax form.stack3 legend { font-weight: var(--fw-bold); padding: 0; margin-bottom: var(--s2); }
+.ax .settings .hint { margin: 0; }
+.ax .seg { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.ax .seg label { flex: 1 1 auto; position: relative; display: block; }
+.ax .seg input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; z-index: 1; }
+.ax .seg .o { display: flex; align-items: center; justify-content: center; gap: var(--s2); min-height: var(--target); padding: 0 var(--s3); border: var(--bw) solid var(--control); border-radius: var(--r-btn); background: var(--surface); font-weight: var(--fw-med); text-align: center; }
+.ax .seg .o .ic { width: 18px; height: 18px; }
+.ax .seg .o .tick { display: none; }
+.ax .seg input:checked + .o { border-color: var(--primary); background: var(--primarysoft); box-shadow: inset 0 0 0 1px var(--primary); }
+.ax .seg input:checked + .o .tick { display: block; }
+.ax .seg input:focus-visible + .o { outline: 3px solid var(--focus); outline-offset: 2px; }
+.ax .seg input:disabled + .o { background: var(--surface2); color: var(--muted); border-style: dashed; cursor: not-allowed; }
+.ax .sw-row { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); min-height: var(--target); }
+.ax .sw-row > span { min-width: 0; }
+.ax .link { background: none; border: 0; padding: 0; min-height: var(--target); color: var(--link); text-decoration: underline; font: inherit; font-weight: var(--fw-med); cursor: pointer; }
+
+/* My needs (inside the foundation's modal sheet) */
+.ax .opt { position: relative; display: flex; align-items: center; gap: var(--s3); min-height: var(--target); padding: var(--s2) var(--s3); border: var(--bw) solid var(--control); border-radius: var(--r-btn); background: var(--surface); }
+.ax .opt input { position: absolute; inset: -2px; width: calc(100% + 4px); height: calc(100% + 4px); opacity: 0; margin: 0; cursor: pointer; }
+.ax .opt .mk { width: 22px; height: 22px; border: 2px solid var(--control); border-radius: 50%; display: grid; place-items: center; flex: none; background: var(--surface); }
+.ax .opt .mk.sq { border-radius: 6px; }
+.ax .opt .mk .ic { width: 14px; height: 14px; stroke-width: 3; color: var(--onprimary); display: none; }
+.ax .opt:has(input:checked) { border-color: var(--primary); background: var(--primarysoft); box-shadow: inset 0 0 0 1px var(--primary); }
+.ax .opt:has(input:checked) .mk { background: var(--primary); border-color: var(--primary); }
+.ax .opt:has(input:checked) .mk .ic { display: block; }
+.ax .opt:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
+.ax .dlg-foot { display: flex; flex-wrap: wrap; gap: var(--s2); justify-content: flex-end; }
+.ax .stack3 { display: grid; gap: var(--s3); }
+
+/* Navigation: the tab bar on phones (Ask active), the top bar on desktop */
+.ax .tabbar { flex: none; padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px); }
+.ax .ch-app[data-kb] .only-phone { display: none; }
+@media (min-width: 900px) {
+  .ax .ch-col { align-self: center; width: min(760px, 100%); border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
+  .ax .ch-app { background: var(--surface2); }
+  .ax .ch-col { background: var(--bg); }
+}
+@media (max-width: 239px) { .ax .log .card { padding: var(--s3); } .ax .place .actions .btn, .ax .more-btn, .ax .tools .btn { white-space: normal; } .ax .followups .chip, .ax .suggest .chip { white-space: normal; } .ax .tab span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } .ax .chat-head h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } .ax .chat-head .titles { flex: 1; } }
+
+/* Landscape on a phone: tabs become a left rail, the list is on the left and the compose area on the right */
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 899px) {
+  .ax .ch-app { display: grid; grid-template-columns: 76px minmax(0, 1fr); }
+  .ax .ch-app > .only-phone { grid-column: 1; grid-row: 1; display: grid; }
+  .ax .ch-app > .only-phone .tabbar { grid-template-columns: 1fr; grid-template-rows: repeat(4, 1fr); border-top: 0; border-right: 1px solid var(--line); height: 100%; }
+  .ax .ch-col { grid-column: 2; grid-row: 1; display: grid; grid-template-columns: minmax(0, 1fr) 300px; grid-template-rows: auto auto minmax(0, 1fr); min-height: 0; }
+  .ax .chat-head { grid-column: 1 / 3; grid-row: 1; min-height: 52px; padding-block: 4px; }
+  .ax .chat-head .sub { display: none; }
+  .ax .settings { grid-column: 1 / 3; grid-row: 2; }
+  .ax .mw { grid-column: 1; grid-row: 3; }
+  .ax .compose { grid-column: 2; grid-row: 3; border-top: 0; border-left: 1px solid var(--line); overflow-y: auto; align-content: end; padding-bottom: var(--s3); }
+  .ax .composer textarea { max-height: 9em; min-height: 66px; }
+}
+/* Hints and short messages float above the compose area, so showing one never moves the buttons under a finger. */
+.ax .compose #ch-hint { position: absolute; left: var(--s3); right: var(--s3); bottom: calc(100% + var(--s2)); margin: 0; padding: var(--s2) var(--s3); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--shadow); z-index: 3; color: var(--text); }
+.ax .log a:not(.btn) { display: inline-flex; align-items: center; min-height: var(--target); color: var(--link); }

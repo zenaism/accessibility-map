@@ -20,7 +20,9 @@ def ask(eng, text, **ctx):
 
 def test_events_say_when_the_data_was_built_and_that_it_is_a_snapshot(eng):
     a = ask(eng, "what events are on in Oxford this month")
-    assert "13 November 2026" in a.text and "snapshot" in a.text
+    assert (
+        "13 November 2026" in a.full_text and "snapshot" in a.full_text
+    )  # behind "More" since answers got short
     assert "Sensory Saturday" in a.text and "Story Hour" not in a.full_text
     assert a.cards[0].event["when_text"] == "Saturday 21 November, 10:00 am"
 
@@ -42,13 +44,14 @@ def test_main_answer_is_at_most_two_sentences_and_details_are_separate(eng):
 
 def test_ada_questions_are_refused_with_what_sources_say(eng):
     a = ask(eng, "is Main Library ADA compliant?")
-    assert "can't say" in a.text.lower() and "formal survey" in a.text
+    assert "can't say" in a.text.lower() and "formal survey" in a.full_text
     assert a.cards[0].name == "Main Library" and a.verified
 
 
 def test_old_data_shows_its_age(eng):
     a = ask(eng, "does the Art Museum lend wheelchairs?")
-    assert "old: from 2016" in a.text
+    assert "old: from 2016" in a.full_text
+    assert a.cards[0].confidence == "Old record · art.example.org, 2016. May be out of date."
 
 
 def test_computed_facts_say_not_checked_on_site(eng):
@@ -80,7 +83,7 @@ def test_emergency_is_only_911(eng):
 def test_plain_language_mode_shortens_the_lead(eng):
     long = ask(eng, "closest accessible restroom", location=[39.51, -84.742]).headline[0].text
     plain = ask(eng, "closest accessible restroom", location=[39.51, -84.742], plain=True).headline[0].text
-    assert len(plain) < len(long) and plain.startswith("Closest with")
+    assert len(plain) < len(long) and plain.startswith("Closest I can confirm")
 
 
 def test_no_answer_ever_contains_a_banned_claim(eng):
