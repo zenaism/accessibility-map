@@ -318,7 +318,7 @@ Decision: bottom tab Saved (n) and a Saved page; name "Saved places"; device sna
 Why: only A puts the way back in the thumb zone on every screen, and the restore link needs a plain landing page. README recommendation; open questions took the recommended answers.
 Alternatives: B sheet over the map (fallback if the 56 px tab bar is too crowded), C text-first (Saved feels buried).
 Costs / revisit if: the tab bar crowds the map on a real phone; the redirect table and shared index change the export (data_dictionary.md); Safari 7-day storage limit.
-Basis: recorded (README, owner acceptance). Confirms D-40 to D-44 (favourites).
+Basis: recorded (README, owner acceptance). Confirms D-93 to D-95, D-43 and D-44 (favourites).
 
 ### D-54: Settings cogwheel and short chat answer shape A (2C.1, 2C.2) (2026-11-24, accepted)
 Decision: own-drawn cogwheel, 44 px; chat answer is a sentence, one card, More, three chips; confidence line always shown; the nearest confirmed fresh place leads. C is the fallback.
@@ -357,42 +357,42 @@ Alternatives: no personalisation (the question cannot be answered); sending the 
 Costs / revisit if: a hosted model is ever used; then saved places must stay out of its prompt.
 Basis: recorded (owner request); the on-device behaviour is a design, not tested with the real composer.
 
-### D-42: A small snapshot on the device handles changed and removed places (2026-11-23, accepted 2026-11-24) (number clash, see progress log)
+### D-95: A small snapshot on the device handles changed and removed places (2026-11-23, accepted 2026-11-24) (renumbered from D-42, 2026-11-24)
 Decision: next to each saved id the device keeps name, type, city, last seen entrance, restroom, parking and rating, with source and date. It is never put in the restore link. The Saved page uses it to show a place that left the data (by name), to work with a weak connection (labelled "as last seen"), and to say what changed. Places that merged follow an old-id to new-id table that the data release would carry, written automatically by the dedupe step. Changed, closed, moved and removed places sit first under "Needs a look"; "Caution" and a warning colour only when a fact got worse.
 Why: a saved id alone cannot say what a place was called, or what changed; no one can check data by hand, so the release must say when an id moved.
 Alternatives: ids only (missing places become codes; no change notices); keep every fact in the link (bigger link, more to leak).
 Costs / revisit if: the redirect table is a data-export change to coordinate in `data_dictionary.md`; the snapshot is a little more data kept on the device; after a restore the "changed since" baseline starts again from today.
 Basis: recorded (owner's request to handle places that disappear or change); the redirect table and snapshot are my design, *proposed*.
 
-### D-41: Restore link in the URL fragment, merge by default, backup status shown (2026-11-23, accepted 2026-11-24) (number clash, see progress log)
+### D-94: Restore link in the URL fragment, merge by default, backup status shown (2026-11-23, accepted 2026-11-24) (renumbered from D-41, 2026-11-24)
 Decision: link form `saved.html#restore=v1;<region>~<id>,...;k=<check>` (place codes in saved order and a 4 character check). Browsers never send the fragment to a server, so nothing about the list reaches a server. Opening or pasting a link asks first: "Add" (default) or "Replace" (separate red button naming how many places go). A cut-off, wrong-version or non-link input changes nothing and says why. The page strips the fragment from the address after reading it. The Saved page shows backup status ("not copied yet", "N changes since", "copied N days ago") and, only for Safari after 4 or more days away without a current copy, a warning. The empty page has a paste box.
 Why: Q5 and D-36; Safari can delete script-written storage after 7 days (excerpt-level sources in ux_brief 4.4); a link that is cut by a messaging app is common, so a check code and a paste box are needed.
 Alternatives: Supabase sync (stores more, uses quota, already rejected); download a file (not offered now; asked in the prototype questions); showing the link only on request.
 Costs / revisit if: anyone who gets the link can see the places (a clinic, for example), and apps that send it can read it; the warning cannot reach someone who never returns after 7 days; Safari detection from the user-agent is fragile; whether Home Screen apps are exempt is unverified.
 Basis: recorded (Q5, `compliance.md` privacy rules); the fragment rule is standard URL behaviour, *not re-verified in a source here*; the format is my design.
 
-### D-40: Save control: one visible word, no aria-pressed, undo on the Saved page (2026-11-23, accepted 2026-11-24) (number clash, see progress log)
+### D-93: Save control: one visible word, no aria-pressed, undo on the Saved page (2026-11-23, accepted 2026-11-24) (renumbered from D-40, 2026-11-24)
 Decision: Save is a 44 px button with a heart and the word Save or Saved (filled heart and a thicker border when saved). The word changes; `aria-pressed` is not used. Its name starts with the visible word and ends with the place name. One polite status message for the page announces the result. Removing on the Saved page leaves an inline message with Undo and moves focus to it; elsewhere pressing Save again is the undo. No timed toast. No Save in the map popup.
 Why: the current code sets both a changing word and `aria-pressed` (`map_viewer.py:512-516`), which can read as "Saved, Saved, toggle"; timed toasts can vanish before they are read (checklist 16); popup stays short (brief 7.5).
 Alternatives: aria-pressed with a fixed word (weaker for low-vision users who read the word); toast with Undo (timing, focus).
 Costs / revisit if: a screen reader test shows the status messages are missed.
 Basis: recorded (brief checklist 5, 6, 16; read the current code); screen reader behaviour is by design and not listened to.
 
-### D-42: Details panel first layer, built from Q6, with the layout still open (2026-11-23, accepted 2026-11-24) (number clash, see progress log)
+### D-98: Details panel first layer, built from Q6, with the layout still open (2026-11-23, accepted 2026-11-24) (renumbered from D-42, 2026-11-24)
 Decision: first layer = name, rating word with symbol, Entrance, Restroom, one step or parking line, source and age, Route here, Save; everything else behind "More details". Unknown values read "Not known" plus one next-step sentence. Prototyped three ways (inline, drill-in view, sentence first); the owner picks. My recommendation is inline.
 Why: Q6 default; the measured live panel showed 1,598 characters at once. In the prototype the Area History first layer is 272 characters and the full content 1,496 (with a route).
 Alternatives: drill-in (second view, hides the map); sentence first (380 characters, repeats the rows, one more tap).
 Costs / revisit if: screen-reader users find the sentence helps; the facts table needs a `confidence` export field (D-31, not changed here).
 Basis: recorded (Q6, ux_brief 3c item 3); layout recommendation is mine, from taps and focus behaviour, not tested with people.
 
-### D-41: Search-first map: what stays on the empty map, and where Report and Legend go (2026-11-23, accepted 2026-11-24) (number clash, see progress log)
+### D-97: Search-first map: what stays on the empty map, and where Report and Legend go (2026-11-23, accepted 2026-11-24) (renumbered from D-41, 2026-11-24)
 Decision: the empty map shows only the basemap, zoom buttons and credit (plus a short hint). No markers, no cluster discs, no trails. "Report a problem" moves from a floating map button to the list footer; the legend appears only when results are on the map; "Show all places on the map" is an off-by-default button. Results sort best-known first (accessible, reported, partly, not, then no information), then nearest. On a phone the map sits above the list sheet instead of behind it. Three ways to find places without typing are prototyped (chips, tiles, near me first); my recommendation is tiles, with a chip row once results show.
 Why: Q8 and D-37; audit finding 7 (26 icons, about 20 clusters, trails and a button over the map) and A6 (legend and Report collide). The sort rule keeps "no information" below every place that has information (principle 2 in the brief). Map above sheet stops markers and the map credit hiding under the sheet.
 Alternatives: keep clustering only (still busy); chips only (half of them are off screen at 375 px); floating Report (covers the map).
 Costs / revisit if: "Report" in a footer is harder to find on a phone than a floating button (checklist item 18 wants one fixed place on every screen, not yet true in the prototypes); Near me radius half a mile is a guess for wheelchair users; the layout needs a real phone.
 Basis: recorded (Q8, D-37, audit); sort rule, footer placement and radius are inferred from the brief's principles, not stated by the owner.
 
-### D-40: Live location screens: states and limits proposed for the first stage (2026-11-23, accepted 2026-11-24) (number clash, see progress log)
+### D-96: Live location screens: states and limits proposed for the first stage (2026-11-23, accepted 2026-11-24) (renumbered from D-40, 2026-11-24)
 Decision: first stage of Q4/D-35 is a follow-me dot, accuracy ring, heading arrow and next step as text only. Separate states for locating, poor accuracy (over 50 m: says "Location is rough", no arrow, no off-route claim), permission denied (steps still work, moved by hand), no signal, no compass, iPhone compass behind a tap, paused when the page is hidden, stopped after 5 minutes without moving, arrived, stopped. Re-centre and Stop are different buttons ("Follow me" moves the map; "Stop navigation" turns location off). Position changes are never announced; only a new step, arrival, pause and stop are. Three layouts prototyped (bottom card, top banner, text first); my recommendation is the bottom card.
 Why: Q4 and D-35 (battery, privacy, `requestPermission()` needs a tap); the brief's checklist item 21. Five minutes idle and 50 m are proposals to tune with real walks.
 Alternatives: always-on watching (battery, privacy); one generic error for denied, no signal and rough (hides what the person can still do).
