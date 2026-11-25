@@ -66,3 +66,75 @@ def test_limits_match_the_form():
 )
 def test_abuse_and_retry_protection_is_present(word):
     assert word in SQL
+
+
+# ---- the new "Rate or report" form (src/atlas/web/report/report.js) must agree with both SQL scripts -------------------
+
+RATINGS_SQL = (Path(__file__).resolve().parents[1] / "supabase" / "ratings.sql").read_text()
+FORM_JS = (Path(__file__).resolve().parents[1] / "src" / "atlas" / "web" / "report" / "report.js").read_text()
+
+
+def _params(sql: str, fn: str) -> set[str]:
+    sig = re.search(rf"function public\.{fn}\((.*?)\)\s*returns", sql, re.S).group(1)
+    return set(re.findall(r"\b(p_\w+)\b", sig))
+
+
+def test_ratings_script_parses():
+    assert len(pglast.parse_sql(RATINGS_SQL)) >= 8
+
+
+def test_form_sends_exactly_the_parameters_the_functions_take():
+    sent_rating = set(
+        re.findall(
+            r"\b(p_\w+):",
+            FORM_JS.split("async function sendRating")[1].split("async function sendProblem")[0],
+        )
+    )
+    assert sent_rating == _params(RATINGS_SQL, "submit_rating")
+    sent_problem = set(
+        re.findall(r"\b(p_\w+):", FORM_JS.split("async function sendProblem")[1].split("const kindOf")[0])
+    )
+    assert sent_problem == _params(SQL, "submit_problem_report")
+    assert set(
+        re.findall(r"\b(p_\w+):", FORM_JS.split("rpc('delete_problem_report', {")[1].split("}")[0])
+    ) == _params(SQL, "delete_problem_report")
+
+
+def test_form_categories_profiles_and_regions_are_allowed_by_the_database():
+    cats = set(
+        re.findall(
+            r"'(\w+)'",
+            re.search(r"category\s+text not null check \(category in\s*\((.*?)\)\)", SQL, re.S).group(1),
+        )
+    )
+    chips = re.findall(r"\['(?:blocked|lift|wrong|other)', '[^']+', '(\w+)', '\w+'\]", FORM_JS)
+    assert len(chips) == 4 and set(chips) <= cats
+    profiles = set(
+        re.findall(
+            r"'(\w+)'",
+            re.search(r"profile\s+text\s+check \(profile in\s*\((.*?)\)\)", RATINGS_SQL, re.S).group(1),
+        )
+    )
+    who = set(
+        re.findall(r"\['(\w+)', '[^']+'\](?:,|\];)", FORM_JS.split("const WHO = ")[1].split("];")[0] + "];")
+    )
+    assert who == profiles
+    regions = set(re.findall(r"'(\w+)'", re.search(r"check \(region in \((.*?)\)\)", RATINGS_SQL).group(1)))
+    assert set(re.findall(r"'(\w+)'", FORM_JS.split("const RATING_REGIONS = [")[1].split("]")[0])) == regions
+
+
+def test_form_limits_match_the_database():
+    assert "char_length(comment) <= 500" in RATINGS_SQL and "R.stars > 0 ? 500 : 1000" in FORM_JS
+    assert (
+        "between 1 and 5" in RATINGS_SQL
+        and "R.parts[k] === v" in FORM_JS
+        and 'data-v="5"' in FORM_JS
+        and 'data-v="1"' in FORM_JS
+    )
+    assert (
+        ">= 40" in RATINGS_SQL and ">= 10" in SQL and ">= 200" in SQL
+    )  # the three limit messages in the form quote these
+    for words in ("You rated 40 places today", "You sent 10 problems today", "very busy right now"):
+        assert words in FORM_JS
+    assert "octet_length(v_photo) > 250000" in SQL and "blob.size <= 200000" in FORM_JS
+    assert "'-01'" in FORM_JS  # the visit month is the first day of the month

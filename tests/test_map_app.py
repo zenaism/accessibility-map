@@ -67,6 +67,9 @@ def test_no_third_party_requests_except_leaflet_and_usgs():
         "www.w3.org",
         "127.0.0.1",
     }
+    allowed |= {
+        h for h in hosts if h.endswith(".supabase.co")
+    }  # the rating and report form talks to the project database
     assert hosts <= allowed, hosts - allowed
 
 
@@ -313,10 +316,14 @@ def test_report_and_ask_fire_events_and_fall_back_to_links(browser, cdn, site):
         "(() => { window.__ev = []; ['atlas:open-report', 'atlas:open-ask'].forEach(n => atlas.on(n, d => __ev.push([n, d]))); })()"
     )
     pg.locator(".tabbar a[data-tab=report]").click()
+    if pg.locator(".rp").count():  # the report form (B2) listens for the same event and opens
+        pg.keyboard.press("Escape")
     search(pg)
     open_first(pg)
     pg.get_by_role("button", name="More details").click()
     pg.get_by_role("button", name="Report a problem here").click()
+    if pg.locator(".rp").count():
+        pg.keyboard.press("Escape")
     ev = pg.evaluate("__ev")
     assert (
         ev[0] == ["atlas:open-report", {}]

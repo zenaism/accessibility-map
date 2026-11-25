@@ -4,6 +4,13 @@ Visitors can press **Report a problem** on any place (in the map popup and in th
 (bottom of the list). They pick what kind of problem it is, write what happened, and can add a photo from the device or
 take one with the camera. Reports are stored in our Supabase database and the accessibility team reads them there.
 
+> **Update (branch `ui/report`, 2026-11-24):** on the new map page the "Report a problem" dialog described below is replaced by
+> the one-screen **Rate or report** form (stars 1 to 5, problem chips Blocked, Broken lift, Wrong info, Other, optional comment
+> and photo, one Send button). It uses the same database functions; nothing in the SQL changed. A problem needs no typed text:
+> the chip name is sent when the comment is empty. Photos go only with a problem. The privacy line is "No name needed. We keep
+> your report, device type and page address." and the What we keep sheet lists what is stored. See `docs/ui_components.md`,
+> D-77 to D-81 in `docs/decisions.md` and `tests/test_report_form.py`. The text below describes the legacy dialog.
+
 ## For visitors (what they see)
 1. Tap **Report a problem**. A form opens (a bottom sheet on a phone).
 2. Choose one of five kinds: *Something is blocked or broken · The information here is wrong · It is harder to use than

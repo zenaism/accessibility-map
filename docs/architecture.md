@@ -488,3 +488,43 @@ stateDiagram-v2
   Denied --> [*]: steps by hand, Close
 ```
 
+## 17. Rate or report (B2, 2026-11-24)
+
+```mermaid
+sequenceDiagram
+  participant P as Person
+  participant T as Report tab or place card
+  participant F as Rate or report form
+  participant D as This device
+  participant S as Supabase functions
+  P->>T: Tap Report
+  T->>F: atlas open report with place and region
+  F->>D: read draft and earlier rating
+  P->>F: stars, problem chip, optional comment or photo
+  F->>D: keep draft while typing
+  P->>F: Send both
+  F->>S: submit rating
+  S-->>F: saved
+  F->>S: submit problem report with the same report id
+  S-->>F: failed
+  F-->>P: Rating saved. Problem not sent. Try again.
+  P->>F: Try again
+  F->>S: submit problem report only
+  S-->>F: reference code
+  F->>D: save ids and code in my reports
+  F-->>P: Thank you, timeline
+```
+
+```mermaid
+flowchart TD
+  EV["atlas:open-report"]:::built --> FORM["Rate or report form<br/>report.js, report.css"]:::plan
+  FORM --> R["submit_rating<br/>cincinnati, oxford only"]:::built
+  FORM --> PR["submit_problem_report<br/>photo only with a problem"]:::built
+  FORM --> DEL["delete_problem_report"]:::built
+  FORM --> LOCAL["This device: draft, device code,<br/>my reports, rated places"]:::ext
+  FORM -->|"closes on"| OTHER["atlas:open-saved, atlas:open-ask"]:::built
+  classDef built fill:#d4edda,stroke:#2e7d32,color:#111
+  classDef plan fill:#e0f2fe,stroke:#0369a1,color:#111
+  classDef ext fill:#eee,stroke:#888,color:#111
+```
+
