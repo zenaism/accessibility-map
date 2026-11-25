@@ -16,7 +16,8 @@
   let DEVICE = store.get('atlas-device');
   if (!DEVICE) { DEVICE = newId(); store.set('atlas-device', DEVICE); }
   const RATING_REGIONS = ['cincinnati', 'oxford'];   // ratings.sql allows only these (owner decision: not widened yet)
-  const CITY = { cincinnati: 'Cincinnati', oxford: 'Oxford', dayton: 'Dayton', dc: 'DC' };
+  const CITY = {};   // short city names come from the catalog of cities the page was built with
+  (window.__REGIONS || []).forEach((r) => { CITY[r.id] = r.short; });
   const STAR_WORDS = ['', 'Not accessible', 'Hard to use', 'Usable with effort', 'Mostly accessible', 'Fully accessible'];
   const PARTS = [['entrance', 'Entrance'], ['restroom', 'Restroom'], ['parking', 'Parking'], ['inside', 'Inside']];
   const WHO = [['wheelchair', 'Wheelchair'], ['mobility_aid', 'Cane or walker'], ['blind_low_vision', 'Blind or low vision'], ['deaf_hoh', 'Deaf or hard of hearing'], ['companion', 'Companion'], ['other', 'Other']];

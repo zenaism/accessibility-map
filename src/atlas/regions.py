@@ -10,7 +10,9 @@ A region is always a pinned OpenStreetMap relation id, never matched by name (th
 
 from __future__ import annotations
 
+import csv
 import json
+import math
 import re
 
 import geopandas as gpd
@@ -101,3 +103,127 @@ def add(key: str, name: str, relation: int, buffer_km: float = 15, note: str = "
     FILE.write_text(text.rstrip("\n") + "\n" + block)
     config.cache_clear()
     return info
+
+
+# ---- region catalog: what the app's city switcher shows, built from config + the files that exist ----
+
+TIER_ORDER = {"full": 0, "limited": 1}
+KM_PER_DEG = 111.195  # km per degree of latitude (mean Earth radius 6371 km)
+# Words for a card layer that a limited city may publish; matched against the card file names.
+LAYER_WORDS = {"curb_ramps": "curb ramps"}
+
+
+def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Great-circle distance in km."""
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    a = (
+        math.sin((p2 - p1) / 2) ** 2
+        + math.cos(p1) * math.cos(p2) * math.sin(math.radians(lon2 - lon1) / 2) ** 2
+    )
+    return 2 * 6371.0088 * math.asin(math.sqrt(a))
+
+
+def _words(items: list[str]) -> str:
+    return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " and " + items[-1]
+
+
+def _card_stems(root, region: str) -> list[str]:
+    d = root / "data" / "cards" / region
+    return sorted(p.stem for p in d.glob("*.json")) if d.is_dir() else []
+
+
+def _listed(root, region: str) -> int | None:
+    f = root / "data" / "cards" / "index.csv"
+    if not f.exists():
+        return None
+    total, seen = 0, False
+    with f.open(newline="") as fh:
+        for row in csv.DictReader(fh):
+            if row["id"] in (f"{region}.overture_places", f"{region}.osm_destinations"):
+                total, seen = total + int(float(row["records"] or 0)), True
+    return total if seen else None
+
+
+def catalog(root=ROOT) -> list[dict]:
+    """One dict per visible region: full cities first, then limited ones.
+
+    A region with no cards at all is hidden. Every flag (routes, ratings, detail) is read from the code and
+    files that really exist, so the coverage words change when a capability is switched on.
+    """
+    from . import report_form, routing_ui  # read at call time so a changed flag shows up at once
+
+    out = []
+    for rid, c in config("regions").items():
+        stems = _card_stems(root, rid)
+        if not stems:
+            continue
+        tier = c.get("tier", "limited")
+        has_routes = rid in routing_ui.ROUTING_REGIONS
+        has_ratings = rid in report_form.RATING_REGIONS
+        f = root / "data" / "map" / f"{rid}_atlas.geojson"
+        detail = f.exists()
+        if tier == "full":
+            coverage = "Places, " + ("routes, " if has_routes else "") + "ratings"
+        else:
+            extra = [w for key, w in LAYER_WORDS.items() if any(key in st for st in stems)]
+            coverage = _words(["Places", *extra]) if extra else "Places only"
+        out.append({
+            "id": rid,
+            "name": c["name"],
+            "short": c.get("short", c["name"].split(",")[0]),
+            "tier": tier,
+            "center": c["center"],
+            "bbox": c["bbox"],
+            "buffer_km": c["buffer_km"],
+            "zoom": c["zoom"],
+            "has_routes": has_routes,
+            "has_ratings": has_ratings,
+            "has_detail": detail or tier == "full",
+            "places_detail": len(json.loads(f.read_text())["features"]) if detail else None,
+            "places_listed": _listed(root, rid),
+            "layers": stems,
+            "coverage": coverage,
+        })  # fmt: skip
+    out.sort(key=lambda r: TIER_ORDER.get(r["tier"], 9))  # stable: yaml order inside a tier
+    return out
+
+
+def notice(region: dict | str, root=ROOT) -> str:
+    """Plain-words note for a limited region (empty for a full city). Takes a catalog row or an id."""
+    if isinstance(region, str):
+        region = next((r for r in catalog(root) if r["id"] == region), None)
+        if region is None:
+            return ""
+    if region["tier"] == "full":
+        return ""
+    text = region["coverage"] + "."
+    if not region["has_ratings"]:
+        text += " Ratings not open yet."
+    if not region["has_routes"]:
+        text += " Routes are not available yet."
+    return text
+
+
+def _grown(r: dict) -> tuple[float, float, float, float]:
+    """bbox grown by buffer_km on every side (degrees of longitude use the bbox centre latitude)."""
+    s, w, n, e = r["bbox"]
+    dlat = r["buffer_km"] / KM_PER_DEG
+    dlon = r["buffer_km"] / (KM_PER_DEG * math.cos(math.radians((s + n) / 2)))
+    return s - dlat, w - dlon, n + dlat, e + dlon
+
+
+def closest(lat: float, lon: float, cat: list[dict]) -> str | None:
+    """The region that covers a position, or None. Mirrors the rule the device applies in JavaScript.
+
+    Covered = inside the bbox grown by buffer_km. If several cover it, the one the position sits deepest in
+    wins: smallest (km to the centre / buffer_km). Plain nearest-centre would send Hamilton, Ohio to Oxford
+    because Oxford's buffer is small but its centre is nearer; scaling by the buffer keeps it with Cincinnati.
+    """
+    best, best_score = None, math.inf
+    for r in cat:
+        s, w, n, e = _grown(r)
+        if s <= lat <= n and w <= lon <= e:
+            score = haversine_km(lat, lon, *r["center"]) / r["buffer_km"]
+            if score < best_score:
+                best, best_score = r["id"], score
+    return best

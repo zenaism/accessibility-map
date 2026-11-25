@@ -315,7 +315,7 @@ document.getElementById('asof').textContent = Object.values(DATA)[0].generated;
 
 // ---------- map ----------
 const PHONE_EARLY = window.matchMedia('(max-width:720px)');
-const VIEW = {cincinnati:[[39.10,-84.51],12], oxford:[[39.535,-84.755],13]};
+const VIEW = __VIEW__;
 const firstRegion = Object.keys(DATA)[0];
 let map, cluster = null, trails = null;
 if (GOOGLE_ENABLED) {
@@ -1053,6 +1053,13 @@ document.getElementById('status').textContent = 'The map could not be initialize
 """
 
 
+def view_table() -> dict:
+    """{region: [[lat, lon], zoom]} for the legacy page, from the region catalog (config/regions.yaml)."""
+    from .regions import catalog
+
+    return {r["id"]: [r["center"], r["zoom"]] for r in catalog()}
+
+
 def render(
     data: dict,
     title: str = "Accessibility Map",
@@ -1074,6 +1081,7 @@ def render(
         .replace("__SWITCH__", switch)
         .replace("__H1__", title.split(" ", 1)[1] if switch and " " in title else title)
         .replace("__NAV__", nav)
+        .replace("__VIEW__", json.dumps(view_table()))
         .replace("__RATINGS__", json.dumps(RATINGS, ensure_ascii=False))
         .replace("__HELP__", json.dumps(RATING_HELP))
         .replace("__ICONS__", json.dumps(ICONS))

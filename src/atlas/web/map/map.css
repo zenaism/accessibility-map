@@ -87,3 +87,20 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
 .ax .panel-body .dfact a, .ax .panel-body ul.plain a, .ax .panel-body .routelist a { display: inline-flex; align-items: center; min-height: var(--target); min-width: var(--target); }
 .ax ul.compact .favrow { min-height: var(--target); padding: var(--s2) var(--s3); }
 .ax ul.compact .favrow .sub > span:not(.badge) { display: none; }
+
+/* city switcher (B4) */
+.ax .city-btn { min-height: var(--target); padding: 0 var(--s2) 0 var(--s3); gap: var(--s1); font-weight: var(--fw-bold); white-space: nowrap; }
+.ax .city-btn .ic { width: 20px; height: 20px; }
+.ax .appbar.phone-bar .title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 359px) { .ax .appbar.phone-bar .title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } .ax .appbar.phone-bar .city-btn { margin-right: auto; } }
+.ax .regionpill { position: absolute; left: 50%; transform: translateX(-50%); top: 150px; z-index: 650; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: var(--r-chip); box-shadow: var(--shadow); padding: var(--s1) var(--s3); display: flex; align-items: center; gap: var(--s3); font-weight: var(--fw-med); max-width: calc(100% - 24px); }
+.ax .regionpill .pilltxt { display: inline-flex; align-items: center; gap: var(--s2); }
+.ax .regionpill.failed { border-color: var(--danger-bd); background: var(--danger-bg); color: var(--danger-fg); }
+@media (min-width: 900px) { .ax .regionpill { top: var(--s3); } }
+.ax .city-pop { position: absolute; left: 190px; top: 60px; width: 340px; z-index: 3000; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--shadow); padding: var(--s3); display: grid; gap: var(--s2); }
+.ax .city-pop .stack { display: grid; gap: var(--s2); }
+.ax .citytag { display: inline-block; margin-left: var(--s2); padding: 0 var(--s2); border: 1px solid var(--control); border-radius: var(--r-chip); font-size: var(--fs-small); font-weight: var(--fw-med); color: var(--muted); vertical-align: middle; }
+.ax .appbar.top { position: relative; }
+.ax .panel-body h2[tabindex="-1"]:focus, .ax .panel-body h3[tabindex="-1"]:focus { outline: none; }
+.ax .panel-body .banner { flex-wrap: wrap; }
+.ax .panel-body .banner > span { flex: 1 1 160px; min-width: 0; }

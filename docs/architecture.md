@@ -563,3 +563,42 @@ stateDiagram-v2
   Denied --> Idle: Type instead
 ```
 
+## 19. The city as a variable (B4, 2026-11-24)
+
+```mermaid
+flowchart TD
+  A["Page opens"]:::built --> B{"Address has ?region=<br/>a known city"}
+  B -->|"yes"| Z["Open that city for this visit<br/>choice not saved"]:::plan
+  B -->|"no"| C{"Choice saved on this device"}
+  C -->|"yes"| Z2["Open the saved city"]:::plan
+  C -->|"no"| D{"Closest city, on the device<br/>grown box, distance over buffer"}
+  D -->|"inside a covered area"| E["Use Oxford? Use or Choose another"]:::plan
+  D -->|"outside, denied, no signal"| G["Choose a city list"]:::plan
+  E -->|"Use"| F["Save the choice"]:::plan
+  E -->|"Choose another"| G
+  G --> F
+  F --> Z3["Switch in place<br/>load data, recentre, event atlas:region-changed"]:::plan
+  S["Switcher in the Map app bar"]:::plan --> F
+  CFG["config/regions.yaml<br/>center, bbox, buffer_km, tier"]:::built --> CAT["regions.catalog<br/>coverage from flags"]:::built --> D
+  CAT --> G
+  Z3 --> ASK["Chat: Answering for Oxford"]:::plan
+  Z3 --> REP["Report: sends the current city"]:::plan
+  classDef built fill:#d4edda,stroke:#2e7d32,color:#111
+  classDef plan fill:#e0f2fe,stroke:#0369a1,color:#111
+```
+
+```mermaid
+sequenceDiagram
+  participant P as Person
+  participant M as Map page
+  participant D as Device storage
+  participant F as City data file
+  P->>M: pick Cincinnati in the switcher
+  M-->>P: Loading Cincinnati over the old map
+  M->>F: fetch cincinnati data if not in the page
+  F-->>M: places
+  M->>D: save atlas-region
+  M-->>P: Showing Cincinnati, search words kept
+  M->>M: fire atlas:region-changed
+```
+

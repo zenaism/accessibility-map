@@ -111,7 +111,7 @@ def test_opens_with_a_greeting_ideas_the_tab_bar_and_a_named_settings_button(bro
     pg = open_chat(browser, site)
     assert (
         pg.get_by_role("heading", name="Assistant", level=1).is_visible()
-        and "Guided mode" in pg.locator(".sub").inner_text()
+        and "Answering for" in pg.locator(".sub").inner_text()
     )
     assert pg.get_by_text("Hi. Ask me about a place in Cincinnati or Oxford.").is_visible()
     assert [b.inner_text() for b in pg.locator("#ch-log .suggest .chip").all()] == [
@@ -735,4 +735,37 @@ def test_the_two_theme_choices_look_right_in_dark(browser, site):
         pg.evaluate("getComputedStyle(document.querySelector('.ch-app')).backgroundColor")
         == "rgb(12, 23, 29)"
     )
-    assert re.search(r"Guided mode", pg.locator(".sub").inner_text()) and Path(__file__).exists()
+    assert re.search(r"Answering for", pg.locator(".sub").inner_text()) and Path(__file__).exists()
+
+
+# ---------------------------------------------------------------- the Ask city line (B4)
+
+
+def test_the_chat_says_which_city_it_answers_about(browser, site):
+    pg = open_chat(browser, site, init="localStorage.setItem('atlas-region', 'oxford');")
+    assert pg.locator("#ch-city-line").inner_text() == "Answering for Oxford"
+    assert "Ask me about a place in Oxford." in pg.locator("#ch-log").inner_text()
+    pg2 = open_chat(browser, site)
+    assert pg2.locator("#ch-city-line").inner_text() == "Answering for Cincinnati and Oxford"
+
+
+def test_a_question_about_another_city_is_said_out_loud_on_screen_and_the_saved_city_does_not_change(
+    browser, site
+):
+    pg = open_chat(browser, site, init="localStorage.setItem('atlas-region', 'oxford');")
+    ask(pg, "Does Findlay Market have an accessible restroom?")
+    assert pg.locator("#ch-city-line").inner_text() == "Showing Cincinnati for this question"
+    assert pg.evaluate("localStorage.getItem('atlas-region')") == "oxford"
+    ask(pg, "Where is accessible parking near Uptown Oxford?")
+    assert pg.locator("#ch-city-line").inner_text() in (
+        "Answering for Oxford",
+        "Showing Cincinnati for this question",
+    )
+
+
+def test_the_link_city_wins_over_the_saved_city_in_the_chat_too(browser, site):
+    c = browser.new_context(viewport={"width": 375, "height": 812})
+    c.add_init_script("localStorage.setItem('atlas-region', 'oxford');")
+    pg = c.new_page()
+    pg.goto(f"{site}/ask.html?today={TODAY}&region=cincinnati")
+    assert pg.locator("#ch-city-line").inner_text() == "Answering for Cincinnati"
