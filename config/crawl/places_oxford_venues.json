@@ -1,0 +1,268 @@
+{
+ "regions": [
+  "oxford"
+ ],
+ "author_type": "business",
+ "seeds": [
+  "http://hamptoninn3.hilton.com/en/hotels/ohio/hampton-inn-oxford-miami-university-area-OXFUVHX/",
+  "https://www.hawkshousing.com/",
+  "http://oxfordcountryclub.org/",
+  "https://www.oxfordcommons.com/",
+  "https://www.rentlevel27.com/",
+  "http://www.scrippsaging.org/",
+  "http://www.immanuelhamilton.com/",
+  "https://www.bestwestern.com/en_US/book/hotel-rooms.36123.html",
+  "http://www.butlercountysportsmen.com/",
+  "https://www.remingtonlake.com/",
+  "https://www.choicehotels.com/ohio/oxford/comfort-inn-hotels/oh538",
+  "http://www.cabincreekpaintball.com/",
+  "http://bmv.ohio.gov/bmv.asp",
+  "http://bridgeport.hamiltoncityschools.com/",
+  "http://www.oxfordfilms.com/",
+  "http://www.deltachimiami.com/",
+  "http://www.miamisigmachi.com/",
+  "http://theelmsoxford.com/",
+  "http://www.butlerinnoxford.com/",
+  "http://www.phideltatheta.org/",
+  "https://pfdserver3.pfd.muohio.edu/fco/admin/upload/Morris",
+  "https://miamibeta.org/",
+  "https://www.oxfordlanes.net/",
+  "https://miamipreserve.com/",
+  "https://thevergemiami.com/",
+  "http://www.helenandnitalinedancing.com/",
+  "http://www.edgewoodschools.com/schools/smes",
+  "https://www.uc.k12.in.us/college-corner-union-elementary",
+  "http://www.chestnutplacemiami.com/",
+  "https://www.queenofpeacehamilton.org/",
+  "https://waynetownship.net/",
+  "https://oxfordchamber.org/oxford-holiday-walk-best-decorated-contest/",
+  "https://mupsi.sam.org/",
+  "http://my.whiotv.com/_Miami-University-McGuffey-Hall/photo/8025834/6688.html",
+  "http://www.rec.miamioh.edu/clubsports/",
+  "https://campusinfo.umich.edu/campusmap/148",
+  "http://www.mainstreetschoolhouseinc.com/",
+  "http://www.fccsc.k12.in.us/mcs/",
+  "http://gofundme.com/252usn-hamilton-optimist-youth-ranch",
+  "https://www.in.gov/dnr/state-parks/parks-lakes/brookville-lake"
+ ],
+ "scope": {
+  "depth": 2
+ },
+ "budget": {
+  "pages": 420,
+  "per_host": 10,
+  "images": 0,
+  "megabytes": 400,
+  "per_pattern": 10
+ },
+ "assets": "none",
+ "discover": {
+  "sitemaps": true,
+  "feeds": false,
+  "probe_paths": true
+ },
+ "render": "auto",
+ "explore_share": 0.0,
+ "seed_places": {
+  "hamptoninn3.hilton.com": {
+   "place_id": "overture:94f291a7-8689-41d7-b525-2eb8620bd259",
+   "name": "Hampton Inn Oxford/Miami University Area",
+   "category": "hotel"
+  },
+  "hawkshousing.com": {
+   "place_id": "overture:62794f72-1044-4834-87ba-02dc5afa9b5e",
+   "name": "Hawks Landing",
+   "category": "historic_site"
+  },
+  "oxfordcountryclub.org": {
+   "place_id": "overture:c5a59414-1193-4ff5-9b30-b50469716d0d",
+   "name": "Oxford Country Club",
+   "category": "social_or_community_service"
+  },
+  "oxfordcommons.com": {
+   "place_id": "overture:d3dfd150-a8a0-4b1d-be01-7b3524321821",
+   "name": "The Commons",
+   "category": "historic_site"
+  },
+  "rentlevel27.com": {
+   "place_id": "overture:738deffa-52d6-4971-b3b1-2fd976c0d98f",
+   "name": "Level 27",
+   "category": "historic_site"
+  },
+  "scrippsaging.org": {
+   "place_id": "overture:733cccfa-73c6-462c-ab7b-db19030ad310",
+   "name": "Scripps Gerontology Center",
+   "category": "college_university"
+  },
+  "immanuelhamilton.com": {
+   "place_id": "overture:b406a2c0-2579-4dce-949a-8dd561f89530",
+   "name": "Immanuel Lutheran School",
+   "category": "place_of_learning"
+  },
+  "bestwestern.com": {
+   "place_id": "overture:3e8c8e1c-73d3-47fa-b8f9-eeda6b4b5388",
+   "name": "Best Western Sycamore Inn",
+   "category": "hotel"
+  },
+  "butlercountysportsmen.com": {
+   "place_id": "overture:c0994a04-9837-48a3-8512-8a7a9497deb2",
+   "name": "Butler County Sportsmen Rifle & Pistol Club",
+   "category": "sport_or_fitness_facility"
+  },
+  "remingtonlake.com": {
+   "place_id": "overture:67a5b223-7e67-4ca0-a59f-a958d93b7dc8",
+   "name": "Remington Lake Apartments",
+   "category": "historic_site"
+  },
+  "choicehotels.com": {
+   "place_id": "overture:944bfd1f-3f40-4489-aef3-26da8edc631d",
+   "name": "Comfort Inn",
+   "category": "hotel"
+  },
+  "cabincreekpaintball.com": {
+   "place_id": "overture:94a5e1b8-5b93-4858-85ca-7de9087a97bb",
+   "name": "Cabin Creek Paintball",
+   "category": "sport_or_fitness_facility"
+  },
+  "bmv.ohio.gov": {
+   "place_id": "overture:af38702d-6b80-40b9-b83b-8cfa4c74379a",
+   "name": "Ohio Bmv",
+   "category": "government_office"
+  },
+  "bridgeport.hamiltoncityschools.com": {
+   "place_id": "overture:78e6da82-842c-4142-8792-af53b8ac633a",
+   "name": "Bridgeport Elementary School",
+   "category": "elementary_school"
+  },
+  "oxfordfilms.com": {
+   "place_id": "overture:b3c37ecd-33a0-4680-830e-d2b4f7e59c82",
+   "name": "Oxford Inn",
+   "category": "hotel"
+  },
+  "deltachimiami.com": {
+   "place_id": "overture:0101ee55-5cad-4e55-85df-f3971533c427",
+   "name": "Delta Chi",
+   "category": "social_or_community_service"
+  },
+  "miamisigmachi.com": {
+   "place_id": "overture:a00da873-cdba-47b6-ab54-4d008a52af81",
+   "name": "Sigma Chi",
+   "category": "social_or_community_service"
+  },
+  "theelmsoxford.com": {
+   "place_id": "overture:fe31c2ea-d516-43fb-9b96-3c297ddb34f1",
+   "name": "The Elms Hotel",
+   "category": "hotel"
+  },
+  "butlerinnoxford.com": {
+   "place_id": "overture:7b64b604-fe29-4173-8895-e99475d9ece8",
+   "name": "Butler Inn",
+   "category": "hotel"
+  },
+  "phideltatheta.org": {
+   "place_id": "overture:02cf178b-e56a-48c8-89c0-6a39edc46ddd",
+   "name": "Phi Delta Theta",
+   "category": "social_or_community_service"
+  },
+  "pfdserver3.pfd.muohio.edu": {
+   "place_id": "overture:4cc17dec-fd8e-4aea-826a-9d0e477b287e",
+   "name": "Morris Hall",
+   "category": "lodging"
+  },
+  "miamibeta.org": {
+   "place_id": "overture:6e9b7ace-61bc-4a02-ad0d-6dae5fcecec3",
+   "name": "Beta Theta Pi",
+   "category": "social_or_community_service"
+  },
+  "oxfordlanes.net": {
+   "place_id": "overture:83ed0eb2-e583-4af3-9650-6a4055f8061a",
+   "name": "Oxford Lanes",
+   "category": "sport_or_fitness_facility"
+  },
+  "miamipreserve.com": {
+   "place_id": "overture:793e8d0b-1ec2-444c-8b4e-0c707c0fed81",
+   "name": "Miami Preserve",
+   "category": "historic_site"
+  },
+  "thevergemiami.com": {
+   "place_id": "overture:019515d1-bf38-4b01-b738-701699cfcf90",
+   "name": "The Verge Oxford",
+   "category": "historic_site"
+  },
+  "helenandnitalinedancing.com": {
+   "place_id": "overture:13203f40-6c62-4d9f-8d06-8db2ba0da17f",
+   "name": "AmVets Post 1983",
+   "category": "social_or_community_service"
+  },
+  "edgewoodschools.com": {
+   "place_id": "overture:a55c019e-c2c3-4004-a3bd-cfb7cbd5edb8",
+   "name": "Seven Mile Elementary School",
+   "category": "elementary_school"
+  },
+  "uc.k12.in.us": {
+   "place_id": "overture:6a9b00b9-e60c-473a-8f58-9f73fb78c2b2",
+   "name": "Union County College Corner Joint School District",
+   "category": "place_of_learning"
+  },
+  "chestnutplacemiami.com": {
+   "place_id": "overture:7a8b90af-5844-4b0d-a436-03759508ce39",
+   "name": "Chestnut Place Apartments",
+   "category": "historic_site"
+  },
+  "queenofpeacehamilton.org": {
+   "place_id": "overture:84064411-edde-430a-959f-d5bf15e0d961",
+   "name": "Queen of Peace Catholic School",
+   "category": "place_of_learning"
+  },
+  "waynetownship.net": {
+   "place_id": "overture:bb789173-ae16-4112-83a1-b749df578656",
+   "name": "Wayne Township, Butler County, Ohio",
+   "category": "government_office"
+  },
+  "oxfordchamber.org": {
+   "place_id": "overture:c4a76473-d3e6-4bc8-9d59-9cde1b402576",
+   "name": "Oxford Chamber of Commerce",
+   "category": "social_or_community_service"
+  },
+  "mupsi.sam.org": {
+   "place_id": "overture:15d5c7ef-1a8d-47c6-a4ed-b74290bb75c8",
+   "name": "Sigma Alpha Mu",
+   "category": "social_or_community_service"
+  },
+  "my.whiotv.com": {
+   "place_id": "overture:bcf689a2-0854-48f1-b66b-cfdeb23e7c9f",
+   "name": "McGuffey Hall",
+   "category": "campus_building"
+  },
+  "rec.miamioh.edu": {
+   "place_id": "overture:2669c933-f471-4056-8215-029c47a9a824",
+   "name": "Miami University Recreational Sports Center",
+   "category": "sport_or_fitness_facility"
+  },
+  "campusinfo.umich.edu": {
+   "place_id": "overture:1b5f9923-d08a-494a-80a4-58a0f8df63b4",
+   "name": "Tappan Hall",
+   "category": "lodging"
+  },
+  "mainstreetschoolhouseinc.com": {
+   "place_id": "overture:8ec10282-7327-442b-bcda-279209f76730",
+   "name": "Main Street Schoolhouse, Inc",
+   "category": "place_of_learning"
+  },
+  "fccsc.k12.in.us": {
+   "place_id": "overture:e87a02b8-6736-4682-9470-d17d0081a8f3",
+   "name": "Mt Carmel School Apples",
+   "category": "elementary_school"
+  },
+  "gofundme.com": {
+   "place_id": "overture:705405f5-aa28-4997-86a4-36ed24ac5a48",
+   "name": "Hamilton Optimist Youth Ranch",
+   "category": "social_or_community_service"
+  },
+  "in.gov": {
+   "place_id": "overture:739dd646-42d8-4e7a-8eac-3bc4f61e5d35",
+   "name": "State of Indiana Brookville Lake Reservoir",
+   "category": "park"
+  }
+ }
+}

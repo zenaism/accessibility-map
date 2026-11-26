@@ -1,0 +1,268 @@
+{
+ "regions": [
+  "oxford"
+ ],
+ "author_type": "business",
+ "seeds": [
+  "https://locations.papajohns.com/united-states/oh/45056/oxford/619-s-locust-st",
+  "https://www.texasroadhouse.com/locations/ohio/hamilton",
+  "https://karenspizzeria.com/",
+  "http://www.steinkellercircle.com/circle-bar-oxford-ohio.html",
+  "https://www.marcos.com/",
+  "http://goldstarchili.com/",
+  "https://locations.pizzahut.com/oh/hamilton/1242-main-street",
+  "https://locations.wendys.com/united-states/oh/oxford/5142-college-corner-pike",
+  "https://www.bobevans.com/locations/hamilton",
+  "http://goldendragonhamilton.com/",
+  "https://www.frischs.com/",
+  "https://www.ljsilvers.com/",
+  "https://littlecaesars.com/en-us/store/8716",
+  "http://orderbrunospizza.com/",
+  "https://www.groupon.com/biz/oxford-oh/pachinko-bar-and-grill",
+  "http://www.tacobell.com/",
+  "https://cocinalatina.co/menu",
+  "https://locations.skylinechili.com/skyline-chili-26db83278b35",
+  "https://www.zomato.com/cincinnati/oxford-restaurants",
+  "http://cjironandmetalofnc.iscrapweb.com/",
+  "https://hotheadburritos.com/hamilton-oh",
+  "http://www.churchstsocial.com/",
+  "http://fridgeandpantryoxford.com/",
+  "https://locations.wafflehouse.com/oxford-oh-2491",
+  "http://pizzacheftogo.com/",
+  "http://terrybstavern.com/",
+  "https://locations.raisingcanes.com/oh/hamilton/1479-main-street",
+  "https://miamioh.nmcfood.com/locations/king-cafe",
+  "http://paesanospastahouse.com/",
+  "https://restaurants.applebees.com/en-us/oh/hamilton/700-washington-blvd.-n.w.-87099",
+  "https://www.gaslightbrewhouse.com/",
+  "http://brickhousecafeoxford.com/",
+  "http://www.campusmenus.com/details.php",
+  "https://locations.chipotle.com/oh/hamilton/1455-main-st",
+  "https://www.oxfordsushiking.com/",
+  "https://www.larosas.com/locations/oxford",
+  "http://bar1868.com/",
+  "http://fiesta-charra.com/",
+  "http://shooterssportsgrill.com/",
+  "http://pattersonscafe.com/"
+ ],
+ "scope": {
+  "depth": 2
+ },
+ "budget": {
+  "pages": 340,
+  "per_host": 8,
+  "images": 0,
+  "megabytes": 400,
+  "per_pattern": 10
+ },
+ "assets": "none",
+ "discover": {
+  "sitemaps": true,
+  "feeds": false,
+  "probe_paths": true
+ },
+ "render": "auto",
+ "explore_share": 0.0,
+ "seed_places": {
+  "locations.papajohns.com": {
+   "place_id": "overture:d272a1cd-7111-4f0b-a5cc-0d4544fd855a",
+   "name": "Papa Johns",
+   "category": "restaurant"
+  },
+  "texasroadhouse.com": {
+   "place_id": "overture:c19efcb2-0d37-4df7-b956-010bc8f26a45",
+   "name": "Texas Roadhouse",
+   "category": "restaurant"
+  },
+  "karenspizzeria.com": {
+   "place_id": "overture:8941b417-f298-4e0f-b48d-aadc7beb0c8b",
+   "name": "Karen's Pizzeria",
+   "category": "restaurant"
+  },
+  "steinkellercircle.com": {
+   "place_id": "overture:bbe53463-871b-4d5a-80b1-6a1d10a3d0ec",
+   "name": "Circle Bar",
+   "category": "bar"
+  },
+  "marcos.com": {
+   "place_id": "overture:a66bf822-c6e4-4547-bd49-494ce2064146",
+   "name": "Marco's Pizza",
+   "category": "restaurant"
+  },
+  "goldstarchili.com": {
+   "place_id": "overture:cc0e20c6-e35a-4c35-babe-42af2956573b",
+   "name": "Gold Star Chili",
+   "category": "restaurant"
+  },
+  "locations.pizzahut.com": {
+   "place_id": "overture:8a7c1663-5dc4-4eb0-8845-91ba55c74864",
+   "name": "Pizza Hut",
+   "category": "restaurant"
+  },
+  "locations.wendys.com": {
+   "place_id": "overture:7e8583dc-31c2-4f30-b86a-534fc792d8a7",
+   "name": "Wendy's",
+   "category": "fast_food_restaurant"
+  },
+  "bobevans.com": {
+   "place_id": "overture:4b38e782-a69e-47d4-9725-524099a16fcf",
+   "name": "Bob Evans",
+   "category": "restaurant"
+  },
+  "goldendragonhamilton.com": {
+   "place_id": "overture:0c4cce5c-08ca-4e03-bf02-5f258775e72a",
+   "name": "Golden Dragon Buffet & Grill",
+   "category": "restaurant"
+  },
+  "frischs.com": {
+   "place_id": "overture:91f2a7d1-787c-4c73-9e55-14505f398ee3",
+   "name": "Frisch's Big Boy",
+   "category": "restaurant"
+  },
+  "ljsilvers.com": {
+   "place_id": "overture:662a7873-2d1c-4845-a6a6-3b595826de15",
+   "name": "Long John Silver's",
+   "category": "fast_food_restaurant"
+  },
+  "littlecaesars.com": {
+   "place_id": "overture:5e763b40-674b-4442-8bf1-42e8fde3cb55",
+   "name": "Little Caesars Pizza",
+   "category": "restaurant"
+  },
+  "orderbrunospizza.com": {
+   "place_id": "overture:32e2b732-18ed-47a3-88e8-df36e5e453c6",
+   "name": "Bruno's Pizza",
+   "category": "restaurant"
+  },
+  "groupon.com": {
+   "place_id": "overture:0f1b38e8-8e87-4ae4-8a4f-c700fbbe5f98",
+   "name": "Woody's One Up Bar",
+   "category": "bar"
+  },
+  "tacobell.com": {
+   "place_id": "overture:dc412cb9-452b-4574-8704-2aa02d0dd51e",
+   "name": "Taco Bell",
+   "category": "fast_food_restaurant"
+  },
+  "cocinalatina.co": {
+   "place_id": "overture:5d7b1965-b5ab-4669-9625-78595cafbbbc",
+   "name": "Cocina Latina",
+   "category": "restaurant"
+  },
+  "locations.skylinechili.com": {
+   "place_id": "overture:2dccd13c-d5fb-44e2-83ae-6ac15240dd72",
+   "name": "Skyline Chili",
+   "category": "fast_food_restaurant"
+  },
+  "zomato.com": {
+   "place_id": "overture:adc5c6a3-03e1-4328-a7a2-bb1a7220c49b",
+   "name": "The Hitching Post Saloon",
+   "category": "restaurant"
+  },
+  "cjironandmetalofnc.iscrapweb.com": {
+   "place_id": "overture:6e7ab06d-65e1-45d3-bfaa-43360c7f653b",
+   "name": "CJ's",
+   "category": "bar"
+  },
+  "hotheadburritos.com": {
+   "place_id": "overture:29dc2d32-996e-4555-ad3b-0f86ca7dd787",
+   "name": "Hot Head Burritos",
+   "category": "restaurant"
+  },
+  "churchstsocial.com": {
+   "place_id": "overture:97ac2faa-2c49-4940-a5bc-1fe33d4dce18",
+   "name": "Church Street Social",
+   "category": "restaurant"
+  },
+  "fridgeandpantryoxford.com": {
+   "place_id": "overture:3e003339-23db-43cb-81d9-c1418c08eec3",
+   "name": "Fridge and Pantry",
+   "category": "cafe"
+  },
+  "locations.wafflehouse.com": {
+   "place_id": "overture:85149bc7-f027-4771-b5d0-07ecbdd238d2",
+   "name": "Waffle House",
+   "category": "restaurant"
+  },
+  "pizzacheftogo.com": {
+   "place_id": "overture:00c8c6f1-0694-4ece-8767-b11b6e81e849",
+   "name": "Pizza Chef Gourmet Pizza",
+   "category": "restaurant"
+  },
+  "terrybstavern.com": {
+   "place_id": "overture:cd31aff8-3669-40e1-af87-fecd7ce7bde6",
+   "name": "Terry B's Tavern",
+   "category": "bar"
+  },
+  "locations.raisingcanes.com": {
+   "place_id": "overture:f4bcf9ab-9a6d-4dd7-99b1-2aa01b4ebb6e",
+   "name": "Raising Cane's",
+   "category": "fast_food_restaurant"
+  },
+  "miamioh.nmcfood.com": {
+   "place_id": "overture:debcb0c1-439b-4e54-9675-dc4d402fb4ea",
+   "name": "King Caf\u00e9",
+   "category": "cafe"
+  },
+  "paesanospastahouse.com": {
+   "place_id": "overture:88e866b0-262c-4441-8557-9aeefa8c5549",
+   "name": "Paesano's Pasta House",
+   "category": "restaurant"
+  },
+  "restaurants.applebees.com": {
+   "place_id": "overture:bee122e3-a960-4660-9cb9-3af07e382f53",
+   "name": "Applebee's",
+   "category": "restaurant"
+  },
+  "gaslightbrewhouse.com": {
+   "place_id": "overture:21b0e31a-82d9-43e2-8181-51d76af32101",
+   "name": "Gaslight Brewhouse",
+   "category": "restaurant"
+  },
+  "brickhousecafeoxford.com": {
+   "place_id": "overture:7d983878-de2d-40f8-924f-df208667529b",
+   "name": "Brick House Cafe",
+   "category": "restaurant"
+  },
+  "campusmenus.com": {
+   "place_id": "overture:f0d4c91a-588f-4771-8a9f-a725eb05c058",
+   "name": "El Burrito Loco",
+   "category": "restaurant"
+  },
+  "locations.chipotle.com": {
+   "place_id": "overture:4ee2aa17-e2d2-4985-9fb8-df000c506443",
+   "name": "Chipotle Mexican Grill",
+   "category": "restaurant"
+  },
+  "oxfordsushiking.com": {
+   "place_id": "overture:6911a543-0338-463b-9958-e19d66bf45e9",
+   "name": "Oxford Sushi King",
+   "category": "restaurant"
+  },
+  "larosas.com": {
+   "place_id": "overture:5c60f9c8-abc3-48f3-bac2-93d538c3ba56",
+   "name": "LaRosa's Pizzeria",
+   "category": "restaurant"
+  },
+  "bar1868.com": {
+   "place_id": "overture:1e72ea56-f7c3-4eb3-8444-29037f88de96",
+   "name": "Bar 1868",
+   "category": "bar"
+  },
+  "fiesta-charra.com": {
+   "place_id": "overture:a7d350dc-1a11-4c8a-aa49-d773d2f15aaa",
+   "name": "Fiesta Charra",
+   "category": "restaurant"
+  },
+  "shooterssportsgrill.com": {
+   "place_id": "overture:0e878574-2353-4b6d-91dc-6c2362ebeb75",
+   "name": "Shooters Sports Grill Hamilton",
+   "category": "bar"
+  },
+  "pattersonscafe.com": {
+   "place_id": "overture:530810c6-07aa-4613-8edc-e2a7f7cd6666",
+   "name": "Patterson's Cafe",
+   "category": "cafe"
+  }
+ }
+}
