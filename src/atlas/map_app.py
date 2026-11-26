@@ -139,7 +139,7 @@ def page_html(data: dict, title: str = "Accessibility Map", nav: str = "") -> st
     )
     return (
         '<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8">'
-        f"<title>{title} \u00b7 Accessibility Map</title>"
+        '<title>Accessibility Map</title>'
         '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">'
         '<meta name="description" content="Wheelchair accessibility of places, restrooms, trails and events, with sources.">\n'
         + ui.head_snippet()

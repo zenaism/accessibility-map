@@ -113,7 +113,7 @@ def app_html(inline: str = "") -> str:
     )
     scripts = "\n".join(p.read_text() for p in APP_SCRIPTS)
     return (
-        '<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8"><title>Assistant \u00b7 Accessibility Map</title>'
+        '<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8"><title>Accessibility Map</title>'
         '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">'
         '<meta name="description" content="Ask about accessible places, restrooms, parking, food, events and trails in Cincinnati and Oxford. Answers come with sources and dates.">\n'
         + ui.head_snippet()
@@ -130,7 +130,7 @@ def app_html(inline: str = "") -> str:
 
 PAGE = """<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
-<title>Openway Assistant</title>
+<title>Accessibility Map</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Ask about accessible places, restrooms, parking, food, events and trails in Cincinnati and Oxford. Answers come with sources and dates.">
 <meta name="theme-color" content="#ffffff">
