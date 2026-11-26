@@ -67,6 +67,7 @@ def _map_js() -> str:
     body = (
         (WEB / "map.js")
         .read_text()
+        .replace("/*__VOICE__*/", (WEB / "voice.js").read_text())
         .replace("/*__NAV__*/", (WEB / "nav.js").read_text())
         .replace("/*__REGION__*/", (WEB / "regionui.js").read_text())
     )

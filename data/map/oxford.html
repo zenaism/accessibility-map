@@ -1198,6 +1198,9 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
 .ax .panel-body .banner { flex-wrap: wrap; }
 .ax .panel-body .banner > span { flex: 1 1 160px; min-width: 0; }
 
+/* spoken directions: Voice on/off, Repeat, settings */
+.ax .voicebox { display: grid; gap: var(--s2); margin: var(--s3) 0; }
+
 /* Rate or report (session B2). Foundation tokens only; every rule is under .ax. */
 .ax.rp { position: fixed; inset: 0 0 calc(60px + env(safe-area-inset-bottom, 0px)) 0; z-index: 1500; background: var(--bg); color: var(--text); font-family: var(--font); display: flex; flex-direction: column; }
 .ax.rp .rp-form { display: flex; flex-direction: column; flex: 1; min-height: 0; margin: 0; }
@@ -1310,7 +1313,9 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
   <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
   <line x1="12" x2="12" y1="19" y2="22" /></symbol><symbol id="lucide-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></symbol><symbol id="lucide-more" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" />
   <path d="M12 16v-4" />
-  <path d="M12 8h.01" /></symbol><symbol id="lucide-near" viewBox="0 0 24 24"><line x1="2" x2="5" y1="12" y2="12" />
+  <path d="M12 8h.01" /></symbol><symbol id="lucide-mute" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" />
+  <line x1="22" x2="16" y1="9" y2="15" />
+  <line x1="16" x2="22" y1="9" y2="15" /></symbol><symbol id="lucide-near" viewBox="0 0 24 24"><line x1="2" x2="5" y1="12" y2="12" />
   <line x1="19" x2="22" y1="12" y2="12" />
   <line x1="12" x2="12" y1="2" y2="5" />
   <line x1="12" x2="12" y1="19" y2="22" />
@@ -1327,7 +1332,8 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
   <path d="M9 17V7h4a3 3 0 0 1 0 6H9" /></symbol><symbol id="lucide-partial" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" />
   <path d="M12 18a6 6 0 0 0 0-12v12z" /></symbol><symbol id="lucide-pin" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
   <circle cx="12" cy="10" r="3" /></symbol><symbol id="lucide-plus" viewBox="0 0 24 24"><path d="M5 12h14" />
-  <path d="M12 5v14" /></symbol><symbol id="lucide-report" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+  <path d="M12 5v14" /></symbol><symbol id="lucide-repeat" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+  <path d="M3 3v5h5" /></symbol><symbol id="lucide-report" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
   <line x1="4" x2="4" y1="22" y2="15" /></symbol><symbol id="lucide-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></symbol><symbol id="lucide-route" viewBox="0 0 24 24"><circle cx="6" cy="19" r="3" />
   <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
   <circle cx="18" cy="5" r="3" /></symbol><symbol id="lucide-save" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></symbol><symbol id="lucide-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" />
@@ -1352,7 +1358,9 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
   <line x1="10" x2="10" y1="11" y2="17" />
   <line x1="14" x2="14" y1="11" y2="17" /></symbol><symbol id="lucide-unknown" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" />
   <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-  <path d="M12 17h.01" /></symbol><symbol id="lucide-yes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" />
+  <path d="M12 17h.01" /></symbol><symbol id="lucide-volume" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z" />
+  <path d="M16 9a5 5 0 0 1 0 6" />
+  <path d="M19.364 18.364a9 9 0 0 0 0-12.728" /></symbol><symbol id="lucide-yes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" />
   <path d="m9 12 2 2 4-4" /></symbol></defs></svg>
 <a class="skip" href="#panel-body">Skip to the places</a><header class="appbar phone-bar"><button class="btn btn-ghost btn-icon" aria-label="Back" id="back" hidden type="button"><svg class="ic" aria-hidden="true" focusable="false"><use href="#lucide-back"/></svg></button><h1 class="title" id="appbar-title">Accessibility Map</h1><button type="button" class="btn btn-ghost city-btn" id="city-btn" aria-haspopup="dialog" aria-expanded="false" aria-label="Choose a city"><span class="cn">Choose city</span><svg class="ic" aria-hidden="true" focusable="false"><use href="#lucide-down"/></svg></button><button type="button" class="theme-toggle" role="switch" aria-checked="false" aria-label="Dark theme" data-theme-toggle="" id="theme-toggle"><span class="ts-track"><svg class="ic ts-sun" aria-hidden="true" focusable="false"><use href="#lucide-sun"/></svg><svg class="ic ts-moon" aria-hidden="true" focusable="false"><use href="#lucide-moon"/></svg><span class="ts-knob"></span></span></button></header><div class="only-desktop"><header class="appbar top"><span class="brand"><svg class="ic" aria-hidden="true" focusable="false"><use href="#lucide-map"/></svg>Accessibility Map</span><button type="button" class="btn btn-ghost city-btn" id="city-btn-d" aria-haspopup="dialog" aria-expanded="false" aria-label="Choose a city"><svg class="ic" aria-hidden="true" focusable="false"><use href="#lucide-pin"/></svg><span class="cn">Choose city</span><svg class="ic" aria-hidden="true" focusable="false"><use href="#lucide-down"/></svg></button><nav class="nav-links" aria-label="Main"><a class="btn btn-ghost" href="#" aria-current="page" data-tab="map"><svg class="ic" aria-hidden="true" focusable="false"><use href="#lucide-map"/></svg><span>Map</span></a><a class="btn btn-ghost" href="#saved" data-tab="saved" data-atlas-emit="atlas:open-saved"><svg class="ic" aria-hidden="true" focusable="false"><use href="#lucide-save"/></svg><span>Saved</span></a><button type="button" class="theme-toggle" role="switch" aria-checked="false" aria-label="Dark theme" data-theme-toggle=""><span class="ts-track"><svg class="ic ts-sun" aria-hidden="true" focusable="false"><use href="#lucide-sun"/></svg><svg class="ic ts-moon" aria-hidden="true" focusable="false"><use href="#lucide-moon"/></svg><span class="ts-knob"></span></span></button><a class="btn btn-secondary" href="https://github.com/zenaism/accessibility-map/issues/new" data-tab="report" data-atlas-emit="atlas:open-report"><svg class="ic" aria-hidden="true" focusable="false"><use href="#lucide-report"/></svg><span>Report a problem</span></a><a class="btn btn-primary" href="ask.html" data-tab="ask" data-atlas-emit="atlas:open-ask"><svg class="ic" aria-hidden="true" focusable="false"><use href="#lucide-ask"/></svg><span>Ask</span></a></nav></header><div class="city-pop" id="city-pop" role="region" aria-label="Cities" hidden></div></div><main class="main"><h1 class="vh only-desktop">Accessibility Map</h1><div class="leftcol"><div class="topstack"><div class="search" role="search" aria-label="Search places"><svg class="ic" aria-hidden="true" focusable="false"><use href="#lucide-search"/></svg><input type="search" id="q" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sug" placeholder="Search places" aria-label="Search places" autocomplete="off" enterkeyhint="search"><button class="btn btn-ghost btn-icon" aria-label="Clear search" id="qclear" hidden type="button"><svg class="ic" aria-hidden="true" focusable="false"><use href="#lucide-close"/></svg></button><button class="btn btn-ghost btn-icon" aria-label="Filter by type" id="filter" type="button"><svg class="ic" aria-hidden="true" focusable="false"><use href="#lucide-filter"/></svg></button></div><div class="listbox" role="listbox" id="sug" aria-label="Suggestions" hidden></div><div class="rowbtns" style="flex-wrap:nowrap"><button class="btn btn-secondary" id="near" style="flex:1" type="button"><svg class="ic" aria-hidden="true" focusable="false"><use href="#lucide-near"/></svg><span>Near me</span></button><a class="btn btn-primary" data-atlas-emit="atlas:open-ask" style="flex:1" href="ask.html"><svg class="ic" aria-hidden="true" focusable="false"><use href="#lucide-ask"/></svg><span>Ask</span></a></div></div><section class="panel" id="panel" aria-label="Places"><div class="grab"></div><div class="panel-body" id="panel-body" tabindex="-1"></div></section></div><div class="mapwrap" role="region" aria-label="Map. A visual companion: every place on the map is also in the list."><div id="map"></div><p class="hintpill" id="hint">Map is empty. Search or pick a type.</p><div class="regionpill" id="region-pill" role="status" aria-live="polite" hidden></div><div class="zoom"><button type="button" class="btn btn-icon btn-secondary" id="zin" aria-label="Zoom in">+</button><button type="button" class="btn btn-icon btn-secondary" id="zout" aria-label="Zoom out">−</button></div><span class="credit">USGS The National Map</span></div></main><div class="only-phone"><nav class="tabbar four" aria-label="Main"><a class="tab" href="#" aria-label="Map" aria-current="page" data-tab="map"><svg class="ic" aria-hidden="true" focusable="false"><use href="#lucide-map"/></svg><span>Map</span></a><a class="tab" href="#saved" aria-label="Saved" data-tab="saved" data-atlas-emit="atlas:open-saved"><svg class="ic" aria-hidden="true" focusable="false"><use href="#lucide-save"/></svg><span>Saved</span></a><a class="tab" href="ask.html" aria-label="Ask" data-tab="ask" data-atlas-emit="atlas:open-ask"><svg class="ic" aria-hidden="true" focusable="false"><use href="#lucide-ask"/></svg><span>Ask</span></a><a class="tab" href="https://github.com/zenaism/accessibility-map/issues/new" aria-label="Report a problem" data-tab="report" data-atlas-emit="atlas:open-report"><svg class="ic" aria-hidden="true" focusable="false"><use href="#lucide-report"/></svg><span>Report</span></a></nav></div><p class="vh" id="live" role="status" aria-live="polite"></p><span id="asof" hidden></span>
 <script>/* Atlas UI foundation (session B0): events, behaviours and small helpers shared by every screen.
@@ -1955,6 +1963,162 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
     go(o.details ? 'details' : 'card');
   }
 
+/* Spoken route directions.
+   Three parts in one file so the page and the tests load the same code:
+     AtlasVoice.words   pure wording: route step -> one short sentence to say aloud (distance first)
+     AtlasVoice.create  controller: Voice on or off, speed, repeat, device voice and the optional natural voice
+   Engines: the device voice (speechSynthesis, nothing to download) and the natural voice (Kokoro-82M, int8, in a Web
+   Worker, files served from this site under tts/). If the natural voice is off, still loading or fails, the device
+   voice speaks. Nothing is sent anywhere: the position and the route stay on the phone. Prefs: localStorage "atlas.voice". */
+(function (g) {
+  'use strict';
+
+  // ---------------------------------------------------------------- wording (pure)
+  const LEAD_FT = 100;                                   // say the next step this far before the current one ends
+  const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+  const low = (s) => (s ? s.charAt(0).toLowerCase() + s.slice(1) : s);
+  const feetWord = (ft) => Math.max(10, Math.round(ft / 10) * 10) + ' feet';
+
+  // A step text from the router, e.g. "Cross at the marked crosswalk, 40 feet (no signal); caution: 1 short section steeper than a ramp."
+  // Spoken: the action first, then each warning as its own short sentence.
+  function sentences(step) {
+    let t = String((step && step.text) || '').trim().replace(/\.$/, '');
+    const extra = [];
+    t = t.replace(/\s*\(([^)]*)\)/g, (m, d) => { extra.push(cap(d.trim())); return ''; });
+    const parts = t.split(/;\s*/);
+    const action = parts.shift();
+    parts.forEach((p) => extra.push(cap(p.trim())));
+    return { action: action.trim(), extra };
+  }
+  const join = (action, extra) => [cap(action)].concat(extra).map((s) => s.replace(/[.\s]+$/, '')).join('. ') + '.';
+  function step(s) { const p = sentences(s); return join(p.action, p.extra); }
+  // "Turn right onto the Bishop Street sidewalk for 510 feet" -> "turn right onto the Bishop Street sidewalk"
+  const dropLength = (a) => a.replace(/\s+for\s+[\d.,]+\s+(?:feet|miles?)$/, '').replace(/,\s*[\d.,]+\s+feet$/, '');
+  function ahead(s, feet) {
+    const p = sentences(s);
+    return 'In ' + feetWord(feet) + ', ' + low(dropLength(p.action)) + (p.extra.length ? '. ' + p.extra.map((e) => e.replace(/[.\s]+$/, '')).join('. ') : '') + '.';
+  }
+  const start = (s) => 'Route started. ' + step(s);
+  const arrive = (name) => 'You have arrived' + (name ? ' at ' + name : '') + '.';
+  const words = { step, ahead, start, arrive, LEAD_FT, feetWord };
+
+  // ---------------------------------------------------------------- device voice
+  const PLAIN = /^(Fred|Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Wobble|Zarvox|Trinoids|Whisper|Hysterical|Organ|Superstar|Jester|Junior|Ralph|Kathy|Good News|Grandma|Grandpa|Rocko|Eddy|Flo|Reed|Sandy|Shelley)/;
+  function pickDeviceVoice(list) {
+    const en = (list || []).filter((v) => /^en([-_]|$)/i.test(v.lang || ''));
+    if (!en.length) return null;
+    const score = (v) => (/natural|neural|premium|enhanced|siri/i.test(v.name) ? 8 : 0) + (/en[-_]US/i.test(v.lang) ? 4 : 0) + (v.localService ? 1 : 0)
+      + (/Samantha|Ava|Allison|Susan|Zoe|Aria|Jenny|Google US English|Microsoft .* Online/i.test(v.name) ? 3 : 0) - (PLAIN.test(v.name) ? 6 : 0);
+    return en.slice().sort((a, b) => score(b) - score(a))[0];
+  }
+  const RATE = { slow: 0.85, normal: 1, fast: 1.2 };
+
+  // ---------------------------------------------------------------- controller
+  function create(opt) {
+    opt = opt || {};
+    const win = opt.window || (typeof window !== 'undefined' ? window : {});
+    const store = opt.storage || (win.localStorage || null);
+    const base = opt.base || (win.location ? new URL('tts/', win.location.href).href : 'tts/');
+    const onChange = opt.onChange || function () {};
+    let prefs = { on: false, natural: false, speed: 'normal', voice: 'af_heart' };
+    try { Object.assign(prefs, JSON.parse(store.getItem('atlas.voice') || '{}')); } catch (e) { /* first visit */ }
+    const V = { prefs, natural: 'off', progress: 0, last: '', speaking: false, seq: 0, worker: null, ctx: null, src: null, wait: new Map(), nextId: 1, size: '92 MB' };
+    const save = () => { try { store.setItem('atlas.voice', JSON.stringify(V.prefs)); } catch (e) { /* private mode */ } };
+    const changed = () => { try { onChange(V); } catch (e) { /* the page decides what to redraw */ } };
+    const synth = () => win.speechSynthesis || null;
+    const supported = () => !!(synth() && win.SpeechSynthesisUtterance) || V.natural === 'ready';
+
+    function stopAudio() {
+      V.seq++;
+      if (synth()) { try { synth().cancel(); } catch (e) { /* ignore */ } }
+      if (V.src) { try { V.src.onended = null; V.src.stop(); } catch (e) { /* already stopped */ } V.src = null; }
+      V.speaking = false;
+    }
+    function deviceSpeak(text, seq) {
+      const s = synth(); if (!s || !win.SpeechSynthesisUtterance) return false;
+      const u = new win.SpeechSynthesisUtterance(text);
+      const v = pickDeviceVoice(s.getVoices ? s.getVoices() : []);
+      if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-US';
+      u.rate = RATE[V.prefs.speed] || 1;
+      u.onstart = () => { if (seq === V.seq) V.speaking = true; };
+      u.onend = u.onerror = () => { if (seq === V.seq) { V.speaking = false; } };
+      s.speak(u); return true;
+    }
+    function playPCM(f32, sr, seq) {
+      if (seq !== V.seq || !V.ctx) return;
+      const buf = V.ctx.createBuffer(1, f32.length, sr); buf.copyToChannel(f32, 0);
+      const src = V.ctx.createBufferSource(); src.buffer = buf; src.connect(V.ctx.destination);
+      src.onended = () => { if (V.src === src) { V.src = null; V.speaking = false; } };
+      V.src = src; V.speaking = true; src.start();
+    }
+    function naturalSpeak(text, seq) {
+      const id = V.nextId++;
+      V.wait.set(id, { seq, text });
+      V.worker.postMessage({ type: 'say', id, text, voice: V.prefs.voice, speed: RATE[V.prefs.speed] || 1 });
+    }
+    function failNatural(msg) {
+      V.natural = 'failed'; V.error = msg || ''; V.prefs.natural = false; save();
+      try { if (V.worker) V.worker.terminate(); } catch (e) { /* ignore */ }
+      V.worker = null;
+      V.wait.forEach((w) => { if (w.seq === V.seq) deviceSpeak(w.text, w.seq); });   // whatever was waiting is spoken by the device voice
+      V.wait.clear(); changed();
+    }
+    function loadNatural() {
+      if (V.natural === 'loading' || V.natural === 'ready') return;
+      if (typeof win.Worker === 'undefined') { failNatural('no worker'); return; }
+      V.natural = 'loading'; V.progress = 0; V.error = ''; changed();
+      try { V.worker = new win.Worker(base + 'kokoro-worker.js'); } catch (e) { failNatural(String(e)); return; }
+      let lastPct = -1;
+      V.worker.onmessage = (e) => {
+        const m = e.data || {};
+        if (m.type === 'progress' && m.p && m.p.status === 'progress' && /\.onnx$/.test(m.p.file || '')) {
+          const pct = Math.round(m.p.progress || 0); if (pct !== lastPct && (pct % 5 === 0 || pct === 100)) { lastPct = pct; V.progress = pct; changed(); }
+        } else if (m.type === 'ready') { V.natural = 'ready'; changed(); }
+        else if (m.type === 'audio') { const w = V.wait.get(m.id); V.wait.delete(m.id); if (w) playPCM(m.audio, m.sr, w.seq); }
+        else if (m.type === 'error') { if (m.id) { const w = V.wait.get(m.id); V.wait.delete(m.id); if (w) deviceSpeak(w.text, w.seq); } else failNatural(m.message); }
+      };
+      V.worker.onerror = () => failNatural('worker error');
+      V.worker.postMessage({ type: 'init', base });
+    }
+    // Must run inside a tap: phones only allow audio after one.
+    function unlock() {
+      try { const AC = win.AudioContext || win.webkitAudioContext; if (AC && !V.ctx) V.ctx = new AC(); if (V.ctx && V.ctx.state === 'suspended') V.ctx.resume(); } catch (e) { /* the device voice still works */ }
+      if (synth() && win.SpeechSynthesisUtterance) { try { const u = new win.SpeechSynthesisUtterance(' '); u.volume = 0; synth().speak(u); } catch (e) { /* ignore */ } }
+      if (V.prefs.on && V.prefs.natural && V.natural === 'off') loadNatural();
+    }
+    // Waiting for the natural voice: the device voice speaks, so a step is never silent.
+    function speak(text) {
+      if (!V.prefs.on || !text) return false;
+      V.last = text; stopAudio(); const seq = V.seq;
+      if (V.natural === 'ready' && V.worker) { naturalSpeak(text, seq); return true; }
+      return deviceSpeak(text, seq);
+    }
+    const api = {
+      state: V,
+      isOn: () => !!V.prefs.on,
+      supported,
+      unlock,
+      speak,
+      repeat: (fallback) => { const t = V.last || fallback; if (!t) return false; const was = V.prefs.on; V.prefs.on = true; const r = speak(t); V.prefs.on = was; return r; },
+      stop: stopAudio,
+      setOn(on) { V.prefs.on = !!on; if (!on) stopAudio(); else unlock(); save(); changed(); },
+      setSpeed(s) { if (RATE[s]) { V.prefs.speed = s; save(); changed(); } },
+      setVoice(v) { V.prefs.voice = v; save(); changed(); },
+      setNatural(on) {
+        V.prefs.natural = !!on; save();
+        if (on) { V.natural = V.natural === 'failed' ? 'off' : V.natural; unlock(); loadNatural(); }
+        else { if (V.worker) { V.worker.terminate(); V.worker = null; } V.natural = 'off'; V.wait.clear(); }
+        changed();
+      },
+    };
+    return api;
+  }
+
+  const api = { words, create, pickDeviceVoice, RATE };
+  g.AtlasVoice = api;
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
   // ------------------------------------------------------------------ routes and live navigation
   // Route here: the walking graph in a worker (same engine as the old Directions panel), or the saved route of the place.
   // Live position (watchPosition) and compass heading are used only while following a route; they never leave the device.
@@ -1992,6 +2156,18 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
   }
   const FT = 3.28084;
   const feetText = (ft) => (ft < 1000 ? Math.max(10, Math.round(ft / 10) * 10) + ' ft' : (ft / 5280).toFixed(1) + ' mi');
+  // ---- spoken directions (voice.js). Off by default. The same lines the live region reads, said aloud; nothing leaves the phone.
+  const VW = window.AtlasVoice.words;
+  let voiceOpen = false, prevNatural = 'off';
+  const VOICE = window.AtlasVoice.create({ onChange: () => { paintVoice(); const n = VOICE.state.natural; if (n !== prevNatural) { prevNatural = n; if (n === 'ready') say('Natural voice is ready.'); else if (n === 'failed') say('Natural voice did not load. The device voice is used.'); } } });
+  // Voice on: speak and leave the live region alone (a screen reader would say it twice). Voice off: as before.
+  const hear = (plain, spoken) => { if (VOICE.isOn()) VOICE.speak(spoken === undefined ? plain : spoken); else say(plain); };
+  const stepSpeech = (i, first) => {
+    const steps = N.model.steps, s = steps[i], rem = remaining(i), nxt = steps[i + 1];
+    let t = first ? VW.start(s) : VW.step(s);
+    if (nxt && rem <= VW.LEAD_FT + 50) { t += ' ' + VW.ahead(nxt, rem); N.aheadFor = i; }
+    return t;
+  };
   const cumLen = (line) => { const c = [0]; for (let i = 1; i < line.length; i++) c.push(c[i - 1] + metres([line[i - 1][1], line[i - 1][0]], [line[i][1], line[i][0]])); return c; };
   function modelFromGraph(r) {
     return { source: 'graph', line: r.line, steps: r.stepList.map((s) => ({ text: s.text, kind: s.kind, feet: s.feet, fromIdx: s.fromIdx, toIdx: s.toIdx, warnings: s.warnings })), feet: r.length_feet, compare: r.compared_with_shortest, cum: cumLen(r.line) };
@@ -2036,7 +2212,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
   }
   const stepAt = (model, idx) => { const i = model.steps.findIndex((s) => idx >= s.fromIdx && idx < s.toIdx); return i < 0 ? model.steps.length - 1 : i; };
 
-  const N = { it: null, model: null, from: null, status: 'idle', watch: null, fix: null, following: true, step: 0, auto: -1, compass: 'unknown', heading: null, course: null, offCount: 0, lastRoute: 0, idleTimer: null, noFixTimer: null, compassTimer: null, wasActive: false, msg: '', layers: [] };
+  const N = { it: null, model: null, from: null, status: 'idle', watch: null, fix: null, following: true, step: 0, auto: -1, aheadFor: -1, started: false, compass: 'unknown', heading: null, course: null, offCount: 0, lastRoute: 0, idleTimer: null, noFixTimer: null, compassTimer: null, wasActive: false, msg: '', layers: [] };
   const ROUGH = 50, ARRIVE = 25, OFF = 45, IDLE_MS = 5 * 60 * 1000;
   function clearRouteLayers() { N.layers.forEach((l) => map.removeLayer(l)); N.layers = []; }
   function drawRoute(fitToo) {
@@ -2049,7 +2225,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
   function navLeave() { navStopWatch(); clearRouteLayers(); if (youMarker && N.status !== 'idle') { /* keep the dot if Near me placed it */ } N.status = 'idle'; N.it = null; N.model = null; N.fix = null; clearTimeout(N.idleTimer); window.removeEventListener('deviceorientationabsolute', onOrient, true); window.removeEventListener('deviceorientation', onOrient, true); }
   async function navOpen(it) {
     navLeave();
-    N.it = it; S.it = it; N.step = 0; N.auto = -1; N.following = true; N.msg = '';
+    N.it = it; S.it = it; N.step = 0; N.auto = -1; N.aheadFor = -1; N.started = false; N.following = true; N.msg = '';
     const from = S.here || (() => { const c = map.getCenter(); return [c.lat, c.lng]; })();
     N.from = from; N.fromLabel = S.here ? 'where you were last placed' : 'the middle of the map';
     go('route');
@@ -2070,6 +2246,35 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
     if (N.fix && N.status !== 'denied') { const pr = project(N.fix, N.model); const endAlong = N.model.cum[Math.min(st.toIdx, N.model.cum.length - 1)]; return Math.max(0, Math.round((endAlong - pr.along) * FT)); }
     return st.feet;
   }
+  const voiceStatus = () => {
+    const v = VOICE.state;
+    if (!VOICE.supported() && v.natural !== 'loading') return 'This device cannot speak. Use the written steps.';
+    if (v.natural === 'loading') return 'Downloading the natural voice: ' + v.progress + '%. The device voice speaks meanwhile.';
+    if (v.natural === 'ready') return 'Natural voice is ready. It works offline.';
+    if (v.natural === 'failed') return 'The natural voice did not load. The device voice is used.';
+    return 'Now using the voice of this device.';
+  };
+  const SPEEDS = [['slow', 'Slow'], ['normal', 'Normal'], ['fast', 'Fast']];
+  function voiceBox() {
+    const p = VOICE.state.prefs;
+    return '<div id="voicebox" class="voicebox"><div class="rowbtns" style="display:grid;grid-template-columns:1fr 1fr">'
+      + '<button type="button" class="btn btn-secondary" role="switch" aria-checked="' + p.on + '" data-nav="voice">' + icon(p.on ? 'volume' : 'mute') + '<span>Voice ' + (p.on ? 'on' : 'off') + '</span></button>'
+      + '<button type="button" class="btn btn-secondary" data-nav="repeat">' + icon('repeat') + '<span>Repeat</span></button></div>'
+      + '<details class="disc" id="voiceset"' + (voiceOpen ? ' open' : '') + '><summary>' + icon('settings') + '<span>Voice settings</span>' + icon('down') + '</summary><div class="body">'
+      + '<p class="muted small" id="speedlabel">Speed</p><div class="rowbtns" role="radiogroup" aria-labelledby="speedlabel" style="display:grid;grid-template-columns:repeat(3,1fr)">'
+      + SPEEDS.map((s) => '<button type="button" class="btn ' + (p.speed === s[0] ? 'btn-primary' : 'btn-secondary') + '" role="radio" aria-checked="' + (p.speed === s[0]) + '" data-nav="speed" data-speed="' + s[0] + '">' + s[1] + '</button>').join('') + '</div>'
+      + '<button type="button" class="btn btn-secondary block" role="switch" aria-checked="' + !!p.natural + '" data-nav="natural" aria-describedby="voicestatus">' + icon('volume') + '<span>Natural voice (about ' + VOICE.state.size + ', once)</span></button>'
+      + '<p class="muted small" id="voicestatus">' + esc(voiceStatus()) + '</p></div></details></div>';
+  }
+  function paintVoice() {   // update in place so the focus stays where it is
+    const box = document.getElementById('voicebox'); if (!box) return;
+    const p = VOICE.state.prefs, vb = box.querySelector('[data-nav=voice]'), nb = box.querySelector('[data-nav=natural]');
+    vb.setAttribute('aria-checked', String(p.on)); vb.innerHTML = icon(p.on ? 'volume' : 'mute') + '<span>Voice ' + (p.on ? 'on' : 'off') + '</span>';
+    box.querySelectorAll('[data-speed]').forEach((b) => { const on = b.dataset.speed === p.speed; b.setAttribute('aria-checked', String(on)); b.className = 'btn ' + (on ? 'btn-primary' : 'btn-secondary'); });
+    nb.setAttribute('aria-checked', String(!!p.natural));
+    box.querySelector('#voicestatus').textContent = voiceStatus();
+  }
+  document.addEventListener('toggle', (e) => { if (e.target && e.target.id === 'voiceset') voiceOpen = e.target.open; }, true);
   function navRender() {
     const it = N.it, m = N.model;
     if (!it || !m) return;
@@ -2083,7 +2288,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
       show(head + '<h3 class="sec" style="font-size:var(--fs-lead)">To ' + esc(it.p.name) + '</h3>'
         + '<p class="muted">' + feetText(m.feet) + ' by the step-free way, ' + total + ' steps, about ' + mins + ' min. From ' + esc(N.fromLabel) + '.' + (m.source === 'saved' ? ' Saved route.' : '') + '</p>'
         + '<p class="muted small">' + esc(m.compare || '') + ' Suggested from map data, not checked on site.</p>'
-        + stepsList(m, -1) + btn('start', 'route', 'Start', 'primary', ' style="width:100%"')
+        + voiceBox() + stepsList(m, -1) + btn('start', 'route', 'Start', 'primary', ' style="width:100%"')
         + note('alert', 'Location is used only while you follow the route.'), { label: 'Route', title: 'Route', tall: true, focus: false });
       return;
     }
@@ -2117,20 +2322,20 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
       + '<div class="stepcard" tabindex="0" aria-label="Next step"><span class="count">Step ' + (i + 1) + ' of ' + total + '</span><span class="dist">' + feetText(dist) + '</span><span class="what">' + icon(st.kind === 'cross' ? 'alert' : 'right') + esc(st.text) + '</span></div>'
       + '<div class="rowbtns" style="display:grid;grid-template-columns:1fr 1fr"><button type="button" class="btn btn-secondary" data-nav="prev"' + (i === 0 ? ' disabled' : '') + '>' + icon('back') + '<span>Previous</span></button><button type="button" class="btn btn-secondary" data-nav="next"' + (i === total - 1 ? ' disabled' : '') + '>' + icon('right') + '<span>Next step</span></button></div>'
       + '<div class="rowbtns" style="display:grid;grid-template-columns:1fr 1fr">' + (manual ? btn('centre', 'near', 'Start from map centre') : btn('follow', 'near', 'Follow me')) + (N.status === 'nosignal' ? btn('start', 'near', 'Try again') : btn('stop', 'stop', 'Stop', 'danger')) + '</div>'
-      + (manual && N.status === 'denied' ? '<div class="rowbtns">' + btn('stop', 'close', 'Close route', 'ghost') + '</div>' : '') + allSteps(m, i, false) + privacy, { label: 'Route', title: 'Route', focus: false });
+      + (manual && N.status === 'denied' ? '<div class="rowbtns">' + btn('stop', 'close', 'Close route', 'ghost') + '</div>' : '') + voiceBox() + allSteps(m, i, false) + privacy, { label: 'Route', title: 'Route', focus: false });
   }
   // ---- watching the position
   function navStopWatch() { if (N.watch != null && navigator.geolocation) navigator.geolocation.clearWatch(N.watch); N.watch = null; clearTimeout(N.noFixTimer); clearTimeout(N.compassTimer); }
-  function touch() { clearTimeout(N.idleTimer); if (N.watch != null) N.idleTimer = setTimeout(() => { navStopWatch(); N.status = 'idleStop'; navRender(); say('Stopped after 5 minutes to save battery.'); }, IDLE_MS); }
-  function noFixWait() { clearTimeout(N.noFixTimer); N.noFixTimer = setTimeout(() => { if (N.watch != null && N.status !== 'nosignal') { N.status = 'nosignal'; if (S.view === 'route') navRender(); say('No signal. Position not found.'); } }, 15000); }
+  function touch() { clearTimeout(N.idleTimer); if (N.watch != null) N.idleTimer = setTimeout(() => { navStopWatch(); N.status = 'idleStop'; navRender(); hear('Stopped after 5 minutes to save battery.'); }, IDLE_MS); }
+  function noFixWait() { clearTimeout(N.noFixTimer); N.noFixTimer = setTimeout(() => { if (N.watch != null && N.status !== 'nosignal') { N.status = 'nosignal'; if (S.view === 'route') navRender(); hear('No signal. Position not found.'); } }, 15000); }
   function navStart() {
     navStopWatch();
-    N.status = 'locating'; N.fix = null; N.offCount = 0; navRender(); say('Finding you.');
+    N.status = 'locating'; N.fix = null; N.offCount = 0; navRender(); hear('Finding you.');
     if (!navigator.geolocation) { N.status = 'denied'; navRender(); return; }
     noFixWait();
     N.watch = navigator.geolocation.watchPosition(onFix, (err) => {
-      if (err.code === 1) { navStopWatch(); N.status = 'denied'; navRender(); say('Location is off. Use the steps by hand.'); return; }
-      if (!N.fix && N.status !== 'nosignal') { N.status = 'nosignal'; navRender(); say('No signal. Position not found.'); }   // keep watching: a later fix recovers by itself
+      if (err.code === 1) { navStopWatch(); N.status = 'denied'; navRender(); hear('Location is off. Use the steps by hand.'); return; }
+      if (!N.fix && N.status !== 'nosignal') { N.status = 'nosignal'; navRender(); hear('No signal. Position not found.'); }   // keep watching: a later fix recovers by itself
     }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 });
     startCompass(); touch();
   }
@@ -2149,13 +2354,14 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
     const pr = project(here, N.model), total = N.model.cum[N.model.cum.length - 1];
     if (metres(here, [N.model.line[N.model.line.length - 1][1], N.model.line[N.model.line.length - 1][0]]) < ARRIVE || pr.along > total - ARRIVE) { arrive(); return; }
     const auto = stepAt(N.model, pr.idx);
-    if (auto !== N.auto) { N.auto = auto; N.step = auto; say('Step ' + (auto + 1) + ' of ' + N.model.steps.length + '. ' + N.model.steps[auto].text); }
+    if (auto !== N.auto) { const first = !N.started; N.started = true; N.auto = auto; N.step = auto; N.aheadFor = -1; hear('Step ' + (auto + 1) + ' of ' + N.model.steps.length + '. ' + N.model.steps[auto].text, VOICE.isOn() ? stepSpeech(auto, first) : ''); }
+    else if (VOICE.isOn() && N.aheadFor !== auto && N.model.steps[auto + 1] && remaining(auto) <= VW.LEAD_FT) { N.aheadFor = auto; VOICE.speak(VW.ahead(N.model.steps[auto + 1], remaining(auto))); }
     if (pr.off > OFF && N.status === 'ok') {
       N.offCount++;
       if (N.offCount >= 2 && Date.now() - N.lastRoute > 15000) {
         N.lastRoute = Date.now(); N.offCount = 0;
         const m = await computeRoute(here, N.it);
-        if (m && m.source === 'graph' && m.steps.length) { N.model = m; N.auto = -1; N.step = 0; N.msg = 'Route updated from where you are.'; drawRoute(false); say('Route updated.'); }
+        if (m && m.source === 'graph' && m.steps.length) { N.model = m; N.auto = -1; N.step = 0; N.msg = 'Route updated from where you are.'; drawRoute(false); hear('Route updated.'); }
         else N.msg = 'You are off the saved route. Steps may not match.';
       }
     } else { N.offCount = 0; if (pr.off <= OFF) N.msg = ''; }
@@ -2167,7 +2373,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
     const z = map.getZoom();
     map.setView(map.unproject(map.project(L.latLng(pos), z).add([0, panelHeight() / 2 - 20]), z), z, { animate: !REDUCED.matches });
   }
-  function arrive() { navStopWatch(); N.status = 'arrived'; navRender(); say('You are here. ' + N.model.steps[N.model.steps.length - 1].text); }
+  function arrive() { navStopWatch(); N.status = 'arrived'; navRender(); hear('You are here. ' + N.model.steps[N.model.steps.length - 1].text, VW.arrive(N.it.p.name)); }
   // ---- compass
   function onOrient(e) {
     let h = null;
@@ -2195,12 +2401,16 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
     const t = e.target.closest('[data-nav]'); if (!t || !N.it) return;
     const a = t.dataset.nav, total = N.model ? N.model.steps.length : 0;
     touch();
-    if (a === 'start') { N.following = true; navStart(); }
+    if (a === 'start') { VOICE.unlock(); N.following = true; navStart(); }
+    else if (a === 'voice') { VOICE.setOn(!VOICE.isOn()); if (VOICE.isOn()) VOICE.speak('Voice on.'); else say('Voice off.'); }
+    else if (a === 'repeat') { VOICE.unlock(); if (!VOICE.repeat(N.model ? VW.step(N.model.steps[Math.max(0, Math.min(N.step, N.model.steps.length - 1))]) : '')) say('Nothing to repeat yet.'); }
+    else if (a === 'speed') { VOICE.setSpeed(t.dataset.speed); if (VOICE.isOn()) VOICE.speak('This is the ' + t.dataset.speed + ' speed.'); }
+    else if (a === 'natural') { VOICE.setNatural(!VOICE.state.prefs.natural); }
     else if (a === 'cancel') { navStopWatch(); N.status = 'idle'; navRender(); }
-    else if (a === 'stop') { navStopWatch(); clearTimeout(N.idleTimer); if (N.status === 'denied') { N.status = 'idle'; back(); return; } N.status = 'stopped'; navRender(); say('Stopped. Location is off.'); const b = $('[data-nav=start]'); if (b) b.focus(); }
+    else if (a === 'stop') { navStopWatch(); clearTimeout(N.idleTimer); if (N.status === 'denied') { N.status = 'idle'; back(); return; } N.status = 'stopped'; navRender(); hear('Stopped. Location is off.'); const b = $('[data-nav=start]'); if (b) b.focus(); }
     else if (a === 'done') { back(); }
     else if (a === 'steps') { const el = $('#allsteps'); el.hidden = !el.hidden; }
-    else if (a === 'prev' || a === 'next') { N.step = Math.max(0, Math.min(total - 1, N.step + (a === 'next' ? 1 : -1))); navRender(); const b = $('[data-nav=' + a + ']:not([disabled])') || $('.stepcard'); b.focus(); say('Step ' + (N.step + 1) + ' of ' + total + '. ' + N.model.steps[N.step].text); }
+    else if (a === 'prev' || a === 'next') { N.step = Math.max(0, Math.min(total - 1, N.step + (a === 'next' ? 1 : -1))); navRender(); const b = $('[data-nav=' + a + ']:not([disabled])') || $('.stepcard'); b.focus(); hear('Step ' + (N.step + 1) + ' of ' + total + '. ' + N.model.steps[N.step].text, VW.step(N.model.steps[N.step])); }
     else if (a === 'follow') { N.following = true; if (N.fix) followPan(N.fix); navRender(); const b = $('[data-nav=follow]'); if (b) b.focus(); }
     else if (a === 'centre') { const c = map.getCenter(); N.from = [c.lat, c.lng]; computeRoute(N.from, N.it).then((m) => { if (m) { N.model = m; N.step = 0; drawRoute(true); } navRender(); }); }
     else if (a === 'compass') askCompass();
@@ -2212,7 +2422,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
     if (document.hidden && N.watch != null) { N.wasActive = true; navStopWatch(); }
     else if (!document.hidden && N.wasActive && S.view === 'route' && ['ok', 'rough', 'locating', 'nosignal'].includes(N.status)) { N.wasActive = false; navStart(); }
   });
-  window.AtlasNav = { N, project, modelFromSaved, onFix, navStart };
+  window.AtlasNav = { N, project, modelFromSaved, onFix, navStart, VOICE };
 
   // ------------------------------------------------------------------ cities: the region as a variable (B4)
   // Order of choice: ?region= in the address (this visit only), then the choice saved on this device, then the closest

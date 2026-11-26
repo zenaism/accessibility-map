@@ -104,3 +104,6 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
 .ax .panel-body h2[tabindex="-1"]:focus, .ax .panel-body h3[tabindex="-1"]:focus { outline: none; }
 .ax .panel-body .banner { flex-wrap: wrap; }
 .ax .panel-body .banner > span { flex: 1 1 160px; min-width: 0; }
+
+/* spoken directions: Voice on/off, Repeat, settings */
+.ax .voicebox { display: grid; gap: var(--s2); margin: var(--s3) 0; }

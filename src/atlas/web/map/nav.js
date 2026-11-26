@@ -35,6 +35,18 @@
   }
   const FT = 3.28084;
   const feetText = (ft) => (ft < 1000 ? Math.max(10, Math.round(ft / 10) * 10) + ' ft' : (ft / 5280).toFixed(1) + ' mi');
+  // ---- spoken directions (voice.js). Off by default. The same lines the live region reads, said aloud; nothing leaves the phone.
+  const VW = window.AtlasVoice.words;
+  let voiceOpen = false, prevNatural = 'off';
+  const VOICE = window.AtlasVoice.create({ onChange: () => { paintVoice(); const n = VOICE.state.natural; if (n !== prevNatural) { prevNatural = n; if (n === 'ready') say('Natural voice is ready.'); else if (n === 'failed') say('Natural voice did not load. The device voice is used.'); } } });
+  // Voice on: speak and leave the live region alone (a screen reader would say it twice). Voice off: as before.
+  const hear = (plain, spoken) => { if (VOICE.isOn()) VOICE.speak(spoken === undefined ? plain : spoken); else say(plain); };
+  const stepSpeech = (i, first) => {
+    const steps = N.model.steps, s = steps[i], rem = remaining(i), nxt = steps[i + 1];
+    let t = first ? VW.start(s) : VW.step(s);
+    if (nxt && rem <= VW.LEAD_FT + 50) { t += ' ' + VW.ahead(nxt, rem); N.aheadFor = i; }
+    return t;
+  };
   const cumLen = (line) => { const c = [0]; for (let i = 1; i < line.length; i++) c.push(c[i - 1] + metres([line[i - 1][1], line[i - 1][0]], [line[i][1], line[i][0]])); return c; };
   function modelFromGraph(r) {
     return { source: 'graph', line: r.line, steps: r.stepList.map((s) => ({ text: s.text, kind: s.kind, feet: s.feet, fromIdx: s.fromIdx, toIdx: s.toIdx, warnings: s.warnings })), feet: r.length_feet, compare: r.compared_with_shortest, cum: cumLen(r.line) };
@@ -79,7 +91,7 @@
   }
   const stepAt = (model, idx) => { const i = model.steps.findIndex((s) => idx >= s.fromIdx && idx < s.toIdx); return i < 0 ? model.steps.length - 1 : i; };
 
-  const N = { it: null, model: null, from: null, status: 'idle', watch: null, fix: null, following: true, step: 0, auto: -1, compass: 'unknown', heading: null, course: null, offCount: 0, lastRoute: 0, idleTimer: null, noFixTimer: null, compassTimer: null, wasActive: false, msg: '', layers: [] };
+  const N = { it: null, model: null, from: null, status: 'idle', watch: null, fix: null, following: true, step: 0, auto: -1, aheadFor: -1, started: false, compass: 'unknown', heading: null, course: null, offCount: 0, lastRoute: 0, idleTimer: null, noFixTimer: null, compassTimer: null, wasActive: false, msg: '', layers: [] };
   const ROUGH = 50, ARRIVE = 25, OFF = 45, IDLE_MS = 5 * 60 * 1000;
   function clearRouteLayers() { N.layers.forEach((l) => map.removeLayer(l)); N.layers = []; }
   function drawRoute(fitToo) {
@@ -92,7 +104,7 @@
   function navLeave() { navStopWatch(); clearRouteLayers(); if (youMarker && N.status !== 'idle') { /* keep the dot if Near me placed it */ } N.status = 'idle'; N.it = null; N.model = null; N.fix = null; clearTimeout(N.idleTimer); window.removeEventListener('deviceorientationabsolute', onOrient, true); window.removeEventListener('deviceorientation', onOrient, true); }
   async function navOpen(it) {
     navLeave();
-    N.it = it; S.it = it; N.step = 0; N.auto = -1; N.following = true; N.msg = '';
+    N.it = it; S.it = it; N.step = 0; N.auto = -1; N.aheadFor = -1; N.started = false; N.following = true; N.msg = '';
     const from = S.here || (() => { const c = map.getCenter(); return [c.lat, c.lng]; })();
     N.from = from; N.fromLabel = S.here ? 'where you were last placed' : 'the middle of the map';
     go('route');
@@ -113,6 +125,35 @@
     if (N.fix && N.status !== 'denied') { const pr = project(N.fix, N.model); const endAlong = N.model.cum[Math.min(st.toIdx, N.model.cum.length - 1)]; return Math.max(0, Math.round((endAlong - pr.along) * FT)); }
     return st.feet;
   }
+  const voiceStatus = () => {
+    const v = VOICE.state;
+    if (!VOICE.supported() && v.natural !== 'loading') return 'This device cannot speak. Use the written steps.';
+    if (v.natural === 'loading') return 'Downloading the natural voice: ' + v.progress + '%. The device voice speaks meanwhile.';
+    if (v.natural === 'ready') return 'Natural voice is ready. It works offline.';
+    if (v.natural === 'failed') return 'The natural voice did not load. The device voice is used.';
+    return 'Now using the voice of this device.';
+  };
+  const SPEEDS = [['slow', 'Slow'], ['normal', 'Normal'], ['fast', 'Fast']];
+  function voiceBox() {
+    const p = VOICE.state.prefs;
+    return '<div id="voicebox" class="voicebox"><div class="rowbtns" style="display:grid;grid-template-columns:1fr 1fr">'
+      + '<button type="button" class="btn btn-secondary" role="switch" aria-checked="' + p.on + '" data-nav="voice">' + icon(p.on ? 'volume' : 'mute') + '<span>Voice ' + (p.on ? 'on' : 'off') + '</span></button>'
+      + '<button type="button" class="btn btn-secondary" data-nav="repeat">' + icon('repeat') + '<span>Repeat</span></button></div>'
+      + '<details class="disc" id="voiceset"' + (voiceOpen ? ' open' : '') + '><summary>' + icon('settings') + '<span>Voice settings</span>' + icon('down') + '</summary><div class="body">'
+      + '<p class="muted small" id="speedlabel">Speed</p><div class="rowbtns" role="radiogroup" aria-labelledby="speedlabel" style="display:grid;grid-template-columns:repeat(3,1fr)">'
+      + SPEEDS.map((s) => '<button type="button" class="btn ' + (p.speed === s[0] ? 'btn-primary' : 'btn-secondary') + '" role="radio" aria-checked="' + (p.speed === s[0]) + '" data-nav="speed" data-speed="' + s[0] + '">' + s[1] + '</button>').join('') + '</div>'
+      + '<button type="button" class="btn btn-secondary block" role="switch" aria-checked="' + !!p.natural + '" data-nav="natural" aria-describedby="voicestatus">' + icon('volume') + '<span>Natural voice (about ' + VOICE.state.size + ', once)</span></button>'
+      + '<p class="muted small" id="voicestatus">' + esc(voiceStatus()) + '</p></div></details></div>';
+  }
+  function paintVoice() {   // update in place so the focus stays where it is
+    const box = document.getElementById('voicebox'); if (!box) return;
+    const p = VOICE.state.prefs, vb = box.querySelector('[data-nav=voice]'), nb = box.querySelector('[data-nav=natural]');
+    vb.setAttribute('aria-checked', String(p.on)); vb.innerHTML = icon(p.on ? 'volume' : 'mute') + '<span>Voice ' + (p.on ? 'on' : 'off') + '</span>';
+    box.querySelectorAll('[data-speed]').forEach((b) => { const on = b.dataset.speed === p.speed; b.setAttribute('aria-checked', String(on)); b.className = 'btn ' + (on ? 'btn-primary' : 'btn-secondary'); });
+    nb.setAttribute('aria-checked', String(!!p.natural));
+    box.querySelector('#voicestatus').textContent = voiceStatus();
+  }
+  document.addEventListener('toggle', (e) => { if (e.target && e.target.id === 'voiceset') voiceOpen = e.target.open; }, true);
   function navRender() {
     const it = N.it, m = N.model;
     if (!it || !m) return;
@@ -126,7 +167,7 @@
       show(head + '<h3 class="sec" style="font-size:var(--fs-lead)">To ' + esc(it.p.name) + '</h3>'
         + '<p class="muted">' + feetText(m.feet) + ' by the step-free way, ' + total + ' steps, about ' + mins + ' min. From ' + esc(N.fromLabel) + '.' + (m.source === 'saved' ? ' Saved route.' : '') + '</p>'
         + '<p class="muted small">' + esc(m.compare || '') + ' Suggested from map data, not checked on site.</p>'
-        + stepsList(m, -1) + btn('start', 'route', 'Start', 'primary', ' style="width:100%"')
+        + voiceBox() + stepsList(m, -1) + btn('start', 'route', 'Start', 'primary', ' style="width:100%"')
         + note('alert', 'Location is used only while you follow the route.'), { label: 'Route', title: 'Route', tall: true, focus: false });
       return;
     }
@@ -160,20 +201,20 @@
       + '<div class="stepcard" tabindex="0" aria-label="Next step"><span class="count">Step ' + (i + 1) + ' of ' + total + '</span><span class="dist">' + feetText(dist) + '</span><span class="what">' + icon(st.kind === 'cross' ? 'alert' : 'right') + esc(st.text) + '</span></div>'
       + '<div class="rowbtns" style="display:grid;grid-template-columns:1fr 1fr"><button type="button" class="btn btn-secondary" data-nav="prev"' + (i === 0 ? ' disabled' : '') + '>' + icon('back') + '<span>Previous</span></button><button type="button" class="btn btn-secondary" data-nav="next"' + (i === total - 1 ? ' disabled' : '') + '>' + icon('right') + '<span>Next step</span></button></div>'
       + '<div class="rowbtns" style="display:grid;grid-template-columns:1fr 1fr">' + (manual ? btn('centre', 'near', 'Start from map centre') : btn('follow', 'near', 'Follow me')) + (N.status === 'nosignal' ? btn('start', 'near', 'Try again') : btn('stop', 'stop', 'Stop', 'danger')) + '</div>'
-      + (manual && N.status === 'denied' ? '<div class="rowbtns">' + btn('stop', 'close', 'Close route', 'ghost') + '</div>' : '') + allSteps(m, i, false) + privacy, { label: 'Route', title: 'Route', focus: false });
+      + (manual && N.status === 'denied' ? '<div class="rowbtns">' + btn('stop', 'close', 'Close route', 'ghost') + '</div>' : '') + voiceBox() + allSteps(m, i, false) + privacy, { label: 'Route', title: 'Route', focus: false });
   }
   // ---- watching the position
   function navStopWatch() { if (N.watch != null && navigator.geolocation) navigator.geolocation.clearWatch(N.watch); N.watch = null; clearTimeout(N.noFixTimer); clearTimeout(N.compassTimer); }
-  function touch() { clearTimeout(N.idleTimer); if (N.watch != null) N.idleTimer = setTimeout(() => { navStopWatch(); N.status = 'idleStop'; navRender(); say('Stopped after 5 minutes to save battery.'); }, IDLE_MS); }
-  function noFixWait() { clearTimeout(N.noFixTimer); N.noFixTimer = setTimeout(() => { if (N.watch != null && N.status !== 'nosignal') { N.status = 'nosignal'; if (S.view === 'route') navRender(); say('No signal. Position not found.'); } }, 15000); }
+  function touch() { clearTimeout(N.idleTimer); if (N.watch != null) N.idleTimer = setTimeout(() => { navStopWatch(); N.status = 'idleStop'; navRender(); hear('Stopped after 5 minutes to save battery.'); }, IDLE_MS); }
+  function noFixWait() { clearTimeout(N.noFixTimer); N.noFixTimer = setTimeout(() => { if (N.watch != null && N.status !== 'nosignal') { N.status = 'nosignal'; if (S.view === 'route') navRender(); hear('No signal. Position not found.'); } }, 15000); }
   function navStart() {
     navStopWatch();
-    N.status = 'locating'; N.fix = null; N.offCount = 0; navRender(); say('Finding you.');
+    N.status = 'locating'; N.fix = null; N.offCount = 0; navRender(); hear('Finding you.');
     if (!navigator.geolocation) { N.status = 'denied'; navRender(); return; }
     noFixWait();
     N.watch = navigator.geolocation.watchPosition(onFix, (err) => {
-      if (err.code === 1) { navStopWatch(); N.status = 'denied'; navRender(); say('Location is off. Use the steps by hand.'); return; }
-      if (!N.fix && N.status !== 'nosignal') { N.status = 'nosignal'; navRender(); say('No signal. Position not found.'); }   // keep watching: a later fix recovers by itself
+      if (err.code === 1) { navStopWatch(); N.status = 'denied'; navRender(); hear('Location is off. Use the steps by hand.'); return; }
+      if (!N.fix && N.status !== 'nosignal') { N.status = 'nosignal'; navRender(); hear('No signal. Position not found.'); }   // keep watching: a later fix recovers by itself
     }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 });
     startCompass(); touch();
   }
@@ -192,13 +233,14 @@
     const pr = project(here, N.model), total = N.model.cum[N.model.cum.length - 1];
     if (metres(here, [N.model.line[N.model.line.length - 1][1], N.model.line[N.model.line.length - 1][0]]) < ARRIVE || pr.along > total - ARRIVE) { arrive(); return; }
     const auto = stepAt(N.model, pr.idx);
-    if (auto !== N.auto) { N.auto = auto; N.step = auto; say('Step ' + (auto + 1) + ' of ' + N.model.steps.length + '. ' + N.model.steps[auto].text); }
+    if (auto !== N.auto) { const first = !N.started; N.started = true; N.auto = auto; N.step = auto; N.aheadFor = -1; hear('Step ' + (auto + 1) + ' of ' + N.model.steps.length + '. ' + N.model.steps[auto].text, VOICE.isOn() ? stepSpeech(auto, first) : ''); }
+    else if (VOICE.isOn() && N.aheadFor !== auto && N.model.steps[auto + 1] && remaining(auto) <= VW.LEAD_FT) { N.aheadFor = auto; VOICE.speak(VW.ahead(N.model.steps[auto + 1], remaining(auto))); }
     if (pr.off > OFF && N.status === 'ok') {
       N.offCount++;
       if (N.offCount >= 2 && Date.now() - N.lastRoute > 15000) {
         N.lastRoute = Date.now(); N.offCount = 0;
         const m = await computeRoute(here, N.it);
-        if (m && m.source === 'graph' && m.steps.length) { N.model = m; N.auto = -1; N.step = 0; N.msg = 'Route updated from where you are.'; drawRoute(false); say('Route updated.'); }
+        if (m && m.source === 'graph' && m.steps.length) { N.model = m; N.auto = -1; N.step = 0; N.msg = 'Route updated from where you are.'; drawRoute(false); hear('Route updated.'); }
         else N.msg = 'You are off the saved route. Steps may not match.';
       }
     } else { N.offCount = 0; if (pr.off <= OFF) N.msg = ''; }
@@ -210,7 +252,7 @@
     const z = map.getZoom();
     map.setView(map.unproject(map.project(L.latLng(pos), z).add([0, panelHeight() / 2 - 20]), z), z, { animate: !REDUCED.matches });
   }
-  function arrive() { navStopWatch(); N.status = 'arrived'; navRender(); say('You are here. ' + N.model.steps[N.model.steps.length - 1].text); }
+  function arrive() { navStopWatch(); N.status = 'arrived'; navRender(); hear('You are here. ' + N.model.steps[N.model.steps.length - 1].text, VW.arrive(N.it.p.name)); }
   // ---- compass
   function onOrient(e) {
     let h = null;
@@ -238,12 +280,16 @@
     const t = e.target.closest('[data-nav]'); if (!t || !N.it) return;
     const a = t.dataset.nav, total = N.model ? N.model.steps.length : 0;
     touch();
-    if (a === 'start') { N.following = true; navStart(); }
+    if (a === 'start') { VOICE.unlock(); N.following = true; navStart(); }
+    else if (a === 'voice') { VOICE.setOn(!VOICE.isOn()); if (VOICE.isOn()) VOICE.speak('Voice on.'); else say('Voice off.'); }
+    else if (a === 'repeat') { VOICE.unlock(); if (!VOICE.repeat(N.model ? VW.step(N.model.steps[Math.max(0, Math.min(N.step, N.model.steps.length - 1))]) : '')) say('Nothing to repeat yet.'); }
+    else if (a === 'speed') { VOICE.setSpeed(t.dataset.speed); if (VOICE.isOn()) VOICE.speak('This is the ' + t.dataset.speed + ' speed.'); }
+    else if (a === 'natural') { VOICE.setNatural(!VOICE.state.prefs.natural); }
     else if (a === 'cancel') { navStopWatch(); N.status = 'idle'; navRender(); }
-    else if (a === 'stop') { navStopWatch(); clearTimeout(N.idleTimer); if (N.status === 'denied') { N.status = 'idle'; back(); return; } N.status = 'stopped'; navRender(); say('Stopped. Location is off.'); const b = $('[data-nav=start]'); if (b) b.focus(); }
+    else if (a === 'stop') { navStopWatch(); clearTimeout(N.idleTimer); if (N.status === 'denied') { N.status = 'idle'; back(); return; } N.status = 'stopped'; navRender(); hear('Stopped. Location is off.'); const b = $('[data-nav=start]'); if (b) b.focus(); }
     else if (a === 'done') { back(); }
     else if (a === 'steps') { const el = $('#allsteps'); el.hidden = !el.hidden; }
-    else if (a === 'prev' || a === 'next') { N.step = Math.max(0, Math.min(total - 1, N.step + (a === 'next' ? 1 : -1))); navRender(); const b = $('[data-nav=' + a + ']:not([disabled])') || $('.stepcard'); b.focus(); say('Step ' + (N.step + 1) + ' of ' + total + '. ' + N.model.steps[N.step].text); }
+    else if (a === 'prev' || a === 'next') { N.step = Math.max(0, Math.min(total - 1, N.step + (a === 'next' ? 1 : -1))); navRender(); const b = $('[data-nav=' + a + ']:not([disabled])') || $('.stepcard'); b.focus(); hear('Step ' + (N.step + 1) + ' of ' + total + '. ' + N.model.steps[N.step].text, VW.step(N.model.steps[N.step])); }
     else if (a === 'follow') { N.following = true; if (N.fix) followPan(N.fix); navRender(); const b = $('[data-nav=follow]'); if (b) b.focus(); }
     else if (a === 'centre') { const c = map.getCenter(); N.from = [c.lat, c.lng]; computeRoute(N.from, N.it).then((m) => { if (m) { N.model = m; N.step = 0; drawRoute(true); } navRender(); }); }
     else if (a === 'compass') askCompass();
@@ -255,4 +301,4 @@
     if (document.hidden && N.watch != null) { N.wasActive = true; navStopWatch(); }
     else if (!document.hidden && N.wasActive && S.view === 'route' && ['ok', 'rough', 'locating', 'nosignal'].includes(N.status)) { N.wasActive = false; navStart(); }
   });
-  window.AtlasNav = { N, project, modelFromSaved, onFix, navStart };
+  window.AtlasNav = { N, project, modelFromSaved, onFix, navStart, VOICE };

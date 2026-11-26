@@ -10,6 +10,7 @@ The maps are live: [Cincinnati](https://zenaism.github.io/accessibility-map/data
 
 | Date | What | Where |
 | --- | --- | --- |
+| 2026-11-26 | **Spoken route directions** on the map: Voice on/off, Repeat, Speed, optional Natural voice (Kokoro-82M, runs in the page, served from `data/map/tts/`), device voice as fallback. D-102. Tested in Chromium with fake speech and a simulated walk; not yet on a real phone. | [voice.js](../src/atlas/web/map/voice.js), [decisions.md](decisions.md) |
 | 2026-11-25 | **UI and UX handout** (`docs/ui_handout.md`): where each screen and file is, how the pages are built and rebuilt, the rules a change must keep, behaviour that is easy to break, recipes, tests, and the open UI items. | [ui_handout.md](ui_handout.md) |
 | 2026-11-25 | **Sun and moon theme button** replaces Settings on the map (phone bar and desktop top bar); the chat page keeps Settings and gains the button. `ui.theme_toggle()` in the foundation; D-101. The page-data helper for the old tests now reads the new map pages (`tests/mapdata.py`), which the page rebuild had broken. | [ui_components.md](ui_components.md) |
 | 2026-11-24 | **Decision statuses fixed.** D-57 (style directions) now reads superseded by D-58 (the owner chose A Harbor, not the recommended B); D-52 (Report in the list footer) has its status line and points to D-59. No other entry changed. | [decisions.md](decisions.md) |

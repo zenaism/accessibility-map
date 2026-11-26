@@ -28,6 +28,7 @@ src/atlas/
                            theme-boot.js (theme before first paint), icons/ (Lucide SVGs), fonts/ (Figtree)
   map_app.py               the new map page (head, search, panel, buttons, data injection)
   map_viewer.py            render() picks the new app; render(..., legacy=True) keeps the old template
+  web/map/voice.js         spoken directions: AtlasVoice.words (wording), device voice, natural voice controller (D-102)
   web/map/                 map.js (state, search, cards, saved, share), map.css, nav.js (live location, directions),
                            region.js + regionui.js (city switcher, inserted into map.js at /*__REGION__*/)
   web/report/              report.js, report.css (Rate or report form), report_form.py loads them
@@ -93,7 +94,7 @@ Full list with classes: [ui_components.md](ui_components.md). The parts people c
 | Chat answers | One short answer: headline of at most 25 words, one confidence line, the nearest confirmed place first, one card, "More", three follow-up chips (16 px). The rules exist twice, in Python (`composer.py`) and JavaScript (`composer.js`); change both and run the golden tests (`tests/js/assistant_golden.json`) so they agree. |
 | Voice | Browser speech recognition; if the browser stops at a pause the app restarts after 350 ms and keeps what was said. Voice and photo need HTTPS or `localhost`. |
 | Chat prefs | `openway.prefs` (answer mode, text size, plain language), `openway.needs` (My needs), `openway.gaps` (questions not answered, kept on the device). |
-| Directions | Walking route graph in `data/map/routing/oxford.graph.json`; only Oxford has routing so far. Live position uses the bottom card; spoken directions are later work. |
+| Directions | Walking route graph in `data/map/routing/oxford.graph.json`; only Oxford has routing so far. Live position uses the bottom card. Spoken directions: `web/map/voice.js` (wording, device voice, natural voice) and `data/map/tts/` (Kokoro files); Voice is off by default (D-102). |
 
 ## 7. How to make a change safely
 
@@ -129,7 +130,7 @@ Commit as Mariam Zenaishvili `<zenaism@miamioh.edu>`, with no AI co-author line,
 
 - **Real devices not tested.** Everything was tested in headless Chromium only. Still to try on a real iPhone and Android phone: compass and heading, live location, voice, the keyboard on the compose field, photo and camera, and a screen reader (VoiceOver, TalkBack). The headless run cannot find problems with these.
 - **Sending a report from a phone** has not been done end to end (the database functions were checked with harmless probe calls).
-- **Spoken route directions** are not built (owner: later). **Rating regions** beyond Cincinnati and Oxford are deferred.
+- **Spoken route directions** are built (D-102) but only tested in headless Chromium: try the device voice and the natural voice (Kokoro, 92 MB) on a real iPhone and Android phone, with a screen reader on. **Rating regions** beyond Cincinnati and Oxford are deferred.
 - **City names in the data pipeline** (`export_map.py`, `fusion.py`) are still fixed to Cincinnati and Oxford (D-92); the UI reads the region list, the pipeline does not yet.
 - **Small places the design shows but the build skips:** see "Differences from the frames" and the "Gaps" sections at the end of [ui_components.md](ui_components.md).
 - **Decision log:** D-40 to D-42 were renumbered (saved places D-93 to D-95, map D-96 to D-98); the README entries keep D-40 and D-41, the UI base entry keeps D-42.

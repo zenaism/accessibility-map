@@ -602,3 +602,19 @@ sequenceDiagram
   M->>M: fire atlas:region-changed
 ```
 
+## 20. Spoken route directions (D-102, 2026-11-26)
+
+```mermaid
+flowchart LR
+  F[Live position fix] --> S[Step changes or 100 ft from its end]
+  S --> W["AtlasVoice.words: one short sentence"]
+  W --> T[Written step on screen]
+  W --> Q{Voice on?}
+  Q -- no --> L[Live region, as before]
+  Q -- yes --> N{Natural voice ready?}
+  N -- yes --> K["Kokoro worker in the page (files from tts/)"]
+  N -- no or failed --> D["Device voice: speechSynthesis"]
+  K --> A[Audio out]
+  D --> A
+```
+The worker and the model files are fetched only when the person turns the Natural voice on, from this site only, and cached in the browser. Choices (on, speed, natural) stay on the device in `atlas.voice`.
