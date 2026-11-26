@@ -7,7 +7,7 @@ and the data inside. Leaflet and its cluster plugin are vendored (atlas.leaflet,
     html = render(data, title="Accessibility Map", nav="")
 
 Reporting and chat are not in this page (B2 and B3). The Report and Ask tabs fire atlas:open-report and atlas:open-ask;
-when nothing listens they follow their href (the existing GitHub report form and the assistant page).
+when nothing listens they follow their href (the assistant page; Report has no page of its own).
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from . import leaflet, regions, report_form, routing_ui
 from . import ui_foundation as ui
 
 WEB = Path(__file__).with_name("web") / "map"
-REPORT_FALLBACK = "https://github.com/zenaism/accessibility-map/issues/new"
+REPORT_FALLBACK = "#report"  # the Report tab fires atlas:open-report; no GitHub link any more
 ASK_FALLBACK = "ask.html"
 
 

@@ -135,6 +135,14 @@ def test_a_link_region_wins_over_the_saved_choice_and_is_not_saved(browser, cdn,
     )
 
 
+def test_a_city_page_opens_its_own_city_even_when_another_is_saved(browser, cdn, site):
+    # oxford.html holds one city, so it is Oxford's page; a saved Cincinnati must not override it
+    pg = open_page(browser, cdn, site, page="oxford.html", region="cincinnati")
+    pg.wait_for_function("AtlasMap.S.region === 'oxford'")
+    assert pg.evaluate("localStorage.getItem('atlas-region')") == "cincinnati"
+    assert "Oxford, change city" in city_button(pg).get_attribute("aria-label")
+
+
 def test_the_saved_choice_wins_over_the_position(browser, cdn, site):
     pg = open_page(browser, cdn, site, region="cincinnati", geo=OXFORD)
     pg.wait_for_function("AtlasMap.S.region === 'cincinnati'")

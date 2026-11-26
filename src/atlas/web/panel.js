@@ -1057,20 +1057,7 @@ self.onmessage = async (e) => {
     if (ctx.reportButton && ctx.RATECFG) {
       slot.append(ctx.reportButton(ctxR, 'Report a problem'));
     }
-    const issue =
-      'https://github.com/zenaism/accessibility-map/issues/new?title=' +
-      encodeURIComponent('Route problem: ' + ctxR.name) +
-      '&body=' +
-      encodeURIComponent(`Route: ${ctxR.name}\nLink: ${S.from && S.to && S.from.kind !== 'here' ? shareLink() : location.href}\n\nWhat is wrong? (for example: a missing ramp, a blocked path, a crossing that is not there)\n\n`);
-    const a = document.createElement('a');
-    a.className = 'btn ghost';
-    a.href = issue;
-    a.target = '_blank';
-    a.rel = 'noopener';
-    a.setAttribute('data-report-fallback', '');
-    a.innerHTML = 'Report a problem<span class="vh"> with this route (opens GitHub in a new tab)</span>';
-    slot.append(a);
-    ctx.reportShow(); // shows the in-app form button when the database answers, else this link
+    ctx.reportShow(); // shows the in-app form button when the database answers
   }
 
   // ---------------------------------------------------------------- profile, swap

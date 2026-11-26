@@ -288,7 +288,7 @@ def test_report_and_ask_fire_events_and_fall_back_to_links(browser, cdn, site):
     pg = open_map(browser, cdn, site)
     href = pg.locator(".tabbar a[data-tab=report]").get_attribute("href")
     assert (
-        href.startswith("https://github.com/")
+        href == "#report"  # no GitHub link any more
         and pg.locator(".tabbar a[data-tab=ask]").get_attribute("href") == "ask.html"
     )
     pg.evaluate(

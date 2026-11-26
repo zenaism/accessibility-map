@@ -1,12 +1,15 @@
   // ------------------------------------------------------------------ cities: the region as a variable (B4)
-  // Order of choice: ?region= in the address (this visit only), then the choice saved on this device, then the closest
-  // covered city found on the device (asked once), then the Choose a city list. The position never leaves the device.
+  // Order of choice: ?region= in the address (this visit only), then the city this page is for (cincinnati.html is
+  // Cincinnati, oxford.html is Oxford; the two-city index page has none), then the choice saved on this device, then the
+  // closest covered city found on the device (asked once), then the Choose a city list. The position never leaves the device.
   const CATALOG = window.__REGIONS || [];
   const REG = new Map(CATALOG.map((r) => [r.id, r]));
   const RKEY = 'atlas-region';
   const cityName = (id) => (REG.get(id) || {}).short || id;
   const LOADED = new Set(Object.keys(DATA));
   const urlRegion = (() => { const v = new URLSearchParams(location.search).get('region'); return REG.has(v) ? v : null; })();
+  // A page that carries the data of exactly one city is that city's page.
+  const pageRegion = (() => { const k = Object.keys(DATA); return k.length === 1 && REG.has(k[0]) ? k[0] : null; })();
   const tierOf = (id) => (REG.get(id) || {}).tier || 'full';
   const isLimited = (id) => tierOf(id) === 'limited';
 
@@ -128,9 +131,10 @@
   }
   async function bootRegion() {
     const saved = store.get(RKEY);
-    if (urlRegion) {
-      const prev = saved && REG.has(saved) && saved !== urlRegion ? saved : null;
-      const ok = await switchTo(urlRegion, { save: false, url: false, silent: true, from: 'link' });
+    const linkRegion = urlRegion || pageRegion;
+    if (linkRegion) {
+      const prev = saved && REG.has(saved) && saved !== linkRegion ? saved : null;
+      const ok = await switchTo(linkRegion, { save: false, url: false, silent: true, from: 'link' });
       if (ok && prev) { S.linkBanner = { prev }; render(); }
       return ok;
     }

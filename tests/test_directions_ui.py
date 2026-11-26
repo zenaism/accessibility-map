@@ -50,7 +50,7 @@ FIRST_CINCINNATI = {}
 
 def _page_data(name: str):
     old = (ROOT / "data" / "map" / f"{name}.html").read_text()
-    title = re.search(r"<title>(.*?) · Accessibility Map</title>", old).group(1)
+    title = re.search(r"<title>(.*?)(?: · Accessibility Map)?</title>", old).group(1)
     found = re.search(r'<span id="asof"></span>(.*?)</p></div>', old, re.S)
     return page_data(old), title, found.group(1) if found else ""
 

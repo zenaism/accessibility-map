@@ -219,11 +219,11 @@ def test_report_button_in_details_fires_the_event_and_opens_the_form_with_that_p
     assert "Library" in pg.locator("#rp-place").inner_text()
 
 
-def test_the_report_tab_follows_its_link_when_reporting_is_not_configured(browser, cdn, site):
+def test_the_report_tab_has_no_github_link(browser, cdn, site):
     pg = open_map(browser, cdn, site, init="")
     pg.evaluate("document.querySelectorAll('.rp').forEach(n => n.remove())")
-    # the tab has a real href so a page without the form still works
-    assert pg.locator(".tabbar a[data-tab=report]").get_attribute("href").startswith("https://github.com/")
+    # the owner removed the GitHub fallback: the tab only fires the event
+    assert pg.locator(".tabbar a[data-tab=report]").get_attribute("href") == "#report"
 
 
 def test_focus_is_trapped_the_page_behind_is_inert_and_escape_returns_focus(browser, cdn, site):

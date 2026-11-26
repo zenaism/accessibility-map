@@ -118,7 +118,7 @@
     const at = +(store.get('atlas-report-ok') || 0);
     if (at && Date.now() - at < 600000) { probed = true; return; }
     try { const r = await fetch(CFG.url + '/rest/v1/rpc/report_ping', { method: 'POST', headers: hdr({ 'Content-Type': 'application/json' }), body: '{}' }); probed = r.ok; if (r.ok) store.set('atlas-report-ok', String(Date.now())); } catch (e) { probed = null; }
-    if (probed === false && R) { R.banner = { kind: 'warn', icon: 'alert', text: 'Reporting is not switched on yet. Use the GitHub form instead.', action: ['Open the GitHub form', 'github'] }; render(); }
+    if (probed === false && R) { R.banner = { kind: 'warn', icon: 'alert', text: 'Reporting is not available right now. Please try again later.' }; render(); }
   }
   const hdr = (extra) => Object.assign({ apikey: CFG.key }, CFG.key.startsWith('eyJ') ? { Authorization: 'Bearer ' + CFG.key } : {}, extra || {});
 
@@ -395,7 +395,6 @@
     if (d.act === 'keep') { keepSheet(); return; }
     if (d.act === 'mine') { R.view = 'mine'; render(); return; }
     if (d.act === 'form') { R.view = 'form'; render(); return; }
-    if (d.act === 'github') { window.open('https://github.com/zenaism/accessibility-map/issues/new', '_blank', 'noopener'); return; }
     if (d.act === 'again') { const keep = opener; close({ noFocus: true }); open(null, keep); return; }
     if (d.act === 'again-place') { const p = R.place, keep = opener; close({ noFocus: true }); open(p ? { placeId: p.id, region: p.region } : null, keep); const pr = $('[data-problem="blocked"]', root); if (pr) pr.focus(); return; }
     if (d.act === 'change') { const p = R.place, keep = opener; close({ noFocus: true }); open(p ? { placeId: p.id, region: p.region } : null, keep); return; }

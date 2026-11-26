@@ -360,7 +360,7 @@
     function reportBtn(text, label, card) {
       return h('button', { type: 'button', class: 'btn btn-secondary', onclick: () => {
         const detail = { text }; if (card) { detail.placeId = card.place_id; detail.region = regionOf(card.place_id); }
-        if (!ui_emit(detail)) g.open('https://github.com/zenaism/accessibility-map/issues/new?title=' + encodeURIComponent('Report from the assistant') + '&body=' + encodeURIComponent(text), '_blank', 'noopener');
+        ui_emit(detail);
       } }, ic('report'), label || 'Report a problem');
     }
     const ui_emit = (detail) => g.atlas.emit('atlas:open-report', detail) > 0;
