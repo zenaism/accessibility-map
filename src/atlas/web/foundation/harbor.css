@@ -119,6 +119,9 @@ html[data-theme="dark"] .ax:not([data-theme="light"]), .ax[data-theme="dark"] {
 .ax .btn-danger { border-color: var(--danger-bd); color: var(--danger-fg); background: var(--surface); }
 .ax .btn-icon { padding: 0; width: var(--target); height: var(--target); min-height: var(--target); border-radius: var(--r-btn); }
 .ax .btn-icon.round { border-radius: 999px; }
+.ax .theme-toggle .tt { display: inline-flex; }
+.ax .theme-toggle .tt-sun, html[data-theme="dark"] .ax .theme-toggle .tt-moon { display: none; }
+html[data-theme="dark"] .ax .theme-toggle .tt-sun { display: inline-flex; }
 .ax .btn[disabled] { background: var(--surface2); color: var(--muted); border: var(--bw) dashed var(--control); cursor: not-allowed; }
 .ax .btn[aria-busy="true"] { cursor: progress; }
 .ax .btn .spin { animation: sx-spin 1s linear infinite; }

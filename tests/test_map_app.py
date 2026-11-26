@@ -17,6 +17,8 @@ import pytest
 from atlas import leaflet, map_app, ui_checks
 from atlas.core import ROOT
 
+from .mapdata import page_data
+
 pytest.importorskip("playwright")
 from playwright.sync_api import sync_playwright  # noqa: E402
 
@@ -34,8 +36,7 @@ GRAPH = ROOT / "data" / "map" / "routing" / "oxford.graph.json"
 
 def _data():
     old = (ROOT / "data" / "map" / "oxford.html").read_text()
-    raw = old.split("const DATA = ", 1)[1].split(", RATINGS = ", 1)[0]
-    return json.loads(raw.replace("\\u003c", "<"))
+    return page_data(old)
 
 
 # ---------------------------------------------------------------- static
@@ -312,18 +313,27 @@ def test_report_and_ask_fire_events_and_fall_back_to_links(browser, cdn, site):
     assert pg.url.endswith("oxford.html")  # the listener took over: no navigation
 
 
-def test_settings_switches_theme_and_keeps_the_map_light(browser, cdn, site):
+def test_the_sun_moon_button_switches_the_theme_and_keeps_the_map_light(browser, cdn, site):
     pg = open_map(browser, cdn, site)
-    pg.get_by_role("button", name="Settings").click()
-    pg.wait_for_selector("[role=dialog]")
-    pg.locator("input[name=atlas-theme][value=dark]").click()
+    assert pg.get_by_role("button", name="Settings").count() == 0
+    btn = pg.get_by_role("button", name="Switch to dark theme").locator("visible=true")
+    assert btn.count() == 1 and btn.bounding_box()["width"] >= 44
+    assert btn.locator(".tt-moon").is_visible() and not btn.locator(".tt-sun").is_visible()
+    btn.click()
     assert pg.evaluate("atlasTheme.get()") == "dark"
+    assert pg.evaluate("document.documentElement.getAttribute('data-theme')") == "dark"
     assert (
         pg.evaluate("getComputedStyle(document.querySelector('#map')).backgroundColor")
         == "rgb(228, 231, 233)"
     )
-    pg.keyboard.press("Escape")
-    assert pg.evaluate("document.documentElement.getAttribute('data-theme')") == "dark"
+    back = pg.get_by_role("button", name="Switch to light theme").locator("visible=true")
+    assert back.locator(".tt-sun").is_visible() and not back.locator(".tt-moon").is_visible()
+    back.focus()
+    pg.keyboard.press("Enter")
+    assert pg.evaluate("atlasTheme.get()") == "light"
+    pg.reload()
+    pg.wait_for_selector("html[data-map-ready]")
+    assert pg.evaluate("atlasTheme.get()") == "light"
 
 
 @pytest.mark.skipif(not GRAPH.exists(), reason="walking graph not exported")

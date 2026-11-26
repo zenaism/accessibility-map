@@ -106,17 +106,12 @@ def page_html(data: dict, title: str = "Accessibility Map", nav: str = "") -> st
         "routing": routing_ui.config(),
         "title": title,
     }
-    top = ui.topbar("map", _hrefs())
+    top = ui.topbar("map", _hrefs(), settings=False)
     # the city switcher sits next to the product name on desktop
     top = top.replace(
         "</span><nav",
         "</span>" + CITY_BTN.format(id="city-btn-d", cls="city-btn", pin=ui.icon("pin")) + "<nav",
         1,
-    )
-    # the desktop top bar's Settings link is a button here: it opens the Appearance sheet
-    top = top.replace(
-        '<a class="btn btn-ghost" href="#" data-tab="settings">',
-        '<a class="btn btn-ghost" href="#" id="settings-desk" data-tab="settings" role="button">',
     )
     body = (
         '<a class="skip" href="#panel-body">Skip to the places</a>'
@@ -124,7 +119,7 @@ def page_html(data: dict, title: str = "Accessibility Map", nav: str = "") -> st
         + ui.button("Back", "ghost", "back", icon_only=True, id="back", hidden=True)
         + '<h1 class="title" id="appbar-title">Accessibility Map</h1>'
         + CITY_BTN.format(id="city-btn", cls="city-btn", pin="")
-        + ui.button("Settings", "ghost", "settings", icon_only=True, id="settings")
+        + ui.theme_toggle(id="theme-toggle")
         + "</header>"
         f'<div class="only-desktop">{top}<div class="city-pop" id="city-pop" role="region" aria-label="Cities" hidden></div></div>'
         '<main class="main"><h1 class="vh only-desktop">Accessibility Map</h1>'
@@ -158,7 +153,7 @@ def page_html(data: dict, title: str = "Accessibility Map", nav: str = "") -> st
         "</script>\n"
         # B2 hook: the Rate or report form (settings, the region the map shows, the form itself)
         f"<script>{report_form.config_js(_ratecfg())}\n{_region_js()}\n{report_form.js()}\n</script>\n<script>"
-        "document.getElementById('settings-desk')&&document.getElementById('settings-desk').addEventListener('click',function(e){e.preventDefault();document.getElementById('settings').click();});</script>"
+        "</script>"
         "</body></html>"
     )
 

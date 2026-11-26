@@ -75,6 +75,7 @@ def app_html(inline: str = "") -> str:
     head = (
         '<header class="chat-head"><div class="titles"><h1>Assistant</h1>'
         '<p class="sub"><span class="vh" id="ch-mode">Guided mode</span><span id="ch-city-line">Answering for Cincinnati and Oxford</span></p></div>'
+        + ui.theme_toggle(id="ch-theme-toggle")
         + settings
         + ui.button("Close", "ghost", "close", icon_only=True, href=MAP_HREF, id="ch-close")
         + "</header>"

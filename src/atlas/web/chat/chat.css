@@ -165,3 +165,6 @@ body.ax.chatapp { background: var(--bg); color: var(--text); font-family: var(--
 /* Hints and short messages float above the compose area, so showing one never moves the buttons under a finger. */
 .ax .compose #ch-hint { position: absolute; left: var(--s3); right: var(--s3); bottom: calc(100% + var(--s2)); margin: 0; padding: var(--s2) var(--s3); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--shadow); z-index: 3; color: var(--text); }
 .ax .log a:not(.btn) { display: inline-flex; align-items: center; min-height: var(--target); color: var(--link); }
+
+/* the desktop top bar has the theme button; the chat header carries its own on phones only */
+@media (min-width: 900px) { .ax .chat-head .theme-toggle { display: none; } }

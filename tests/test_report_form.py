@@ -16,6 +16,8 @@ import pytest
 from atlas import map_app, ui_checks
 from atlas.core import ROOT
 
+from .mapdata import page_data
+
 pytest.importorskip("playwright")
 from playwright.sync_api import sync_playwright  # noqa: E402
 
@@ -32,8 +34,7 @@ PNG = bytes.fromhex(
 
 def _data():
     old = (ROOT / "data" / "map" / "oxford.html").read_text()
-    raw = old.split("const DATA = ", 1)[1].split(", RATINGS = ", 1)[0]
-    return json.loads(raw.replace("\\u003c", "<"))
+    return page_data(old)
 
 
 @pytest.fixture(scope="module")

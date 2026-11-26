@@ -19,6 +19,13 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-101: A sun and moon button replaces Settings on the map; the chat keeps Settings and gains the button (2026-11-25, accepted)
+Decision: the map's phone app bar and desktop top bar have one icon button that switches Light and Dark (moon while Light, sun while Dark; accessible name "Switch to dark theme" or "Switch to light theme", 44 px). The map's Settings sheet is removed because it held only Appearance. The chat page keeps its Settings button (answer mode, text size, plain language, My needs) and also gets the button, in its header and in the desktop top bar. The button is part of the foundation (`ui.theme_toggle()`, wired in `foundation.js`), so every page that uses the top bar gets it, and it stays in step with the Appearance radios.
+Why: the owner asked for it: one tap instead of Settings, then Appearance, then a choice. The map had nothing else in Settings.
+Alternatives: remove Settings from the chat as well (would hide answer mode and text size); keep both on the map.
+Costs / revisit if: the chat header has one more 44 px button on a 320 px screen (checked at 375); text size has no setting on the map.
+Basis: recorded (owner request, 2026-11-25).
+
 ### D-100: The report form is on the chat page too; Copy link is one tap on the place card (2026-11-24, accepted)
 Decision: the chat page includes the Rate or report form (same files as the map: `report.js`, `report.css`), so the Report tab, the Report button on an answer and "Report what you know" open it instead of the GitHub link. The assistant hands its places (from its own data files) to the form through `AtlasReport.setPlaces`; a problem with an answer is a whole-map report with the question in the comment; the tab bar stays usable while the form is open (`data-rp-inert` names what is frozen). The map's place card has an icon button "Copy link to <place>" (one tap, 44 px) that copies `?region=<city>#place=<id>`. Chat follow-up chips use the 16 px body size and a phone number is offered once per answer.
 Why: the final review (task 8 took two taps; the Report tab behaved differently on two pages; chips were 14 px; the same phone number appeared twice).

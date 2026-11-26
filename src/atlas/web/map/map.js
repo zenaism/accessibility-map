@@ -521,7 +521,6 @@
     if (!t) return;
     const d = t.dataset;
     if (t.id === 'back' || 'back' in d) { back(); return; }
-    if (t.id === 'settings') { openSettings(); return; }
     if (t.id === 'near') { nearMe(); return; }
     if ('go' in d) { e.preventDefault(); if (d.go === 'saved') S.edit = false; go(d.go); return; }
     if ('type' in d) { S.type = S.type === d.type && S.view === 'results' ? null : d.type; S.shown = 10; S.az = false; S.near = false; S.q = ''; q.value = ''; clearSel(); go('results', { push: S.view !== 'results' }); fit(results()); return; }
@@ -547,9 +546,6 @@
   });
   document.addEventListener('atlas:open-saved', () => { S.edit = false; if (S.view !== 'saved') go('saved'); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.querySelector('.sheet.modal') && S.view !== 'start' && document.activeElement !== q && body.contains(document.activeElement)) { back(); } });
-  function openSettings() {
-    ui.sheet.open({ title: 'Settings', html: '<fieldset class="group"><legend>Appearance</legend><div class="seg">' + ['light', 'dark'].map((v) => '<label><input type="radio" name="atlas-theme" value="' + v + '"' + (atlasTheme.get() === v ? ' checked' : '') + (v === 'light' ? ' data-autofocus' : '') + '><span class="o">' + icon('check', 'tick') + icon(v === 'light' ? 'sun' : 'moon') + (v === 'light' ? 'Light' : 'Dark') + '</span></label>').join('') + '</div><p class="hint small">Light is the default. Saved on this device.</p></fieldset>' });
-  }
   $('#legend-open') && ($('#legend-open').onclick = () => go('legend'));
   $('#asof').textContent = asOf;
 

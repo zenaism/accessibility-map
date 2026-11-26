@@ -16,6 +16,7 @@ import pytest
 from atlas import map_app, ui_checks
 from atlas.core import ROOT
 
+from .mapdata import page_data
 from .test_map_app import CDN, PNG, browser, cdn  # fixtures shared with the map tests
 
 pytest.importorskip("playwright")
@@ -28,8 +29,7 @@ MAPDIR = ROOT / "data" / "map"
 
 def _data(name):
     old = (MAPDIR / f"{name}.html").read_text()
-    raw = old.split("const DATA = ", 1)[1].split(", RATINGS = ", 1)[0]
-    return json.loads(raw.replace("\\u003c", "<"))
+    return page_data(old)
 
 
 @pytest.fixture(scope="module")

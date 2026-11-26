@@ -150,7 +150,7 @@
 
   /* ---- delegated behaviour ---- */
   d.addEventListener("click", function (e) {
-    var t = e.target.closest ? e.target.closest("[data-atlas-emit],[role=switch],[role=radio],[data-atlas-theme]") : null;
+    var t = e.target.closest ? e.target.closest("[data-atlas-emit],[role=switch],[role=radio],[data-atlas-theme],[data-theme-toggle]") : null;
     if (!t) return;
     if (t.hasAttribute("data-atlas-emit")) {
       var detail = {};
@@ -160,6 +160,7 @@
       if (n > 0 && t.tagName === "A") e.preventDefault();   /* a listener took over; otherwise the plain href still works */
       return;
     }
+    if (t.hasAttribute("data-theme-toggle")) { w.atlasTheme.set(w.atlasTheme.get() === "dark" ? "light" : "dark"); return; }
     if (t.hasAttribute("data-atlas-theme")) { w.atlasTheme.set(t.getAttribute("data-atlas-theme")); return; }
     if (t.getAttribute("role") === "switch") {
       t.setAttribute("aria-checked", t.getAttribute("aria-checked") === "true" ? "false" : "true");
@@ -187,6 +188,8 @@
   function syncTheme() {
     var rs = d.querySelectorAll('input[name="atlas-theme"]');
     for (var i = 0; i < rs.length; i++) rs[i].checked = rs[i].value === w.atlasTheme.get();
+    var dark = w.atlasTheme.get() === "dark", ts = d.querySelectorAll("[data-theme-toggle]");
+    for (var j = 0; j < ts.length; j++) ts[j].setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
   }
   d.addEventListener("change", function (e) { if (e.target.name === "atlas-theme") w.atlasTheme.set(e.target.value); });
   d.addEventListener("atlas:theme-changed", syncTheme);

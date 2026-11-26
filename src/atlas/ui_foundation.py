@@ -130,6 +130,21 @@ def icon(name: str, cls: str = "") -> str:
     return f'<svg class="{c}" aria-hidden="true" focusable="false"><use href="#lucide-{_e(name)}"/></svg>'
 
 
+def theme_toggle(**attrs: object) -> str:
+    """One icon button that switches Light and Dark (moon while Light, sun while Dark). foundation.js wires it to
+    window.atlasTheme and keeps its accessible name ("Switch to dark theme" / "Switch to light theme") in step."""
+    a = {
+        "class": "btn btn-ghost btn-icon theme-toggle",
+        "data-theme-toggle": "",
+        "aria-label": "Switch to dark theme",
+        **attrs,
+    }
+    return (
+        f'<button type="button"{_attrs(a)}>'
+        + f'<span class="tt tt-moon">{icon("moon")}</span><span class="tt tt-sun">{icon("sun")}</span></button>'
+    )
+
+
 def button(
     label: str,
     kind: str = "secondary",
@@ -393,8 +408,15 @@ def tabbar(active: str = "map", hrefs: dict[str, str] | None = None) -> str:
     return f'<nav class="tabbar four" aria-label="Main">{"".join(items)}</nav>'
 
 
-def topbar(active: str = "map", hrefs: dict[str, str] | None = None, brand: str = "Accessibility Map") -> str:
-    """Desktop top bar: brand, Map, Saved, Settings, Report a problem (secondary), Ask (the one filled button)."""
+def topbar(
+    active: str = "map",
+    hrefs: dict[str, str] | None = None,
+    brand: str = "Accessibility Map",
+    *,
+    settings: bool = True,
+) -> str:
+    """Desktop top bar: brand, Map, Saved, the Light/Dark toggle, Settings (only where the page has settings),
+    Report a problem (secondary), Ask (the one filled button)."""
     hrefs = hrefs or {}
 
     def link(key: str, text: str, ic: str, kind: str, emit: str | None = None) -> str:
@@ -412,7 +434,8 @@ def topbar(active: str = "map", hrefs: dict[str, str] | None = None, brand: str 
         '<nav class="nav-links" aria-label="Main">'
         + link("map", "Map", "map", "ghost")
         + link("saved", "Saved", "save", "ghost", "atlas:open-saved")
-        + link("settings", "Settings", "settings", "ghost")
+        + theme_toggle()
+        + (link("settings", "Settings", "settings", "ghost") if settings else "")
         + link("report", "Report a problem", "report", "secondary", "atlas:open-report")
         + link("ask", "Ask", "ask", "primary", "atlas:open-ask")
         + "</nav></header>"

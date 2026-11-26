@@ -23,6 +23,8 @@ from atlas import export_routing, routing, routing_ui
 from atlas.core import ROOT
 from atlas.map_viewer import render
 
+from .mapdata import page_data
+
 playwright_api = pytest.importorskip("playwright.sync_api")
 sync_playwright = playwright_api.sync_playwright
 
@@ -49,9 +51,8 @@ FIRST_CINCINNATI = {}
 def _page_data(name: str):
     old = (ROOT / "data" / "map" / f"{name}.html").read_text()
     title = re.search(r"<title>(.*?) · Accessibility Map</title>", old).group(1)
-    nav = re.search(r'<span id="asof"></span>(.*?)</p></div>', old, re.S).group(1)
-    raw = old.split("const DATA = ", 1)[1].split(", RATINGS = ", 1)[0]
-    return json.loads(raw.replace("\\u003c", "<")), title, nav
+    found = re.search(r'<span id="asof"></span>(.*?)</p></div>', old, re.S)
+    return page_data(old), title, found.group(1) if found else ""
 
 
 @pytest.fixture(scope="session")
