@@ -131,17 +131,20 @@ def icon(name: str, cls: str = "") -> str:
 
 
 def theme_toggle(**attrs: object) -> str:
-    """One icon button that switches Light and Dark (moon while Light, sun while Dark). foundation.js wires it to
-    window.atlasTheme and keeps its accessible name ("Switch to dark theme" / "Switch to light theme") in step."""
+    """The Light/Dark switch: a sliding toggle with a sun on the left and a moon on the right (on = Dark). It is a
+    native button with role="switch" named "Dark theme"; foundation.js wires it to window.atlasTheme and keeps
+    aria-checked in step with the theme, whichever control changed it."""
     a = {
-        "class": "btn btn-ghost btn-icon theme-toggle",
+        "class": "theme-toggle",
+        "role": "switch",
+        "aria-checked": "false",
+        "aria-label": "Dark theme",
         "data-theme-toggle": "",
-        "aria-label": "Switch to dark theme",
         **attrs,
     }
     return (
-        f'<button type="button"{_attrs(a)}>'
-        + f'<span class="tt tt-moon">{icon("moon")}</span><span class="tt tt-sun">{icon("sun")}</span></button>'
+        f'<button type="button"{_attrs(a)}><span class="ts-track">{icon("sun", "ts-sun")}{icon("moon", "ts-moon")}'
+        '<span class="ts-knob"></span></span></button>'
     )
 
 

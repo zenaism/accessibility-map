@@ -843,24 +843,23 @@ def test_follow_up_chips_use_the_body_text_size(browser, site):
     assert pg.evaluate("getComputedStyle(document.querySelector('.followups .chip')).fontSize") == "16px"
 
 
-def test_the_sun_moon_button_switches_the_theme_on_the_chat_page_and_settings_stays(browser, site):
+def test_the_sun_moon_switch_changes_the_theme_on_the_chat_page_and_settings_stays(browser, site):
     pg = open_chat(browser, site, width=390)
-    btn = pg.locator("#ch-theme-toggle")
-    assert btn.get_attribute("aria-label") == "Switch to dark theme"
-    assert btn.bounding_box()["width"] >= 44 and btn.bounding_box()["height"] >= 44
+    sw = pg.locator("#ch-theme-toggle")
+    assert sw.get_attribute("role") == "switch" and sw.get_attribute("aria-label") == "Dark theme"
+    assert sw.get_attribute("aria-checked") == "false"
+    assert sw.bounding_box()["width"] >= 44 and sw.bounding_box()["height"] >= 44
     assert pg.locator(
         "#ch-settings-btn"
     ).is_visible()  # the chat keeps Settings: engine, text size, plain language
-    btn.click()
-    assert pg.evaluate("atlasTheme.get()") == "dark"
-    assert btn.get_attribute("aria-label") == "Switch to light theme"
-    assert btn.locator(".tt-sun").is_visible() and not btn.locator(".tt-moon").is_visible()
+    sw.click()
+    assert pg.evaluate("atlasTheme.get()") == "dark" and sw.get_attribute("aria-checked") == "true"
     pg.locator("#ch-settings-btn").click()
     assert pg.locator(
         "input[name=atlas-theme][value=dark]"
-    ).is_checked()  # the Appearance row follows the button
-    btn.click()
-    assert pg.evaluate("atlasTheme.get()") == "light"
+    ).is_checked()  # the Appearance row follows the switch
+    pg.locator("input[name=atlas-theme][value=light]").click()
+    assert sw.get_attribute("aria-checked") == "false"  # and the switch follows the Appearance row
 
 
 def test_on_desktop_the_chat_shows_one_theme_button_in_the_top_bar(browser, site):

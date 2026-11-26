@@ -189,7 +189,7 @@
     var rs = d.querySelectorAll('input[name="atlas-theme"]');
     for (var i = 0; i < rs.length; i++) rs[i].checked = rs[i].value === w.atlasTheme.get();
     var dark = w.atlasTheme.get() === "dark", ts = d.querySelectorAll("[data-theme-toggle]");
-    for (var j = 0; j < ts.length; j++) ts[j].setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
+    for (var j = 0; j < ts.length; j++) ts[j].setAttribute("aria-checked", dark ? "true" : "false");
   }
   d.addEventListener("change", function (e) { if (e.target.name === "atlas-theme") w.atlasTheme.set(e.target.value); });
   d.addEventListener("atlas:theme-changed", syncTheme);

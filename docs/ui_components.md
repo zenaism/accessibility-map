@@ -134,4 +134,4 @@ Screen-specific CSS goes in the screen's own file, scoped under `.ax`, built fro
 
 - The report form (`report.js`) now runs on the map page and the chat page. A page without the map's data calls `AtlasReport.setPlaces([{id, name, region, rating, layer, pt}])`; `data-rp-inert` on an element tells the form to freeze that element (and only those) while it is open.
 - Leaflet is vendored: write `atlas.leaflet.head()` into a page head instead of linking a library from a CDN.
-- Theme button: `ui.theme_toggle()` is one icon button (moon while Light, sun while Dark) that sets `atlasTheme` and keeps its accessible name in step. The desktop `ui.topbar()` includes it; pass `settings=False` where the page has no settings (the map).
+- Theme button: `ui.theme_toggle()` is a sliding switch (sun left, moon right, `role=switch`, named "Dark theme") that sets `atlasTheme`; `foundation.js` keeps `aria-checked` in step with any change of theme. The desktop `ui.topbar()` includes it; pass `settings=False` where the page has no settings (the map).

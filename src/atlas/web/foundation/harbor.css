@@ -119,9 +119,12 @@ html[data-theme="dark"] .ax:not([data-theme="light"]), .ax[data-theme="dark"] {
 .ax .btn-danger { border-color: var(--danger-bd); color: var(--danger-fg); background: var(--surface); }
 .ax .btn-icon { padding: 0; width: var(--target); height: var(--target); min-height: var(--target); border-radius: var(--r-btn); }
 .ax .btn-icon.round { border-radius: 999px; }
-.ax .theme-toggle .tt { display: inline-flex; }
-.ax .theme-toggle .tt-sun, html[data-theme="dark"] .ax .theme-toggle .tt-moon { display: none; }
-html[data-theme="dark"] .ax .theme-toggle .tt-sun { display: inline-flex; }
+.ax .theme-toggle { display: inline-flex; align-items: center; justify-content: center; min-width: var(--target); min-height: var(--target); background: none; border: 0; padding: 0 var(--s1); cursor: pointer; border-radius: var(--r-btn); }
+.ax .theme-toggle .ts-track { position: relative; display: flex; align-items: center; justify-content: space-between; width: 56px; height: 32px; padding: 0 7px; box-sizing: border-box; border-radius: 999px; border: var(--bw) solid var(--control); background: var(--surface); color: var(--text); }
+.ax .theme-toggle .ts-track .ic { width: 16px; height: 16px; position: relative; z-index: 1; }
+.ax .theme-toggle .ts-knob { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--primarysoft); border: 2px solid var(--primary); box-sizing: border-box; transition: left var(--dur-fast) var(--ease); }
+.ax .theme-toggle[aria-checked="true"] .ts-knob { left: 27px; }
+@media (prefers-reduced-motion: reduce) { .ax .theme-toggle .ts-knob { transition: none; } }
 .ax .btn[disabled] { background: var(--surface2); color: var(--muted); border: var(--bw) dashed var(--control); cursor: not-allowed; }
 .ax .btn[aria-busy="true"] { cursor: progress; }
 .ax .btn .spin { animation: sx-spin 1s linear infinite; }
