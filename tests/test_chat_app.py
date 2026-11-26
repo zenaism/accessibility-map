@@ -162,7 +162,7 @@ def test_compose_area_a_is_one_field_with_icons_inside_and_no_quick_chips(browse
     assert pg.locator(".compose .chip, .compose .chip-row").count() == 0
     assert pg.get_attribute("#q", "aria-label") == "Your question"
     box = pg.locator(".compose").bounding_box()
-    assert box["y"] + box["height"] <= pg.viewport_size["height"] - 59  # above the tab bar
+    assert box["y"] + box["height"] <= pg.viewport_size["height"] - 47  # above the tab bar (48 px at the 80% size)
     assert box["height"] / pg.viewport_size["height"] < 0.13  # about 12 percent of the screen
 
 
@@ -840,7 +840,7 @@ def test_a_phone_number_is_offered_once_on_an_answer(browser, site):
 def test_follow_up_chips_use_the_body_text_size(browser, site):
     pg = open_chat(browser, site)
     ask(pg, Q_NEAR)
-    assert pg.evaluate("getComputedStyle(document.querySelector('.followups .chip')).fontSize") == "16px"
+    assert pg.evaluate("getComputedStyle(document.querySelector('.followups .chip')).fontSize") == "14px"  # body size at the 80% default (D-102)
 
 
 def test_the_sun_moon_switch_changes_the_theme_on_the_chat_page_and_settings_stays(browser, site):

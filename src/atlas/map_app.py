@@ -129,17 +129,23 @@ def page_html(data: dict, title: str = "Accessibility Map", nav: str = "") -> st
         + '<section class="panel" id="panel" aria-label="Places"><div class="grab"></div><div class="panel-body" id="panel-body" tabindex="-1"></div></section></div>'
         '<div class="mapwrap" role="region" aria-label="Map. A visual companion: every place on the map is also in the list.">'
         '<div id="map"></div>'
+        '<button type="button" class="btn btn-secondary only-desktop lc-toggle" id="lc-toggle" aria-expanded="true" aria-controls="panel" aria-label="Hide places" data-label="Hide places">'
+        + ui.icon("back") + '</button>'
+        '<button type="button" class="btn btn-secondary legend-btn" id="legend-open">' + ui.icon("info") + '<span>Legend</span></button>'
         '<p class="hintpill" id="hint">Map is empty. Search or pick a type.</p>'
         '<div class="regionpill" id="region-pill" role="status" aria-live="polite" hidden></div>'
         '<div class="zoom"><button type="button" class="btn btn-icon btn-secondary" id="zin" aria-label="Zoom in">+</button>'
-        '<button type="button" class="btn btn-icon btn-secondary" id="zout" aria-label="Zoom out">\u2212</button></div>'
+        '<button type="button" class="btn btn-icon btn-secondary" id="zout" aria-label="Zoom out">\u2212</button>'
+        + ui.button("Show my location", "secondary", "near", icon_only=True, id="locate")
+        + '</div>'
         '<span class="credit">USGS The National Map</span></div></main>'
         f'<div class="only-phone">{ui.tabbar("map", _hrefs())}</div>'
         '<p class="vh" id="live" role="status" aria-live="polite"></p><span id="asof" hidden></span>'
     )
+    full_title = title if "Accessibility Map" in title else title + " \u00b7 Accessibility Map"
     return (
         '<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8">'
-        f"<title>{title} \u00b7 Accessibility Map</title>"
+        "<title>" + full_title + "</title>"
         '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">'
         '<meta name="description" content="Wheelchair accessibility of places, restrooms, trails and events, with sources.">\n'
         + ui.head_snippet()

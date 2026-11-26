@@ -527,7 +527,12 @@ def test_copy_link_is_one_tap_on_the_place_card(browser, cdn, site):
         "window.__copied = null; navigator.clipboard.writeText = (t) => { window.__copied = t; return Promise.resolve(); }"
     )
     btn = pg.get_by_role("button", name=re.compile("^Copy link to"))
-    assert btn.bounding_box()["width"] >= 44 and btn.bounding_box()["height"] >= 44
+    # the tap area is the button box or its invisible ::after hit area, whichever is larger (80% size, D-102)
+    hit = btn.evaluate(
+        "e => { const r = e.getBoundingClientRect(), a = getComputedStyle(e, '::after');"
+        " return [Math.max(r.width, parseFloat(a.width) || 0), Math.max(r.height, parseFloat(a.height) || 0)]; }"
+    )
+    assert round(hit[0], 1) >= 44 and round(hit[1], 1) >= 44  # rounded like ui_checks (layout is in 1/64 px)
     btn.click()
     link = pg.evaluate("window.__copied")
     assert "#place=" in link and "region=" in link

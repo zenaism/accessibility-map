@@ -19,7 +19,7 @@
 .ax.rp .star .n { font-size: var(--fs-small); }
 .ax.rp .star input:disabled ~ * { opacity: .6; }
 .ax.rp details.disc { border: var(--bw) solid var(--control); border-radius: var(--r-card); background: var(--surface); padding: 0 var(--s4); }
-.ax.rp details.disc > summary { min-height: 56px; justify-content: space-between; color: var(--text); }
+.ax.rp details.disc > summary { min-height: calc(56px*var(--k)); justify-content: space-between; color: var(--text); }
 .ax.rp details.disc > summary small { display: block; font-weight: var(--fw-reg); color: var(--muted); font-size: var(--fs-small); }
 .ax.rp details.disc > summary b { font-weight: var(--fw-bold); }
 .ax.rp details.disc .body { padding: 0 0 var(--s4); gap: var(--s3); }
@@ -27,7 +27,7 @@
 .ax.rp .part > span:first-child { font-weight: var(--fw-med); }
 .ax.rp .chip-wrap, .ax.rp .chip-grid { display: flex; flex-wrap: wrap; gap: var(--s2); }
 .ax.rp .chip-grid { display: grid; grid-template-columns: 1fr 1fr; }
-.ax.rp .chip-grid .chip { min-height: 56px; justify-content: flex-start; border-radius: var(--r-card); }
+.ax.rp .chip-grid .chip { min-height: calc(56px*var(--k)); justify-content: flex-start; border-radius: var(--r-card); }
 .ax.rp .chip { position: relative; }
 .ax.rp .chip .tick { margin-left: auto; order: 3; }
 .ax.rp .chip-wrap .chip .tick { order: 0; margin-left: 0; }

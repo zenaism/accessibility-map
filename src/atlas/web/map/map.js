@@ -154,11 +154,14 @@
   const paneYou = map.createPane('you'); paneYou.style.zIndex = 650;
   let selected = null, shownKey = '', youMarker = null, youRing = null, routeLayers = [];
 
+  // Pin: a white disc with the kind of place inside and the rating as a small coloured badge with its symbol. The name shows beside it from zoom 16.
+  const CAT = { restroom: 'toilet', park: 'map', trail: 'route', food_drink: 'utensils', lodging: 'bed', culture: 'building', building: 'building', service: 'building', event: 'building', adaptive_recreation: 'building' };
+  const catIcon = (it) => CAT[it.p.layer] || 'pin';
   function pinIcon(it, sel) {
     const k = rating(it), fav = isFav(it);
     return L.divIcon({
-      className: 'pinwrap', iconSize: [38, 38], iconAnchor: [19, 19],
-      html: '<div class="pin ' + k + (sel ? ' sel' : '') + '">' + icon(k) + '</div>' + (fav ? '<span class="pinfav" style="position:absolute;right:-6px;top:-6px;width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid #11181D;display:grid;place-items:center;color:#B3167B">' + icon('save').replace('class="ic"', 'class="ic" style="width:11px;height:11px;fill:currentColor"') + '</span>' : ''),
+      className: 'pinwrap', iconSize: [30, 30], iconAnchor: [15, 15],
+      html: '<div class="pinc ' + k + (sel ? ' sel' : '') + '"><span class="pk">' + icon(catIcon(it)) + '</span><span class="pr">' + icon(k) + '</span></div><span class="pinlabel">' + esc(it.p.name) + '</span>' + (fav ? '<span class="pinfav" style="position:absolute;left:-6px;top:-6px;width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid #11181D;display:grid;place-items:center;color:#B3167B">' + icon('save').replace('class="ic"', 'class="ic" style="width:11px;height:11px;fill:currentColor"') + '</span>' : ''),
     });
   }
   function makeMarker(it) {
@@ -171,6 +174,7 @@
       it.marker.on('click', () => openPlace(it));
     }
   }
+  map.on('zoomend', () => map.getContainer().classList.toggle('zlab', map.getZoom() >= 16));
   ITEMS.forEach(makeMarker);
   markersReady = true;
   adoptFavRegions();
@@ -211,19 +215,43 @@
     if (acc) youRing = L.circle(pos, { radius: acc, color: '#B3167B', weight: 1.5, fillColor: '#B3167B', fillOpacity: 0.12, pane: 'you', interactive: false }).addTo(map);
   }
   $('#zin').onclick = () => map.zoomIn();
+  // Show my location: one tap puts your dot on the map and centres it. It does not change the list; Near me does that.
+  $('#locate').onclick = () => {
+    if (!navigator.geolocation) return toast('This browser cannot share a location.');
+    say('Finding your location.');
+    navigator.geolocation.getCurrentPosition((p) => {
+      const pos = [p.coords.latitude, p.coords.longitude];
+      S.here = pos; drawYou(pos, p.coords.accuracy);
+      map.setView(pos, Math.max(map.getZoom(), 16), { animate: !REDUCED.matches });
+      say('Your location is on the map.');
+    }, () => toast('Location not shared. Allow location in the browser to use this.'), { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 });
+  };
   $('#zout').onclick = () => map.zoomOut();
   // markers are mouse and touch only: keyboard and screen-reader users get the list, which has the same content
   new MutationObserver(() => document.querySelectorAll('#map .leaflet-marker-icon:not([data-q])').forEach((e) => { e.setAttribute('tabindex', '-1'); e.setAttribute('aria-hidden', 'true'); e.dataset.q = 1; })).observe($('#map'), { childList: true, subtree: true });
 
   // ------------------------------------------------------------------ state and panel
-  const S = { region: null, regionFrom: null, kept: null, linkBanner: null, savedFilter: false, chooseWhy: '', useCity: null, prevView: 'start', view: 'start', q: '', type: null, shown: 10, here: null, near: false, az: false, edit: false, prev: [], it: null, more: false, step: 0 };
+  const S = { region: null, regionFrom: null, kept: null, linkBanner: null, savedFilter: false, chooseWhy: '', useCity: null, prevView: 'start', view: 'start', q: '', type: null, shown: 10, here: null, near: false, az: false, edit: false, prev: [], it: null, more: false, step: 0, f: { r: [], need: [], open: false, near: false } };
   const panel = $('#panel'), body = $('#panel-body'), live = $('#live');
   const say = (t) => { live.textContent = ''; setTimeout(() => { live.textContent = t; }, 30); };
+  // Desktop: close or reopen the places column. It reopens by itself when something new is shown in it.
+  const mainEl = document.querySelector('.main'), lcBtn = $('#lc-toggle');
+  function setLc(closed) {
+    mainEl.classList.toggle('lc-closed', closed);
+    lcBtn.setAttribute('aria-expanded', String(!closed));
+    const label = closed ? 'Show places' : 'Hide places';
+    lcBtn.setAttribute('aria-label', label); lcBtn.setAttribute('data-label', label);
+    lcBtn.innerHTML = icon(closed ? 'right' : 'back');
+    setTimeout(() => map.invalidateSize(), 50);
+  }
+  lcBtn.addEventListener('click', () => setLc(!mainEl.classList.contains('lc-closed')));
   function show(html, o) {
     o = o || {};
+    if (mainEl.classList.contains('lc-closed')) setLc(false);
     body.innerHTML = html;
     const showBack = !(S.view === 'start' || S.view === 'results' && !S.prev.length);
     if (showBack) body.insertAdjacentHTML('afterbegin', '<div class="backrow only-desktop"><button type="button" class="btn btn-ghost" data-back>' + icon('back') + '<span>Back</span></button></div>');
+    updateFilterBadge();
     panel.classList.toggle('tall', !!o.tall);
     panel.setAttribute('aria-label', o.label || 'Places');
     $('#appbar-title').textContent = o.title || 'Accessibility Map';
@@ -249,10 +277,72 @@
   }
   function clearSel() { select(null); if (typeof navLeave === 'function') navLeave(); }
 
+  // ------------------------------------------------------------------ filter (the button next to Search)
+  const NEEDS = [['entrance', 'Step-free entrance'], ['restroom', 'Accessible restroom'], ['parking', 'Accessible parking']];
+  const RATE_LABEL = { yes: 'Accessible', partial: 'Partly', no: 'Not accessible', unknown: 'Not known' };
+  const MILE = 1609;
+  const fCount = () => S.f.r.length + S.f.need.length + (S.f.open ? 1 : 0) + (S.f.near ? 1 : 0) + (S.type ? 1 : 0);
+  function passFilters(it) {
+    const f = S.f;
+    if (f.r.length && !f.r.includes(rating(it))) return false;
+    if (f.need.some((n) => keyVal(it, n) !== 'yes')) return false;
+    if (f.open && openNow(it.p.details && it.p.details.hours, new Date()) !== true) return false;
+    if (f.near) { const c = S.here || (() => { const m = map.getCenter(); return [m.lat, m.lng]; })(); if (Math.min(...it.pts.map((p) => metres(c, p))) > MILE) return false; }
+    return true;
+  }
+  function clearFilter(key) {
+    if (key === 'all') { S.f = { r: [], need: [], open: false, near: false }; S.type = null; return; }
+    const [k, v] = key.split(':');
+    if (k === 'r') S.f.r = S.f.r.filter((x) => x !== v);
+    else if (k === 'n') S.f.need = S.f.need.filter((x) => x !== v);
+    else if (k === 'open') S.f.open = false;
+    else if (k === 'near') S.f.near = false;
+  }
+  function updateFilterBadge() {
+    const b = $('#filter'), n = fCount();
+    if (!b) return;
+    let tag = b.querySelector('.fbadge');
+    if (n && !tag) { tag = document.createElement('span'); tag.className = 'fbadge'; tag.setAttribute('aria-hidden', 'true'); b.appendChild(tag); }
+    if (tag) { tag.textContent = n; tag.hidden = !n; }
+    b.setAttribute('aria-label', n ? 'Filter, ' + n + ' on' : 'Filter by type');
+  }
+  const fChip = (key, ic, label, on) => '<button type="button" class="chip" data-f="' + key + '" aria-pressed="' + on + '">' + icon(ic || 'check', ic ? '' : 'tick') + '<span>' + label + '</span></button>';
+  function filterHtml() {
+    return '<div style="display:grid;gap:var(--s3)">'
+      + '<fieldset class="group"><legend>How accessible</legend><div class="chip-row wrap">' + ['yes', 'partial', 'no', 'unknown'].map((k) => fChip('r:' + k, k, RATE_LABEL[k], S.f.r.includes(k))).join('') + '</div></fieldset>'
+      + '<fieldset class="group"><legend>Kind of place</legend><div class="chip-row wrap">' + TYPES.filter((t) => t.id !== 'open').map((t) => fChip('t:' + t.id, t.icon, t.label, S.type === t.id)).join('') + '</div></fieldset>'
+      + '<fieldset class="group"><legend>Must have</legend><div class="chip-row wrap">' + NEEDS.map(([k, l]) => fChip('n:' + k, 'check', l, S.f.need.includes(k))).join('') + '</div></fieldset>'
+      + '<div class="chip-row wrap">' + fChip('open', 'clock', 'Open now', S.f.open) + fChip('near', 'near', 'Within 1 mile', S.f.near) + '</div>'
+      + '<p class="muted small">Within 1 mile counts from you, or from the middle of the map.</p>'
+      + '<div class="rowbtns" style="display:grid;grid-template-columns:auto 1fr"><button type="button" class="btn btn-ghost" data-f-reset>Reset</button><button type="button" class="btn btn-primary" data-f-show></button></div></div>';
+  }
+  function openFilter() {
+    const node = document.createElement('div');
+    const paint = () => { node.innerHTML = filterHtml(); const n = results().length; node.querySelector('[data-f-show]').textContent = n === 0 ? 'No places match' : 'Show ' + n + ' place' + (n === 1 ? '' : 's'); updateFilterBadge(); };
+    paint();
+    const sh = ui.sheet.open({ title: 'Filter', node });
+    node.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-f],[data-f-reset],[data-f-show]');
+      if (!b) return;
+      if ('fShow' in b.dataset) { sh.close(); S.az = false; S.near = false; S.shown = 10; clearSel(); go('results', { push: S.view !== 'results' }); fit(results()); return; }
+      if ('fReset' in b.dataset) { clearFilter('all'); paint(); return; }
+      const key = b.dataset.f, [k, v] = key.split(':');
+      const flip = (arr) => (arr.includes(v) ? arr.filter((x) => x !== v) : arr.concat(v));
+      if (k === 'r') S.f.r = flip(S.f.r);
+      else if (k === 'n') S.f.need = flip(S.f.need);
+      else if (k === 't') S.type = S.type === v ? null : v;
+      else if (k === 'open') S.f.open = !S.f.open;
+      else if (k === 'near') S.f.near = !S.f.near;
+      paint();
+      const again = node.querySelector('[data-f="' + key + '"]'); if (again) again.focus();
+    });
+  }
+
   // ------------------------------------------------------------------ search and results
   function results() {
     const t = S.q.trim().toLowerCase();
     let list = ITEMS.filter((it) => it.p.region === S.region && (!S.type || TYPES.find((x) => x.id === S.type).test(it)) && (!t || t.split(/\s+/).every((w) => it.text.includes(w))));
+    list = list.filter(passFilters);
     if (S.here) list.forEach((it) => { it.dist = Math.min(...it.pts.map((p) => metres(S.here, p))); });
     const nameCmp = (a, b) => a.p.name.localeCompare(b.p.name, undefined, { sensitivity: 'base', numeric: true });
     if (S.az) list.sort(nameCmp);
@@ -269,19 +359,25 @@
       + '<div class="tile-grid three" role="group" aria-label="Place types">' + TYPES.map((t) => '<button type="button" class="tile sm" data-type="' + t.id + '">' + icon(t.icon) + '<span>' + t.label + '</span></button>').join('') + '</div>'
       + '<button type="button" class="btn btn-ghost" data-az style="justify-self:start">Browse A to Z</button>', { label: 'Start', focus: false });
   }
+  function activeFilters() {
+    const on = [].concat(S.f.r.map((v) => ['r:' + v, RATE_LABEL[v]]), S.f.need.map((v) => ['n:' + v, NEEDS.find((n) => n[0] === v)[1]]), S.f.open ? [['open', 'Open now']] : [], S.f.near ? [['near', 'Within 1 mile']] : []);
+    if (!on.length) return '';
+    return '<div class="chip-row wrap" role="group" aria-label="Filters on">' + on.map(([k, l]) => '<button type="button" class="chip on" data-unf="' + k + '" aria-label="Remove filter: ' + esc(l) + '">' + esc(l) + icon('close') + '</button>').join('') + '<button type="button" class="chip" data-unf="all">Reset all</button></div>';
+  }
   function viewResults() {
     $('#hint').hidden = true;
     const list = results();
     syncMap(list);
     if (!list.length) {
       show('<h2 class="vh" id="h-res" tabindex="-1">No places</h2>' + ui_state('No places match', S.q ? 'Nothing matches “' + esc(S.q) + '”. Try fewer words, or pick a type.' : 'Nothing in this type yet. Try another type.', 'search')
-        + '<button type="button" class="btn btn-secondary block" data-clear>' + icon('close') + '<span>Clear search</span></button>', { label: 'Results', focus: false });
+        + (fCount() ? '<button type="button" class="btn btn-primary block" data-unf="all">' + icon('close') + '<span>Reset filters</span></button>' : '') + '<button type="button" class="btn btn-secondary block" data-clear>' + icon('close') + '<span>Clear search</span></button>', { label: 'Results', focus: false });
       say('No places match.');
       return;
     }
     const shown = list.slice(0, S.shown);
     show('<div class="head-row"><h2 id="h-res" tabindex="-1">' + list.length + ' place' + (list.length === 1 ? '' : 's') + '</h2><button type="button" class="btn btn-ghost" data-go="legend">' + icon('list') + '<span>Legend</span></button></div>'
       + (S.kept ? '<div class="banner info" role="status">' + icon('check') + '<span>Showing ' + esc(cityName(S.region)) + '. Your search stays. Results are for ' + esc(cityName(S.region)) + ' now.</span><button type="button" class="btn btn-secondary" data-search-other="' + S.kept.from + '">Search ' + esc(cityName(S.kept.from)) + ' instead</button></div>' : '')
+      + activeFilters()
       + '<p class="muted small">' + (S.az ? 'A to Z.' : S.near ? 'Nearest first.' : 'Best known first' + (S.here ? ', then nearest.' : '.')) + '</p>'
       + '<div class="chip-row" role="group" aria-label="Place types">' + TYPES.map((t) => ui_chip(t, S.type === t.id)).join('') + '</div>'
       + '<ul class="plain" id="rows">' + shown.map((it) => '<li><button type="button" class="listrow' + (it === selected ? ' sel' : '') + '" data-open="' + it.i + '"><span class="nm">' + esc(it.p.name) + '</span>' + badge(rating(it)) + '<span class="sub">' + esc(rowSub(it)) + '</span></button></li>').join('') + '</ul>'
@@ -306,8 +402,19 @@
     if (f && f.detail && label === 'Parking' && k === 'yes') { const m = /(\d+)\s+(?:accessible|reserved|designated)/i.exec(f.detail); if (m) v = m[1] + ' reserved'; }
     return '<div class="stat">' + icon(icn) + '<span class="k">' + label + '</span><span class="v">' + esc(v) + '</span></div>';
   }
-  const routeOn = (it) => CFG.routing.regions.includes(it.p.region) && !!(it.p.getting_there && it.p.getting_there.route && it.p.getting_there.route.line);
+  // Route here works for every place in a city that has a walking graph (Oxford): the graph finds the route from where you are or the middle of the map.
+  const routeOn = (it) => CFG.routing.regions.includes(it.p.region);
+  const gmapsHref = (it) => 'https://www.google.com/maps/dir/?api=1&destination=' + it.pts[0][0] + ',' + it.pts[0][1] + '&travelmode=walking';
+  // short label on a small button; the full words stay as the accessible name
+  const gmapsBtn = (it, kind, wide) => '<a class="btn btn-' + (kind || 'secondary') + (wide ? ' block' : '') + '" target="_blank" rel="noopener" href="' + gmapsHref(it) + '" aria-label="Directions in Google Maps (opens in a new tab)">' + icon('route') + '<span>' + (wide ? 'Directions in Google Maps' : 'Google Maps') + '</span></a>';
   const saveBtn = (it) => '<button type="button" class="btn btn-secondary" data-save="' + it.i + '" aria-pressed="' + isFav(it) + '">' + icon('save').replace('class="ic"', 'class="ic" ' + (isFav(it) ? 'style="fill:currentColor"' : '')) + '<span>' + (isFav(it) ? 'Saved' : 'Save') + '</span></button>';
+  // Rate or report from the card: a star or a problem chip opens the one-screen form with the place and your choice already set.
+  const PROBS = [['blocked', 'Blocked', 'alert'], ['lift', 'Broken lift', 'door'], ['wrong', 'Wrong info', 'info'], ['other', 'Other', 'plus']];
+  const rateBlock = (it) => window.AtlasReport ? '<div class="rateblock" style="display:grid;gap:var(--s2)">'
+    + '<p class="lbl" id="rt-' + it.i + '">How was it? <span class="muted" style="font-weight:400">Tap to rate</span></p>'
+    + '<div class="stars" role="group" aria-labelledby="rt-' + it.i + '">' + [1, 2, 3, 4, 5].map((n) => '<button type="button" class="star" data-rate="' + n + '" data-for="' + it.i + '" aria-label="' + n + (n === 1 ? ' star' : ' stars') + '">' + icon('star') + '<span class="n">' + n + '</span></button>').join('') + '</div>'
+    + '<p class="lbl">Something wrong?</p>'
+    + '<div class="chip-row wrap" role="group" aria-label="Report a problem">' + PROBS.map(([k, l, ic]) => '<button type="button" class="chip" data-prob="' + k + '" data-for="' + it.i + '">' + icon(ic) + '<span>' + l + '</span></button>').join('') + '</div></div>' : '';
   function viewCard(it) {
     $('#hint').hidden = true;
     const k = rating(it);
@@ -315,7 +422,8 @@
       + '<div style="display:flex;gap:12px;align-items:center"><span class="ratetile ' + k + '">' + icon(k) + '</span><div style="display:grid;gap:6px;min-width:0"><h2 class="name" tabindex="-1" id="h-card">' + esc(it.p.name) + '</h2>' + badge(k) + '</div></div>'
       + '<div class="stat3">' + stat(it, 'Entrance', 'door', /entrance|door/i) + stat(it, 'Restroom', 'toilet', /restroom|toilet/i) + stat(it, 'Parking', 'parking', /parking/i) + '</div>'
       + '<p class="conf">' + icon('clock') + '<span>' + esc(sourceLine(it)) + '</span></p>'
-      + (routeOn(it) ? '<button type="button" class="btn btn-primary block" data-route="' + it.i + '">' + icon('route') + '<span>Route here</span></button>' : '<a class="btn btn-primary block" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + it.pts[0][0] + ',' + it.pts[0][1] + '&travelmode=walking">' + icon('route') + '<span>Directions in Google Maps</span><span class="vh"> (opens in a new tab)</span></a>')
+      + (routeOn(it) ? '<div class="rowbtns" style="display:grid;grid-template-columns:1fr 1fr"><button type="button" class="btn btn-primary" data-route="' + it.i + '">' + icon('route') + '<span>Route here</span></button>' + gmapsBtn(it) + '</div>' : gmapsBtn(it, 'primary', true))
+      + rateBlock(it)
       + '<div class="rowbtns" style="display:grid;grid-template-columns:1fr 1fr auto">' + saveBtn(it) + '<button type="button" class="btn btn-secondary" data-details="' + it.i + '">' + icon('info') + '<span>More details</span></button><button type="button" class="btn btn-secondary btn-icon" data-copy="' + it.i + '" aria-label="Copy link to ' + esc(it.p.name) + '">' + icon('share') + '</button></div></div>', { label: it.p.name });
   }
   function dfact(it, label, icn, re) {
@@ -350,7 +458,7 @@
     show(linkBannerHtml() + placeNotice(it) + '<div style="display:flex;gap:12px;align-items:center"><span class="ratetile ' + k + '">' + icon(k) + '</span><div style="display:grid;gap:6px;min-width:0"><h2 class="name" tabindex="-1" id="h-det">' + esc(it.p.name) + '</h2>' + badge(k) + '</div></div>'
       + (confLine(it) ? '<p class="conf">' + icon('check') + '<span>' + esc(confLine(it)) + '</span></p>' : '')
       + '<p class="conf">' + icon('clock') + '<span>' + esc(sourceLine(it)) + '</span></p>'
-      + '<div class="rowbtns" style="display:grid;grid-template-columns:' + (routeOn(it) ? '2fr 1fr' : '1fr') + '">' + (routeOn(it) ? '<button type="button" class="btn btn-primary" data-route="' + it.i + '">' + icon('route') + '<span>Route here</span></button>' : '') + saveBtn(it) + '</div>'
+      + '<div class="rowbtns" style="display:grid;grid-template-columns:' + (routeOn(it) ? '1fr 1fr auto' : '1fr auto') + '">' + (routeOn(it) ? '<button type="button" class="btn btn-primary" data-route="' + it.i + '">' + icon('route') + '<span>Route here</span></button>' + gmapsBtn(it) : gmapsBtn(it, 'primary')) + saveBtn(it) + '</div>'
       + '<h3 class="sec">Access facts</h3>' + dfact(it, 'Entrance', 'door', /entrance|door/i) + dfact(it, 'Restroom', 'toilet', /restroom|toilet/i) + dfact(it, 'Parking', 'parking', /parking/i)
       + '<button type="button" class="btn btn-secondary block" data-more-details aria-expanded="' + S.more + '" aria-controls="more-det">' + icon(S.more ? 'down' : 'plus') + '<span>' + (S.more ? 'Fewer details' : 'More details') + '</span></button>'
       + '<div id="more-det" class="stack3"' + (S.more ? '' : ' hidden') + '>' + (S.more ? moreHtml(it) : '') + '</div>'
@@ -369,10 +477,15 @@
 /*__REGION__*/
   // ------------------------------------------------------------------ legend
   function viewLegend() {
+    const sample = (k, c) => '<div class="pinc ' + k + '" style="position:relative;flex:none"><span class="pk">' + icon(c || 'building') + '</span><span class="pr">' + icon(k) + '</span></div>';
     show('<div class="head-row"><h2 id="h-leg" tabindex="-1">Legend</h2></div>'
-      + ['yes', 'partial', 'no', 'unknown'].map((k) => '<div class="legendrow"><div class="pin ' + k + '" style="position:relative">' + icon(k) + '</div><div>' + badge(k) + '<div class="muted small">' + HELP[k] + '</div></div></div>').join('')
+      + ['yes', 'partial', 'no', 'unknown'].map((k) => '<div class="legendrow"><div style="display:grid;place-items:center">' + sample(k) + '</div><div>' + badge(k) + '<div class="muted small">' + HELP[k] + '</div></div></div>').join('')
+      + '<p class="lead" style="font-size:var(--fs-body)">Kind of place, inside the circle</p>'
+      + '<div class="legendrow"><span class="ic-row" style="display:flex;gap:10px;flex-wrap:wrap">' + [['building', 'Building'], ['toilet', 'Restroom'], ['utensils', 'Food'], ['bed', 'Lodging'], ['map', 'Park'], ['route', 'Trail']].map(([ic, l]) => '<span style="display:inline-flex;gap:4px;align-items:center">' + icon(ic) + '<span class="small">' + l + '</span></span>').join('') + '</span></div>'
       + '<div class="legendrow"><div class="cluster" style="position:relative">5</div><div>Group of nearby places. Zoom in to separate them.</div></div>'
       + '<div class="legendrow"><div class="you" style="width:44px;height:30px;position:relative"><div class="dot" style="left:22px;top:15px"></div></div><div>Your location, only if you share it.</div></div>'
+      + '<div class="legendrow"><svg width="44" height="14" viewBox="0 0 44 14" aria-hidden="true"><g stroke-linecap="round"><circle cx="8" cy="7" r="5" fill="#8EC5FF" stroke="#1D4ED8" stroke-width="2"/><circle cx="22" cy="7" r="5" fill="#8EC5FF" stroke="#1D4ED8" stroke-width="2"/><circle cx="36" cy="7" r="5" fill="#8EC5FF" stroke="#1D4ED8" stroke-width="2"/></g></svg><div>Walking route, still ahead.</div></div>'
+      + '<div class="legendrow"><svg width="44" height="14" viewBox="0 0 44 14" aria-hidden="true"><circle cx="8" cy="7" r="4" fill="#59646C" stroke="#fff" stroke-width="1.5"/><circle cx="22" cy="7" r="4" fill="#59646C" stroke="#fff" stroke-width="1.5"/><circle cx="36" cy="7" r="4" fill="#59646C" stroke="#fff" stroke-width="1.5"/></svg><div>Grey dots: the part you walked.</div></div>'
       + '<p class="muted small">Basemap: U.S. Geological Survey, The National Map. Data: OpenStreetMap, Overture Maps, venue and agency websites. Data last updated ' + esc(asOf) + '.</p>', { label: 'Legend', title: 'Legend', tall: true });
   }
 
@@ -473,8 +586,8 @@
   });
   sug.addEventListener('mousedown', (e) => e.preventDefault());
   sug.addEventListener('click', (e) => { const r = e.target.closest('[data-sug]'); if (r) chooseSug(+r.dataset.sug); });
-  $('#qclear').addEventListener('click', () => { q.value = ''; $('#qclear').hidden = true; $('#filter').hidden = false; closeSug(); S.q = ''; S.type = null; S.prev = []; S.it = null; clearSel(); S.view = 'start'; render(); q.focus(); });
-  $('#filter').addEventListener('click', () => { S.type = null; go('results'); });
+  $('#qclear').addEventListener('click', () => { q.value = ''; $('#qclear').hidden = true; $('#filter').hidden = false; closeSug(); S.q = ''; S.type = null; clearFilter('all'); S.prev = []; S.it = null; clearSel(); S.view = 'start'; render(); q.focus(); });
+  $('#filter').addEventListener('click', openFilter);
 
   // ------------------------------------------------------------------ near me
   function nearMe() {
@@ -518,7 +631,7 @@
     (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(() => toast(ok), () => toast('Copy this: ' + text));
   }
   document.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-back],[data-go],[data-type],[data-az],[data-open],[data-open-saved],[data-saved-filter],[data-more],[data-clear],[data-save],[data-details],[data-route],[data-more-details],[data-report],[data-copy],[data-unsave],[data-edit],[data-sketch],[data-copy-restore],[data-restore-paste],[data-restore-do],[data-restore-cancel],#back,#settings,#near');
+    const t = e.target.closest('[data-back],[data-go],[data-type],[data-az],[data-open],[data-open-saved],[data-saved-filter],[data-more],[data-clear],[data-save],[data-details],[data-route],[data-more-details],[data-report],[data-rate],[data-prob],[data-unf],[data-copy],[data-unsave],[data-edit],[data-sketch],[data-copy-restore],[data-restore-paste],[data-restore-do],[data-restore-cancel],#back,#settings,#near');
     if (!t) return;
     const d = t.dataset;
     if (t.id === 'back' || 'back' in d) { back(); return; }
@@ -536,6 +649,8 @@
     if ('details' in d) { S.it = ITEMS[+d.details]; S.more = false; go('details'); return; }
     if ('moreDetails' in d) { S.more = !S.more; viewDetails(S.it); const b = $('[data-more-details]'); if (b) b.focus(); return; }
     if ('route' in d) { navOpen(ITEMS[+d.route]); return; }
+    if ('rate' in d || 'prob' in d) { const it = ITEMS[+d.for]; atlas.emit('atlas:open-report', { placeId: it.p.link_id, region: it.p.region, stars: 'rate' in d ? +d.rate : undefined, problem: 'prob' in d ? d.prob : undefined }); return; }
+    if ('unf' in d) { clearFilter(d.unf); viewResults(); return; }
     if ('report' in d) { atlas.emit('atlas:open-report', { placeId: ITEMS[+d.report].p.link_id, region: ITEMS[+d.report].p.region }); return; }
     if ('copy' in d) { const it = ITEMS[+d.copy]; copyText(shareUrl(it), 'Link copied.'); return; }
     if ('edit' in d) { S.edit = !S.edit; viewSaved(); const b = $('[data-edit]'); if (b) b.focus(); return; }

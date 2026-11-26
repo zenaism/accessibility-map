@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 for name in ("index", "cincinnati", "oxford"):
     f = ROOT / "data" / "map" / f"{name}.html"
     old = f.read_text()
-    title = re.search(r"<title>(.*?) · Accessibility Map</title>", old).group(1)
+    title = re.search(r"<title>(.*?)(?: · Accessibility Map)?</title>", old).group(1)
     m = re.search(r'<span id="asof"></span>(.*?)</p></div>', old, re.S)
     nav = m.group(1) if m else ""
     if "window.__MAPDATA=" in old:  # a page of the new map app

@@ -91,20 +91,32 @@
   }
   const stepAt = (model, idx) => { const i = model.steps.findIndex((s) => idx >= s.fromIdx && idx < s.toIdx); return i < 0 ? model.steps.length - 1 : i; };
 
-  const N = { it: null, model: null, from: null, status: 'idle', watch: null, fix: null, following: true, step: 0, auto: -1, aheadFor: -1, started: false, compass: 'unknown', heading: null, course: null, offCount: 0, lastRoute: 0, idleTimer: null, noFixTimer: null, compassTimer: null, wasActive: false, msg: '', layers: [] };
-  const ROUGH = 50, ARRIVE = 25, OFF = 45, IDLE_MS = 5 * 60 * 1000;
+  const N = { it: null, model: null, from: null, status: 'idle', watch: null, fix: null, following: true, step: 0, auto: -1, aheadFor: -1, started: false, compass: 'unknown', heading: null, course: null, offCount: 0, past: [], detour: [], off: false, walkedTo: 0, lastAlong: 0, backCount: 0, lastOn: null, msgKind: '', msgTimer: null, lastRoute: 0, idleTimer: null, noFixTimer: null, compassTimer: null, wasActive: false, msg: '', layers: [] };
+  const WRONG_WAY = 'Wrong way. Turn around.', ROUGH = 50, ARRIVE = 25, OFF = 45, IDLE_MS = 5 * 60 * 1000;
   function clearRouteLayers() { N.layers.forEach((l) => map.removeLayer(l)); N.layers = []; }
+  // ---- the dots: grey for the part you walked (and any wrong turn), light blue for what is ahead, hollow grey if you are off the route
+  const pointAt = (m, d) => { let i = 0; while (i < m.cum.length - 2 && m.cum[i + 1] < d) i++; const seg = m.cum[i + 1] - m.cum[i] || 1, t = Math.max(0, Math.min(1, (d - m.cum[i]) / seg)); return { i, ll: [m.line[i][1] + (m.line[i + 1][1] - m.line[i][1]) * t, m.line[i][0] + (m.line[i + 1][0] - m.line[i][0]) * t] }; };
+  function walkedLL(m, wd) { const ll = m.line.map((c) => [c[1], c[0]]); if (wd <= 0.5 || ll.length < 2) return []; const k = pointAt(m, wd); return ll.slice(0, k.i + 1).concat([k.ll]); }
   function drawRoute(fitToo) {
     clearRouteLayers();
     if (!N.model) return;
-    const ll = N.model.line.map((c) => [c[1], c[0]]);
-    N.layers = [L.polyline(ll, { pane: 'route', color: '#fff', weight: 10, opacity: 1, lineCap: 'round', lineJoin: 'round', interactive: false }).addTo(map), L.polyline(ll, { pane: 'route', color: '#1D4ED8', weight: 6, opacity: 1, lineCap: 'round', lineJoin: 'round', interactive: false }).addTo(map)];
+    const m = N.model, ll = m.line.map((c) => [c[1], c[0]]), total = m.cum[m.cum.length - 1], wd = Math.max(0, Math.min(N.walkedTo || 0, total));
+    let ahead = ll;
+    if (wd > 0.5 && ll.length > 1) { const k = pointAt(m, wd); ahead = [k.ll].concat(ll.slice(k.i + 1)); }
+    const cs = getComputedStyle(document.querySelector('.ax')), ring = cs.getPropertyValue('--route').trim() || '#1D4ED8', fill = cs.getPropertyValue('--route-dot').trim() || '#8EC5FF', grey = cs.getPropertyValue('--pin-unknown').trim() || '#59646C';
+    const dots = (pts, color, weight) => { if (pts.length > 1) N.layers.push(L.polyline(pts, { pane: 'route', color, weight, opacity: 1, lineCap: 'round', lineJoin: 'round', dashArray: '0 15', interactive: false }).addTo(map)); };
+    const walkedDots = (pts) => { dots(pts, '#fff', 12); dots(pts, grey, 8); };   // flat grey, no ring: a different shape from the dots ahead, not only a different colour
+    N.past.forEach(walkedDots); walkedDots(N.detour); walkedDots(walkedLL(m, wd));
+    if (N.off) { dots(ahead, '#fff', 14); dots(ahead, grey, 11); dots(ahead, '#fff', 6); }   // hollow: this route is no longer valid
+    else { dots(ahead, '#fff', 17); dots(ahead, ring, 13); dots(ahead, fill, 8); }
     if (fitToo) map.fitBounds(L.latLngBounds(ll), { paddingTopLeft: [30, 150], paddingBottomRight: [30, panelHeight() + 20], maxZoom: 18, animate: !REDUCED.matches });
   }
-  function navLeave() { navStopWatch(); clearRouteLayers(); if (youMarker && N.status !== 'idle') { /* keep the dot if Near me placed it */ } N.status = 'idle'; N.it = null; N.model = null; N.fix = null; clearTimeout(N.idleTimer); window.removeEventListener('deviceorientationabsolute', onOrient, true); window.removeEventListener('deviceorientation', onOrient, true); }
+  function resetWalk() { N.past = []; N.detour = []; N.off = false; N.walkedTo = 0; N.lastAlong = 0; N.backCount = 0; N.lastOn = null; N.msgKind = ''; clearTimeout(N.msgTimer); }
+  function setMsg(text, kind, ms) { N.msg = text; N.msgKind = kind || ''; clearTimeout(N.msgTimer); if (ms) N.msgTimer = setTimeout(() => { N.msg = ''; if (S.view === 'route') navRender(); }, ms); }
+  function navLeave() { navStopWatch(); clearRouteLayers(); resetWalk(); if (youMarker && N.status !== 'idle') { /* keep the dot if Near me placed it */ } N.status = 'idle'; N.it = null; N.model = null; N.fix = null; clearTimeout(N.idleTimer); window.removeEventListener('deviceorientationabsolute', onOrient, true); window.removeEventListener('deviceorientation', onOrient, true); }
   async function navOpen(it) {
     navLeave();
-    N.it = it; S.it = it; N.step = 0; N.auto = -1; N.aheadFor = -1; N.started = false; N.following = true; N.msg = '';
+    N.it = it; S.it = it; N.step = 0; N.auto = -1; N.aheadFor = -1; N.started = false; N.following = true; N.msg = ''; resetWalk();
     const from = S.here || (() => { const c = map.getCenter(); return [c.lat, c.lng]; })();
     N.from = from; N.fromLabel = S.here ? 'where you were last placed' : 'the middle of the map';
     go('route');
@@ -193,7 +205,7 @@
     else if (N.status === 'nosignal') line = note('offline', 'No signal. Position not found.');
     else if (N.status === 'rough') line = note('alert', 'Location is rough. Arrow is off.');
     else if (N.compass === 'none') line = note('alert', 'No compass. Arrow follows your walking direction.');
-    if (N.msg) line += note('info', N.msg);
+    if (N.msg) line += N.msgKind === 'alert' ? note('alert', N.msg) : '<div class="banner info" role="status">' + icon('check') + '<span>' + esc(N.msg) + '</span></div>';
     if (N.compass === 'needs') line += '<button type="button" class="btn btn-secondary block" data-nav="compass">' + icon('near') + '<span>Show my direction</span></button>' + onlyHint('Your iPhone asks first. Direction stays on this device.');
     if (live && !N.following) line += '<p class="note">' + icon('near') + '<span>Map is not following you.</span></p>';
     const manual = N.status === 'denied' || N.status === 'nosignal';
@@ -235,15 +247,33 @@
     const auto = stepAt(N.model, pr.idx);
     if (auto !== N.auto) { const first = !N.started; N.started = true; N.auto = auto; N.step = auto; N.aheadFor = -1; hear('Step ' + (auto + 1) + ' of ' + N.model.steps.length + '. ' + N.model.steps[auto].text, VOICE.isOn() ? stepSpeech(auto, first) : ''); }
     else if (VOICE.isOn() && N.aheadFor !== auto && N.model.steps[auto + 1] && remaining(auto) <= VW.LEAD_FT) { N.aheadFor = auto; VOICE.speak(VW.ahead(N.model.steps[auto + 1], remaining(auto))); }
-    if (pr.off > OFF && N.status === 'ok') {
+    if (pr.off <= OFF) {   // on the route
+      N.offCount = 0;
+      if (N.off) { N.off = false; setMsg('', ''); drawRoute(false); }   // back on the old route
+      N.detour = [];
+      N.lastOn = here;
+      N.backCount = pr.along < N.lastAlong - 8 ? N.backCount + 1 : (pr.along > N.lastAlong - 3 ? 0 : N.backCount);
+      N.lastAlong = pr.along;
+      const wt = Math.max(0, pr.along - 8);   // a dot turns grey only when you are clearly past it (phone position is off by 5 to 20 m)
+      if (Math.abs(wt - (N.walkedTo || 0)) > 2) { N.walkedTo = wt; drawRoute(false); }
+      if (N.backCount >= 3) { if (N.msg !== WRONG_WAY) { setMsg(WRONG_WAY, 'alert'); hear(WRONG_WAY); } }
+      else if (N.msg === WRONG_WAY) setMsg('', '');
+    } else if (N.status === 'ok') {   // off the route
       N.offCount++;
+      if (!N.detour.length && N.lastOn) N.detour.push(N.lastOn);
+      N.detour.push(here);
+      if (N.offCount >= 2 && !N.off) { N.off = true; setMsg('You left the route. Finding a new way…', 'alert'); say('You left the route. Finding a new way.'); }
+      if (N.off) drawRoute(false);
       if (N.offCount >= 2 && Date.now() - N.lastRoute > 15000) {
-        N.lastRoute = Date.now(); N.offCount = 0;
+        N.lastRoute = Date.now();
         const m = await computeRoute(here, N.it);
-        if (m && m.source === 'graph' && m.steps.length) { N.model = m; N.auto = -1; N.step = 0; N.msg = 'Route updated from where you are.'; drawRoute(false); hear('Route updated.'); }
-        else N.msg = 'You are off the saved route. Steps may not match.';
+        if (m && m.source === 'graph' && m.steps.length) {
+          N.past.push(walkedLL(N.model, N.walkedTo || 0), N.detour.slice());   // what you walked, wrong turn included, stays grey
+          N.detour = []; N.off = false; N.offCount = 0; N.model = m; N.walkedTo = 0; N.lastAlong = 0; N.backCount = 0; N.auto = -1; N.aheadFor = -1; N.step = 0;
+          setMsg('New route from where you are.', 'ok', 5000); drawRoute(false); hear('New route from where you are.');
+        } else setMsg('No step-free way found from here. Go back to the grey dots, or use Google Maps.', 'alert');
       }
-    } else { N.offCount = 0; if (pr.off <= OFF) N.msg = ''; }
+    }
     if (N.following && S.view === 'route') followPan(here);
     if (S.view === 'route') navRender();
     touch();
@@ -252,7 +282,7 @@
     const z = map.getZoom();
     map.setView(map.unproject(map.project(L.latLng(pos), z).add([0, panelHeight() / 2 - 20]), z), z, { animate: !REDUCED.matches });
   }
-  function arrive() { navStopWatch(); N.status = 'arrived'; navRender(); hear('You are here. ' + N.model.steps[N.model.steps.length - 1].text, VW.arrive(N.it.p.name)); }
+  function arrive() { navStopWatch(); N.walkedTo = N.model ? N.model.cum[N.model.cum.length - 1] : 0; N.off = false; if (N.model) drawRoute(false); N.status = 'arrived'; navRender(); hear('You are here. ' + N.model.steps[N.model.steps.length - 1].text, VW.arrive(N.it.p.name)); }
   // ---- compass
   function onOrient(e) {
     let h = null;

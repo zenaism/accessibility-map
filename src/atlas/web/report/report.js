@@ -73,6 +73,8 @@
     if (d && !ex) { R.stars = d.stars || 0; R.parts = d.parts || {}; R.visit = d.visit || ''; R.who = d.who || ''; R.problem = d.problem || ''; R.comment = d.comment || ''; R.contact = d.contact || ''; if (d.pid) R.ids.problem = d.pid; R.openMore = Object.values(R.parts).some(Boolean) || !!R.visit || !!R.who; R.openExtra = !!(R.comment || R.contact); }
     else if (d && ex) { R.problem = d.problem || ''; R.contact = d.contact || ''; if (d.pid) R.ids.problem = d.pid; }
     if (ctx && ctx.text) { R.comment = String(ctx.text).slice(0, 500); R.openExtra = true; }
+    if (ctx && ctx.stars >= 1 && ctx.stars <= 5 && !ex) R.stars = ctx.stars | 0;                       // from the stars on the place card
+    if (ctx && ctx.problem && PROBLEMS.some((p) => p[0] === ctx.problem)) R.problem = ctx.problem;     // from a problem chip on the place card
     const sent = mine().find((m) => m.k === 'problem' && m.id === R.ids.problem);
     if (sent) { R.sent.problem = true; R.ref = sent.ref; R.banner = { kind: 'info', icon: 'check', text: 'Already sent. Your code is ' + sent.ref + '.', action: ['See my report', 'mine'] }; }
     root = document.createElement('div');

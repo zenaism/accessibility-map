@@ -98,7 +98,12 @@ JS_MEASURE = r"""
     if (!vis(el)) continue;
     if (el.closest('.vh')) continue;
     const r = el.getBoundingClientRect();
-    out.targets.push({el: label(el), w: Math.round(r.width * 10) / 10, h: Math.round(r.height * 10) / 10});
+    // The tap area is the control's box, or its invisible ::after hit-area box when that is larger (harbor.css, D-102).
+    const pa = getComputedStyle(el, '::after');
+    const ext = pa.content !== 'none' && pa.position === 'absolute';
+    const w = Math.max(r.width, ext ? parseFloat(pa.width) || 0 : 0);
+    const h = Math.max(r.height, ext ? parseFloat(pa.height) || 0 : 0);
+    out.targets.push({el: label(el), w: Math.round(w * 10) / 10, h: Math.round(h * 10) / 10});
     let name = el.getAttribute('aria-label') || '';
     const lb = el.getAttribute('aria-labelledby');
     if (!name && lb) name = lb.split(' ').map((i) => (document.getElementById(i) || {}).textContent || '').join(' ');
