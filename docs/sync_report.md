@@ -9,7 +9,7 @@ Local `main`, `origin/main` and the live Pages site are all at `b25fe70` (0 ahea
 ## How we got here
 
 1. First report: local `main` was 71 commits ahead and 131 behind `origin/main`; localhost showed the old design, Pages the redesign.
-2. Uncommitted "size 80" work saved (`bf0eb23`, `backup/size-80-wip`), rebased onto `origin/main` as `06e37d2`, tested, pushed, deployed.
+2. Uncommitted "size 80" work saved first (`bf0eb23`), rebased onto `origin/main` as `06e37d2`, tested, pushed, deployed. The backup branch `backup/size-80-wip` and its worktree were deleted afterwards (the work is in `main`; `bf0eb23` was never on a remote).
 3. Old local `main` and its uncommitted edits saved on `backup/old-local-main-2026-11-26` (`0dfdc2c`); local `main` reset to `origin/main`.
 4. `4ff095b` (this report's base): city pages open their own city even when another is saved; the GitHub report fallback was removed from the pages (report banner, route alert, assistant, Report tab); the tests were updated, one test added. Pushed and deployed.
 5. `9d0d21a`: restored `config/crawl/places_oxford_food.json` and `places_oxford_venues.json` (the only crawler files missing; the crawler code, extractor, tests and docs were already on `main`, identical to the backup). Pushed.
