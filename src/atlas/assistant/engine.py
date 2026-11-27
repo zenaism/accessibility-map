@@ -26,31 +26,59 @@ class Engine:
         self.planner = planner  # callable(text, ctx, index) -> Plan, or None for rules
         self.composer = composer  # callable(plan, results, ctx, as_of) -> Answer, or None for templates
 
-    def plan(self, text: str, ctx: Context) -> Plan:
+    def plan(self, text: str, ctx: Context, history: list | None = None) -> Plan:
         pl = None
         if self.planner:
             try:
-                pl = self.planner(text, ctx, self.index)
+                pl = (
+                    self.planner(text, ctx, self.index, history)
+                    if history
+                    else self.planner(text, ctx, self.index)
+                )
             except Exception:  # noqa: BLE001  a model failure must never break an answer
                 pl = None
         return pl or P.plan(text, ctx, self.index)
 
-    def answer(self, text: str, ctx: Context | dict | None = None) -> Answer:
+    def answer(self, text: str, ctx: Context | dict | None = None, history: list | None = None) -> Answer:
+        """`history` is the last few turns ([{"role": "user"|"assistant", "text": ...}]); only a model planner uses it."""
         ctx = ctx if isinstance(ctx, Context) else Context.from_dict(ctx or {})
         ctx.validate()
-        pl = self.plan(text, ctx)
-        results = execute(pl, ctx, self.be)
+        pl = self.plan(text, ctx, history)
+        try:
+            results = execute(pl, ctx, self.be)
+        except FileNotFoundError:
+            # this machine does not hold the data that lookup needs (slopes and sidewalks are large files
+            # that are not published): say so in plain words instead of failing
+            topic = (
+                "routes from where you are" if pl.intent == "route" else "slopes, curb ramps and sidewalks"
+            )
+            pl = Plan("no_data", topic=topic + " on this server", region=pl.region)
+            results = []
         as_of = self.be.as_of()
         ans = C.compose(pl, results, ctx, as_of)
-        if self.composer and pl.intent in ("nearest", "search", "place", "events", "area", "route"):
+        wrote = False
+        if pl.reply and not ans.cards and ans.kind in ("unknown", "help"):
+            # not a lookup, or a lookup that found nothing: the model's own short reply instead of the preset one
+            talk = C.chat_answer(pl.reply, pl, ans)
+            if talk is not None:
+                ans, wrote = talk, True
+        elif self.composer and pl.intent in ("nearest", "search", "place", "events"):
+            # routes and slopes are computed answers: their wording stays the template's
             try:
+                pl.asked = text  # the person's own words, for the model that writes the sentence
                 alt = self.composer(pl, results, ctx, as_of, ans)
                 if alt is not None:
                     ans = C.finish(alt, pl)  # the same short-answer limits hold for model answers
+                    wrote = True
             except Exception:  # noqa: BLE001
                 pass
         ans, issues = verify(ans, results, pl, ctx, text)
         ans.engine = "model" if (self.planner or self.composer) else "rules"
+        if self.planner or self.composer:  # a status for the page's console; says nothing about the question
+            ans.model_use = {
+                "plan": "model" if pl.source == "model" else "rules",
+                "answer": "model" if wrote else "template",
+            }
         ans.validate()
         self.last_issues, self.last_results, self.last_plan = issues, results, pl
         return ans
@@ -100,5 +128,6 @@ def events(a: Answer):
         "plan": scrub_plan(a.plan),
         "engine": a.engine,
         "confidence": a.confidence,
+        **({"model_use": a.model_use} if a.model_use else {}),
     }
     yield {"type": "done", "verified": a.verified, "removed": a.removed}

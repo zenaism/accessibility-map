@@ -32,3 +32,9 @@ for (const g of golden) {
     assert.deepEqual(got, g.expected);
   });
 }
+
+test('a greeting in front of a real question is not the help answer', () => {
+  const ctx = golden[0].context;
+  for (const q of ['hi', 'Hello there', 'hi, what can you do for me?', 'who are you']) assert.equal(eng.answer(q, ctx).kind, 'help', q);
+  for (const q of ['hi where should I go tonight', 'hey can you find somewhere quiet', "hello, I'm visiting Oxford next week", 'hi, where is an accessible restroom']) assert.notEqual(eng.answer(q, ctx).kind, 'help', q);
+});

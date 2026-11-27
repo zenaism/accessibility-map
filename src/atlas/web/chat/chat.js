@@ -60,7 +60,9 @@
     const REGS = g.__REGIONS || [], regShort = (id) => (REGS.find((r) => r.id === id) || {}).short || id;
     const validRegion = (id) => (REGS.some((r) => r.id === id) ? id : null);
     const chosenRegion = () => validRegion(new URLSearchParams(g.location.search).get('region')) || validRegion(store.get('atlas-region'));
-    const S = { region: null, prefs: Object.assign({ size: '1', plain: false, engine: 'guided', rate: '1' }, readJSON('openway.prefs', {})), needs: readJSON('openway.needs', {}), location: null, busy: false, ctrl: null, guided: null, local: null, health: null, image: null, lastQ: null, answers: 0, speaking: null, voice: 'idle', voiceInfo: {} };
+    // Use the model? 'local' = the person chose it; 'auto' (no choice yet) = yes only when the page was built for an online model.
+    const wantsModel = () => S.prefs.engine === 'local' || (S.prefs.engine === 'auto' && !!(S.health && S.health.hosted));
+    const S = { region: null, prefs: Object.assign({ size: '1', plain: false, engine: 'auto', rate: '1' }, readJSON('openway.prefs', {})), needs: readJSON('openway.needs', {}), turns: [], toldOnline: false, location: null, busy: false, ctrl: null, guided: null, local: null, health: null, image: null, lastQ: null, answers: 0, speaking: null, voice: 'idle', voiceInfo: {} };
     S.region = chosenRegion();
     const rules = () => O.rules;
     const say = (t) => { live.textContent = ''; g.setTimeout(() => { live.textContent = t; }, 40); };
@@ -133,9 +135,11 @@
     function buildSettings() {
       settingsEl.textContent = '';
       const reach = !!(S.health && S.health.reachable);
+      const hosted = !!(S.health && S.health.hosted);
       const eh = !S.health ? 'Checking for a local model…' : !S.health.reachable ? 'The local model is not available here. Guided mode answers from saved data on this device and sends nothing anywhere.'
+        : hosted ? (S.health.model ? 'The online model sends your question and the last few messages of this chat to our server and to a model service. Nothing is saved there. Facts about places still come only from the saved data.' : 'The online model is not available right now. Guided mode still works.')
         : !S.health.model ? 'The local server is running, but no model is loaded. Start Ollama to use it. Guided mode still works.' : 'The local model runs on this computer. Answers are still checked against the saved data.';
-      const engine = seg('engine', 'How I answer', [['guided', 'Guided (no model)'], ['local', 'Local model']], S.prefs.engine, (v) => { S.prefs.engine = v; savePrefs(); refreshMode(); buildSettings(); }, { local: !reach });
+      const engine = seg('engine', 'How I answer', [['guided', 'Guided (no model)'], ['local', hosted ? 'Online model' : 'Local model']], wantsModel() ? 'local' : 'guided', (v) => { S.prefs.engine = v; savePrefs(); refreshMode(); buildSettings(); }, { local: !reach });
       engine.append(h('p', { class: 'hint small', text: eh }));
       const size = seg('size', 'Text size', SIZES, S.prefs.size, (v) => { S.prefs.size = v; applySize(); savePrefs(); });
       const theme = h('fieldset', {}, h('legend', { text: 'Appearance' }),
@@ -157,11 +161,14 @@
       if (open) { buildSettings(); checkHealth(); }
     }
     settingsBtn.addEventListener('click', () => toggleSettings());
-    function refreshMode() { const local = S.prefs.engine === 'local' && S.health && S.health.model; modeEl.textContent = local ? 'Local model' : 'Guided mode'; }
+    // Status lines for developers, in the browser console only. They never hold the question or the answer.
+    function status(msg) { if (g.console && g.console.info) g.console.info('[Openway] ' + msg); }
+    function refreshMode() { const local = wantsModel() && S.health && S.health.model; modeEl.textContent = local ? (S.health.hosted ? 'Online model' : 'Local model') : 'Guided mode'; }
     async function checkHealth() {
-      if (!S.local) S.local = new O.engine.LocalEngine(options.serverBase || '', null);
+      if (!S.local) S.local = new O.engine.LocalEngine(options.serverBase || g.__OPENWAY_SERVER || '', null);
       const info = await S.local.info();
-      S.health = { reachable: !info.error, model: !!info.model, models: info.models || [] };
+      S.health = { reachable: !info.error, model: !!info.model, models: info.models || [], hosted: !!info.hosted, vision: !!info.vision };
+      status('model server ' + (S.local.base || '(this site)') + ': ' + (info.error ? info.error : (info.model ? 'ready, ' + (info.hosted ? 'online' : 'local') + ' model ' + (info.text_model || '') : 'reachable, but no model')) + '. Settings choice: ' + (wantsModel() ? 'model' : 'Guided (no model is called)') + '.');
       refreshMode(); if (!settingsEl.hidden) buildSettings();
     }
 
@@ -209,7 +216,7 @@
       log.textContent = '';
       log.append(h('div', { class: 'state' }, h('span', { class: 'big' }, ic('ask')), h('p', { class: 'lead', text: 'No messages yet' }), h('p', { class: 'muted', text: 'Ask about a place, or tap an idea.' }), chips(SUGGEST.slice(0, 4), 'Ideas')));
     }
-    function clearChat() { cancel(); speech.reset(); setVoice('idle'); input.value = ''; grow(); emptyHistory(); S.answers = 0; toggleSettings(false); say('Conversation cleared.'); input.focus(); }
+    function clearChat() { cancel(); speech.reset(); setVoice('idle'); input.value = ''; grow(); emptyHistory(); S.answers = 0; S.turns = []; toggleSettings(false); say('Conversation cleared.'); input.focus(); }
     function userBubble(text, hadPhoto) { const m = h('div', { class: 'msg' }, h('div', { class: 'bubble me' }, h('span', { class: 'vh', text: 'You asked: ' }), text, hadPhoto ? ' (with a photo)' : '')); log.append(m); scrollEnd(m); }
     function setBusy(b) { S.busy = b; input.setAttribute('aria-busy', String(b)); sendBtn.toggleAttribute('aria-disabled', b); }
     function cancel() { if (S.ctrl) { S.ctrl.abort(); S.ctrl = null; } if (S.busy) { setBusy(false); const t = log.querySelector('.typing-msg'); if (t) t.remove(); say('Stopped.'); } }
@@ -229,17 +236,20 @@
         h('button', { type: 'button', class: 'btn btn-ghost', onclick: () => cancel() }, 'Cancel')));
       log.append(thinking); scrollEnd(thinking); say('Looking for places.'); setBusy(true);
       S.ctrl = new g.AbortController();
-      const view = answerView(); let events = 0;
+      const view = answerView(); let events = 0, useLocal = false;
       try {
-        const useLocal = S.prefs.engine === 'local' && S.health && S.health.model;
+        useLocal = !!(wantsModel() && S.health && S.health.model);
         const eng = useLocal ? S.local : S.guided;
         if (useLocal) S.local.fallback = S.guided;
-        const gen = eng.ask(text, ctxNow(), { signal: S.ctrl.signal, image: photo ? photo.dataUrl.split(',')[1] : null });
-        for await (const ev of gen) { if (thinking.isConnected && ev.type !== 'note') thinking.remove(); events++; view.handle(ev); if (S.ctrl === null) break; }
+        status(useLocal ? 'question sent to the model server (' + ((S.health.models || [])[0] || 'model') + ').' : 'question answered in Guided mode, no model called: ' + (!wantsModel() ? 'Settings is on Guided' : !S.health ? 'the model server has not answered yet' : 'the model server has no model') + '.');
+        const gen = eng.ask(text, ctxNow(), { signal: S.ctrl.signal, image: photo ? photo.dataUrl.split(',')[1] : null, history: useLocal ? S.turns.slice(-6) : [] });
+        for await (const ev of gen) { if (useLocal) { if (ev.type === 'note') status('model not used: ' + ev.message); if (ev.type === 'meta') status(ev.engine === 'model' ? 'model reply. Understanding the question: ' + ((ev.model_use || {}).plan || 'unknown') + '. Main sentence: ' + ((ev.model_use || {}).answer || 'unknown') + '.' : 'reply came from ' + (ev.engine || 'guided') + ' mode, not the model.'); } if (thinking.isConnected && ev.type !== 'note') thinking.remove(); events++; view.handle(ev); if (S.ctrl === null) break; }
       } catch (err) { events++; view.handle({ type: 'error', message: 'Something went wrong while looking that up.' }); }
       if (thinking.isConnected) thinking.remove();
       if (!events) view.handle({ type: 'error', message: 'I did not get an answer. Please try again.' });
       view.finish();
+      if (!photo && view.said()) { S.turns.push({ role: 'user', text }, { role: 'assistant', text: view.said() }); S.turns = S.turns.slice(-12); }
+      if (useLocal && S.health.hosted && !S.toldOnline) { S.toldOnline = true; const n = h('p', { class: 'hint small', text: 'Answers use an online model, so your messages are sent to it. Facts about places come only from the saved data. You can switch to Guided in Settings.' }); log.append(n); scrollEnd(n); }
       S.ctrl = null; setBusy(false); S.image = null; renderAttach();
     }
 
@@ -255,6 +265,7 @@
         log.append(msg); scrollEnd(msg);
       };
       return {
+        said() { const lead = A.cards[0]; return A.error ? '' : (A.parts.join(' ') + (lead && lead.name && A.parts.join(' ').indexOf(lead.name) < 0 ? ' (' + lead.name + ')' : '')).slice(0, 400); },
         handle(ev) {
           if (ev.type === 'note') { hint(ev.message); return; }
           ensure();
@@ -442,8 +453,9 @@
     });
 
     // ---- photo (needs the local model) ----
-    const localReady = () => S.prefs.engine === 'local' && S.health && S.health.model;
+    const localReady = () => wantsModel() && S.health && S.health.model;
     photoBtn.addEventListener('click', () => {
+      if (S.health && S.health.hosted) { const m = 'Photo questions do not work with the online model yet. Please ask in words.'; hint(m); say(m); return; }
       if (!localReady()) { const m = 'Photo questions need the local model. Open Settings and choose Local model, or ask in words.'; hint(m); say(m); return; }
       fileInput.click();
     });

@@ -618,3 +618,46 @@ flowchart LR
   D --> A
 ```
 The worker and the model files are fetched only when the person turns the Natural voice on, from this site only, and cached in the browser. Choices (on, speed, natural) stay on the device in `atlas.voice`.
+
+## 21. Online model behind our own server (D-104, 2026-11-26, trial)
+
+Green = exists, grey = external. Setup and limits: [`hosted_backend.md`](hosted_backend.md).
+
+```mermaid
+flowchart LR
+  P["Chat page<br/>static site"] -->|"Guided mode<br/>nothing leaves the device"| G["Rules and templates<br/>in the browser"]
+  P -->|"Online model<br/>question, city, needs, location"| F["Front door script<br/>shared machine, HTTPS<br/>no key"]
+  F --> S["Assistant server<br/>plan, tools, compose, verify<br/>holds the key, counts questions"]
+  S -->|"question text and<br/>place records only"| O["Claude API<br/>or OpenRouter"]
+  O --> M["Small hosted model"]
+  S -->|"over a limit or model fails"| R["Rules answer<br/>same server"]
+  classDef built fill:#d4edda,stroke:#2e7d32,color:#111
+  classDef planned fill:#dbeafe,stroke:#1d4ed8,color:#111
+  classDef ext fill:#eeeeee,stroke:#777,color:#111
+  class P,G,R built
+  class F,S built
+  class O,M ext
+```
+
+What the server does with one message in model mode (D-105):
+
+```mermaid
+flowchart TD
+  Q["Message and the last six turns"] --> SF{"Emergency, trust, out of area,<br/>no data or live information"}
+  SF -->|yes| T["Preset answer<br/>model not called"]
+  SF -->|no| M1["Model call 1<br/>lookup or talk"]
+  M1 -->|"lookup, slots hold together"| PL["Rules plan from the slots"]
+  M1 -->|"talk"| CH["Short reply in its own words<br/>no cards, labelled not from the data"]
+  M1 -->|"model fails or slots rejected"| RP["Rules plan from the message"]
+  PL --> TL["Tools read the saved data"]
+  RP --> TL
+  TL -->|"places found"| M2["Model call 2<br/>one sentence about the first place"]
+  TL -->|"nothing found, route or slope"| TP["Template wording"]
+  M2 --> V["Verifier checks every sentence<br/>cards, sources, route and map buttons added"]
+  TP --> V
+  CH --> V
+  classDef built fill:#d4edda,stroke:#2e7d32,color:#111
+  classDef ext fill:#eeeeee,stroke:#777,color:#111
+  class Q,SF,T,PL,CH,RP,TL,TP,V built
+  class M1,M2 ext
+```

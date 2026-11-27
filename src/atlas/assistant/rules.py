@@ -109,6 +109,30 @@ HELP = [
     "hi",
     "hey",
 ]
+# words that may sit next to a greeting or a "what can you do" question; anything else means a real question
+HELP_FILLER = [
+    "there",
+    "please",
+    "for",
+    "me",
+    "here",
+    "and",
+    "so",
+    "ok",
+    "okay",
+    "with",
+    "this",
+    "app",
+    "assistant",
+    "exactly",
+    "tell",
+    "can",
+    "you",
+    "good",
+    "morning",
+    "afternoon",
+    "evening",
+]
 
 TRUST = {
     "ada_trust": [
@@ -996,6 +1020,7 @@ def rules_json() -> str:
         "EMERGENCY_SOFT",
         "EMERGENCY_SOFT_NOT",
         "HELP",
+        "HELP_FILLER",
         "TRUST",
         "OTHER_PLACES",
         "NO_DATA",
