@@ -32,7 +32,17 @@ INTENTS = (
     "clarify",
 )
 TOOLS = ("search_places", "nearest", "get_place", "find_events", "area_conditions", "accessible_route")
-ANSWER_KINDS = ("answer", "unknown", "emergency", "clarify", "out_of_area", "no_data", "help", "error")
+ANSWER_KINDS = (
+    "answer",
+    "unknown",
+    "emergency",
+    "clarify",
+    "out_of_area",
+    "no_data",
+    "help",
+    "chat",
+    "error",
+)
 SENTENCE_KINDS = ("claim", "meta", "disclaimer")
 ACTION_TYPES = ("route_to", "show_on_map", "call", "report", "open_link")
 
@@ -111,6 +121,8 @@ class Plan:
     unmatched: list = field(default_factory=list)  # names in the question that are not in the data
     unsupported: list = field(default_factory=list)  # asked about, but our data has no such field
     source: str = "rules"  # rules | model
+    reply: str | None = None  # a model's own words for a message that is not a lookup; never part of to_dict
+    asked: str | None = None  # the person's own words, for a model composer; never part of to_dict
 
     def validate(self) -> Plan:
         _need(self.intent in INTENTS, f"unknown intent {self.intent!r}")
@@ -143,7 +155,10 @@ class Plan:
         return cls(**d).validate()
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        d = asdict(self)
+        d.pop("reply", None)
+        d.pop("asked", None)
+        return d
 
 
 @dataclass
@@ -240,6 +255,9 @@ class Answer:
     removed: int = 0  # sentences the verifier removed
     plan: dict | None = None
     engine: str = "rules"
+    model_use: dict | None = (
+        None  # which steps a model did: {"plan": "model"|"rules", "answer": "model"|"template"}
+    )
     confidence: str = ""  # one line: how sure we are and from what source (repeats the lead card's)
     followups: list = field(default_factory=list)  # exactly 3 {"label", "message"} chips
 

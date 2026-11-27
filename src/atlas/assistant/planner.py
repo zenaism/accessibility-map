@@ -235,6 +235,14 @@ def plan(text: str, ctx: Context, index: Index) -> Plan:
     return pl
 
 
+def only_help(t: str) -> bool:
+    """True when nothing is left after taking out the help phrases and filler words."""
+    rest = f" {t} "
+    for phrase in sorted(R.HELP, key=len, reverse=True):
+        rest = rest.replace(f" {norm(phrase)} ", "  ")
+    return all(w in R.HELP_FILLER for w in rest.split())
+
+
 def _plan(text: str, ctx: Context, index: Index) -> Plan:
     ctx.validate()
     t = norm(text)
@@ -243,8 +251,9 @@ def _plan(text: str, ctx: Context, index: Index) -> Plan:
     # 1 emergency
     if has_any(t, R.EMERGENCY) or (has(t, R.EMERGENCY_SOFT) and not has_any(t, R.EMERGENCY_SOFT_NOT)):
         return Plan("emergency")
-    # 2 help (short greetings and "what can you do")
-    if has_any(t, R.HELP) and len(t.split(" ")) <= 8 and not first_need(t) and not first_type(t):
+    # 2 help: only a greeting or "what can you do" on its own. A greeting in front of a real question
+    # ("hi, where can I eat tonight?") is planned as that question.
+    if has_any(t, R.HELP) and only_help(t):
         return Plan("help")
 
     # the place the question names (areas and region words are not places)

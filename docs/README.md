@@ -20,6 +20,7 @@ One topic per file. Where two files touch the same subject, the "owner" below is
 | [`implementation_plan.md`](implementation_plan.md) | The work order for routing and Openway Assistant: steps, order, checks, approval gates, what the first overnight run would produce (not started) | how the work will be done |
 | [`assistant_plan.md`](assistant_plan.md) | Product, UI ideas, architecture choices, build phases, evaluation, and how to build it in parallel with routing (not started) | planned assistant |
 | [`assistant_build_spec.md`](assistant_build_spec.md) | Technical spec for Openway Assistant: pipeline, what we use ($0 stack), files, evaluation variants (not started) | how the assistant will be built |
+| [`hosted_backend.md`](hosted_backend.md) | Trial setup for an online model: our server on a shared Linux machine, a hosted model behind it, what is sent, limits, install steps (D-104, proposed) | running the assistant for outside users |
 | [`routing_in_browser_plan.md`](routing_in_browser_plan.md) | Step-by-step plan for place-to-place walking routes in the map page (not started) | planned routing feature |
 | [`data_needs.md`](data_needs.md) | All data we need: now, for computing, for prediction; what to keep from day one | data requirements and future use |
 | [`data_landscape.md`](data_landscape.md) | What users need and every way to get it, by acquisition method | acquisition strategy |

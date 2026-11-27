@@ -54,3 +54,6 @@ docs/figures/ux_audit/
 
 # Generated components test page (B0)
 build/
+
+# private settings of a shared-server install (deploy/shared_server/env.example is the template)
+deploy/shared_server/env

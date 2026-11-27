@@ -65,14 +65,14 @@
   /** Talks to the local server: POST /ask (server-sent events). Falls back to the guided engine when the server or model is unavailable. */
   function LocalEngine(baseUrl, fallback) { this.base = baseUrl || ''; this.fallback = fallback || null; this.name = 'local'; }
   LocalEngine.prototype.info = async function () {
-    try { const r = await fetch(this.base + '/api/health', { cache: 'no-store' }); return Object.assign({ engine: 'local' }, await r.json()); }
-    catch (e) { return { engine: 'local', model: false, error: 'server not reachable' }; }
+    try { const r = await fetch(this.base + '/api/health', { cache: 'no-store' }); if (!r.ok) throw new Error('status ' + r.status); return Object.assign({ engine: 'local' }, await r.json()); }
+    catch (e) { return { engine: 'local', model: false, error: 'server not reachable: ' + (e && e.message || e) }; }
   };
   LocalEngine.prototype.ask = async function* (text, ctx, opts) {
     opts = opts || {};
     let res;
     try {
-      res = await fetch(this.base + '/api/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, context: ctx, image: opts.image || null, mode: opts.mode || 'model' }), signal: opts.signal });
+      res = await fetch(this.base + '/api/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, context: ctx, image: opts.image || null, mode: opts.mode || 'model', history: opts.history || [] }), signal: opts.signal });
       if (!res.ok || !res.body) throw new Error('bad response');
     } catch (err) {
       if (err && err.name === 'AbortError') return;

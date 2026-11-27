@@ -291,6 +291,8 @@ def cut_sentence(text: str, limit: int = MAX_WORDS) -> tuple[str, str]:
 def shorten(a: Answer) -> Answer:
     """The main answer is one sentence of at most 25 words (two short ones for unknown / no_data / out_of_area).
     Whatever is not kept moves, in order, to the front of the details with the same refs, so nothing is lost."""
+    if a.kind == "chat":
+        return a  # a conversational reply is already short (chat_answer) and is shown whole
     units = []
     for s in a.headline:
         for piece in split_sentences(s.text):
@@ -396,6 +398,7 @@ KIND_CONFIDENCE = {
     "unknown": "Not known · nothing in our data answers this",
     "no_data": "Not known · we have no data on this topic yet",
     "out_of_area": "Not known · outside Cincinnati and Oxford",
+    "chat": "Assistant · not from the map data",
 }
 
 
@@ -549,6 +552,24 @@ def _help(pl, res, ctx, as_of):
         S("I cannot answer: " + "; ".join(R.CANNOT_ANSWER) + ".", [], "meta"),
     ]
     return Answer("help", lines, details=det)
+
+
+CHAT_NOTE = "This reply is the assistant talking. It is not a fact from the map data."
+
+
+def chat_answer(reply: str, pl: Plan, base: Answer | None = None) -> Answer | None:
+    """A model's own short reply to a message that is not a lookup ("hi", "thanks", "what are you?").
+    At most two sentences are shown; it carries no cards and no sources, and it is labelled as not from the data.
+    `base` is the template answer it replaces: its plan, and the help details when there are any, are kept."""
+    pieces = [p for p in split_sentences(" ".join(str(reply or "").split())) if p][:3]
+    if not pieces:
+        return None
+    a = Answer("chat", [S(p, [], "meta") for p in pieces[:2]])
+    a.details = [S(p, [], "meta") for p in pieces[2:]] + [S(CHAT_NOTE, [], "meta")]
+    if base is not None and base.kind == "help":
+        a.details += list(base.details)
+    a.plan = pl.to_dict()
+    return finish(a, pl)
 
 
 def _out_of_area(pl, res, ctx, as_of):

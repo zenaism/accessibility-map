@@ -140,3 +140,16 @@ def test_plan_validation():
         Context(today="tomorrow").validate()
     with pytest.raises(SchemaError):
         Context(today=TODAY, location=[91, 0]).validate()
+
+
+def test_a_greeting_in_front_of_a_real_question_is_not_the_help_answer(index):
+    for text in ("hi", "Hello there", "hi, what can you do for me?", "who are you"):
+        assert plan(index, text).intent == "help", text
+    for text in (
+        "hi where should I go tonight",
+        "hey can you find somewhere quiet",
+        "hello, I'm visiting Oxford next week",
+        "what do you know about Kofenya",
+        "hi, where is an accessible restroom",
+    ):
+        assert plan(index, text).intent != "help", text

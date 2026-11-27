@@ -52,9 +52,16 @@ def _regions_json() -> str:
 
 def app_html(inline: str = "") -> str:
     """The new chat screen: header, settings, conversation, compose area A, voice bar, tab bar (Ask active)."""
+    import json
+    import os
+
     from .. import report_form
     from .. import ui_foundation as ui
 
+    # a page on a static host can use a model on another server (docs/hosted_backend.md); unset: same site
+    server = os.environ.get("OPENWAY_SERVER_BASE", "").strip().rstrip("/")
+    if server:
+        inline = "window.__OPENWAY_SERVER=" + json.dumps(server).replace("</", "<\\/") + ";" + inline
     hrefs = {"map": MAP_HREF, "saved": MAP_HREF + "#saved", "report": REPORT_FALLBACK, "ask": "ask.html"}
     # one banner landmark only: the chat header below is the banner, so the top bar keeps its navigation but not its <header>
     top = (

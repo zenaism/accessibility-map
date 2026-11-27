@@ -137,13 +137,19 @@
     return pl;
   }
 
+  function onlyHelp(t) {
+    let rest = ' ' + t + ' ';
+    for (const phrase of R().HELP.slice().sort((a, b) => b.length - a.length)) rest = rest.split(' ' + norm(phrase) + ' ').join('  ');
+    return rest.split(' ').filter(Boolean).every((w) => R().HELP_FILLER.includes(w));
+  }
   function _plan(text, ctx, index) {
     const r = R();
     const t = norm(text);
     const region = detectRegion(t) || ctx.region || null;
     const needs = ctx.needs || {};
     if (hasAny(t, r.EMERGENCY) || (has(t, r.EMERGENCY_SOFT) && !hasAny(t, r.EMERGENCY_SOFT_NOT))) return mkPlan('emergency');
-    if (hasAny(t, r.HELP) && t.split(' ').length <= 8 && !firstNeed(t) && !firstType(t)) return mkPlan('help');
+    // help: only a greeting or "what can you do" on its own; a greeting in front of a real question is planned as that question
+    if (hasAny(t, r.HELP) && onlyHelp(t)) return mkPlan('help');
 
     const tPlaces = stripPhrases(t, Object.keys(r.AREAS).concat(['oxford', 'cincinnati', 'cincy']));
     const hit = index.resolve(tPlaces, region);
