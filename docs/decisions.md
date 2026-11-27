@@ -19,6 +19,26 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-106: One tab name and one logo on every page; the filter sheet is quiet (2026-11-27, accepted)
+Decision: every map and assistant page has the tab title "Accessibility Map" and the same teal map-pin icon (`ui_foundation.FAVICON`); names inside the pages stay (the assistant is still "Openway Assistant" on screen, D-29). The about-crawler and place pages keep their own titles but get the same icon. In the filter sheet the group labels are small and grey, chips and Reset are regular weight, and only "Show N places" is strong.
+Why: the owner asked for the tab to match the website and for the filter to be concise and easy to scan. Basis: recorded (owner's words, 2026-11-27).
+Alternatives: city or page name in the tab (rejected by the owner).
+Costs / revisit if: with the city out of the tab, two open maps look the same in the tab strip; the selected filter chip is shown by tick, tint and border, not weight, so check it with a screen reader.
+
+### D-105: The chat's Read aloud uses the same natural voice as the route directions (2026-11-27, accepted)
+Decision: Read aloud in the chat speaks through the same `AtlasVoice` controller as the route steps (D-102): the Kokoro natural voice when it is on, the device voice otherwise and while Kokoro loads. The first Read aloud turns the natural voice on and says so in a hint ("about 92 MB, once, the device voice reads until it is ready, you can turn this off in Settings"); the chat Settings gain one switch, "Natural voice for reading aloud and routes", bound to the same saved preference, so one choice covers both. Read aloud does not need the route "Voice on" switch. The speed is the route speed. The Ask page (`ask.html`) loads the same voice code and the same `tts/` files.
+Why: the owner asked for the same human-like voice they chose for routes. One controller means one download, one setting and one set of fallbacks.
+Alternatives: the old browser voice only (robotic, the reason for the request); a separate voice just for the chat (a second 92 MB download and two settings); asking before the first download (an extra step; the hint and the Settings switch give the choice instead).
+Costs / revisit if: the first Read aloud starts a 92 MB download, which is a lot on mobile data (revisit: ask first when the connection is metered, or keep it opt-in); on a slow phone the first sentence waits on synthesis, so the device voice covers it. Tested in Chromium: the model loads, the device voice reads meanwhile, then the natural audio plays.
+Basis: recorded (owner's request, 2026-11-27).
+
+### D-104: The chat opens inside the map window; the embedded chat has no Ask button (2026-11-27, accepted)
+Decision: Ask (header button, tab) no longer goes to `ask.html`. It opens the same chat screen as a panel in the map page: on desktop and tablet (900 px and wider) it is a 400 px column on the right of the map while the places panel stays on the left (the owner's change, same day); on a phone it is a full-screen layer. The chat design is unchanged. The embedded copy has no top bar and no tab bar, so there is no Ask button inside it; it keeps its own header with Settings and Close. "Show on map" and "Route here" keep the chat open on desktop (the place card and route steps show in the left panel beside it) and close it on a phone, where it would cover them. Close or Escape returns focus to the control that opened it, and the conversation is kept until the page closes. `ask.html` stays as the fallback.
+Why: the owner did not want people redirected to another page; keeping the chat and the map in one window lets "Show on map" and "Route here" act on the live map. The prototype (`docs/prototypes/chat/chat-in-map.html`) was shown and approved first; the owner asked that the chat window not contain the Ask button.
+Alternatives: an iframe of `ask.html` (two copies of the page, events would need messaging, double scroll); a bottom sheet on desktop (hides the map); the chat replacing the places column (first version, changed because people want the place details and the chat side by side).
+Costs / revisit if: each map page grows by about 160 KB (the chat scripts and styles; the chat data files still load only on the first Ask); a place that is not on the map (an event without a point) still follows the link, as before. Revisit if the page size matters on slow connections (then load the chat code on first Ask).
+Basis: recorded (owner's request and approval, 2026-11-27).
+
 ### D-103: The code is MIT-licensed; the GPL part stays a separate, labelled file (2026-11-26, proposed, owner asked me to choose)
 Decision: add `LICENSE` (MIT, Copyright (c) 2026 Mariam Zenaishvili) for the code, and say plainly that data keeps each source's licence and the third-party files keep theirs. `data/map/tts/kokoro-worker.js` contains eSpeak NG (GPL-3.0-or-later), so it is labelled GPL in `data/map/tts/NOTICE.md` with the GPL text, the source links and the build recipe (`scripts/tts_worker/`). The page loads it as a separate Web Worker file and only exchanges messages with it, so the page code is not combined into it.
 Why: MIT is the simplest permissive licence, matches the dependencies (Apache-2.0, MIT) and lets other researchers reuse the code, which suits a research and civic project. Making the whole repo GPL would force every reuser into GPL for the sake of one optional voice file. Dropping Kokoro to avoid GPL would lose the voice the owner chose; Piper uses the same eSpeak NG, so it would not help.
@@ -748,3 +768,10 @@ Basis: recorded (user choice 2026-11-20; web search results).
 **Alternatives:** name or geocoder lookup each time.
 **Costs / revisit if:** adding a region needs one resolved ID; the national plan automates this step.
 **Basis:** recorded (`config/regions.yaml` comment).
+
+### D-103: Legend is a small pop-up over the map, in the old compact style (2026-11-27, local, not pushed)
+**Decision:** the Legend button opens a pop-up card on the map (four ratings, kinds of place, group marker, one source line) instead of a full side-panel view. Closes with x, Esc or a click outside.
+**Why:** the panel view was long (route lines, your-location, credits) and replaced the place list; the owner asked for the old compact legend, easy to use and not crowded.
+**Alternatives:** keep the panel view; a modal sheet.
+**Costs / revisit if:** route-line and your-location samples are no longer in the legend; add them back if people ask.
+**Basis:** owner request.

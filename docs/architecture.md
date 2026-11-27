@@ -618,3 +618,20 @@ flowchart LR
   D --> A
 ```
 The worker and the model files are fetched only when the person turns the Natural voice on, from this site only, and cached in the browser. Choices (on, speed, natural) stay on the device in `atlas.voice`.
+
+
+## 21. The chat inside the map window (D-104, 2026-11-27)
+
+Green = exists, blue = planned. Ask no longer leaves the page.
+
+```mermaid
+flowchart LR
+  A["Ask button or tab"]:::ex --> E["atlas open-ask event"]:::ex
+  E --> M["Map page opens the chat panel"]:::ex
+  M -->|desktop| D["Chat is a right hand column, places panel stays on the left"]:::ex
+  M -->|phone| P["Chat is a full screen layer"]:::ex
+  C["Chat answer"]:::ex -->|Show on map| S["Map selects the place"]:::ex
+  C -->|Route here| R["Route steps in the left panel, chat stays open on desktop"]:::ex
+  X["Close or Escape"]:::ex --> B["Chat closes, focus on Ask"]:::ex
+  classDef ex fill:#d1fae5,stroke:#047857,color:#064e3b
+```
