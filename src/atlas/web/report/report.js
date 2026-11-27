@@ -160,7 +160,7 @@
   function placeRow() {
     if (R.noPlace) return '<div class="rp-place" id="rp-place"><span>About: <b>the map, not one place</b></span><button type="button" class="btn btn-ghost" data-change>Change</button></div>';
     if (!R.place) return '<div class="rp-place" id="rp-place">' + icon('map') + '<span class="muted">No place yet</span><button type="button" class="btn btn-secondary" data-change>Choose place</button></div>' + errFor('place');
-    return '<div class="rp-place" id="rp-place"><span>About <b>' + esc(R.place.name) + '</b></span><button type="button" class="btn btn-ghost" data-change>Change<span class="vh"> place</span></button></div>' + errFor('place');
+    return '<div class="rp-place" id="rp-place"><button type="button" class="rp-picker" data-change aria-label="Change place, now ' + esc(R.place.name) + '">' + icon('pin') + '<span class="n">' + esc(R.place.name) + '</span>' + icon('down') + '</button></div>' + errFor('place');
   }
   function bannerHtml() {
     const parts = [];

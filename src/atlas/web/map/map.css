@@ -142,7 +142,61 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
 .ax .chip.on .ic { width: 14px; height: 14px; }
 .ax #filter { position: relative; }
 .ax .fbadge { position: absolute; right: -2px; top: -4px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px; background: var(--primary); color: var(--onprimary); border: 2px solid var(--surface); font-size: 11px; font-weight: var(--fw-bold); line-height: 14px; text-align: center; }
-.ax .rateblock .star { min-height: var(--target); }
-.ax .rateblock .star .ic { width: calc(26px*var(--k)); height: calc(26px*var(--k)); }
+.ax .rate-line { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); }
+.ax .rate-line .stars { display: flex; gap: 0; }
+.ax .rateblock .star { min-height: 44px; min-width: 44px; width: 44px; padding: 0; border: 0; background: none; color: var(--muted); border-radius: var(--r-sm); }
+.ax .rateblock .star { color: #A86B00; }
+.ax .rateblock .star .ic { stroke: #A86B00; stroke-width: 2.2; }
+.ax .rateblock .stars:hover .star .ic, .ax .rateblock .stars:focus-within .star .ic { fill: #FFC107; }
+.ax .rateblock .stars .star:hover ~ .star .ic { fill: none; }
+.ax .rateblock .star:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.ax .rateblock .star .ic { width: calc(24px*var(--k)); height: calc(24px*var(--k)); }
+.ax .panel .grab { cursor: pointer; }
+.ax .panel.mini .panel-body > :not(.keep), .ax .panel.mini .keep > :not(.phead):not(.head-row):not(h2) { display: none !important; }
+.ax .panel.mini .keep { cursor: pointer; }
 .ax .rateblock .lbl { margin: 0; }
-.ax .legendrow { padding: var(--s1) 0; gap: var(--s3) var(--s4); } .ax .legendrow > div:first-child { padding: 6px; }
+.ax .legend-pop { position: absolute; left: var(--s3); bottom: 84px; z-index: 600; width: min(320px, calc(100% - 24px)); max-height: calc(100% - 120px); overflow: auto; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: var(--r-card); box-shadow: var(--shadow); padding: var(--s2) var(--s3) var(--s3); display: grid; gap: var(--s2); outline: none; }
+@media (max-width: 899px) { .ax .legend-pop { z-index: 800; bottom: auto; top: calc(190px*var(--k) + 52px); } }
+.ax .legend-head { display: flex; align-items: center; justify-content: space-between; }
+.ax .legend-head h2 { font-size: var(--fs-lead); font-weight: var(--fw-bold); }
+.ax .legend-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
+.ax .legend-list li { display: grid; grid-template-columns: 24px 1fr; column-gap: var(--s3); align-items: start; line-height: 1.3; }
+.ax .legend-list li > b { font-weight: var(--fw-reg, 400); font-size: var(--fs-body); }
+.ax .legend-list li > .muted { grid-column: 2; }
+.ax .legend-list .ld { grid-row: 1 / span 2; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+.ax .legend-list .ld.yes { background: var(--pin-yes); color: var(--pin-yes-on); }
+.ax .legend-list .ld.partial { background: var(--pin-partial); color: var(--pin-partial-on); }
+.ax .legend-list .ld.no { background: var(--pin-no); color: var(--pin-no-on); }
+.ax .legend-list .ld.unknown { background: var(--pin-unknown); color: var(--pin-unknown-on); }
+.ax .legend-toggle { all: unset; box-sizing: border-box; cursor: pointer; color: var(--primary); font-weight: var(--fw-bold); font-size: var(--fs-body); min-height: 32px; display: flex; align-items: center; gap: 6px; border-top: 1px solid var(--line); padding-top: var(--s2); }
+.ax .legend-toggle::after { content: ""; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform .2s ease; }
+.ax .legend-pop.more-open .legend-toggle::after { transform: rotate(-135deg); }
+.ax .legend-toggle:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
+.ax .legend-more { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .25s ease, opacity .2s ease; }
+.ax .legend-pop.more-open .legend-more { grid-template-rows: 1fr; opacity: 1; }
+.ax .legend-more-in { overflow: hidden; min-height: 0; display: grid; gap: var(--s3); }
+.ax .legend-kinds { list-style: none; margin: 0; padding: var(--s1) 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: var(--s2) var(--s3); }
+.ax .legend-kinds li { display: flex; align-items: center; gap: var(--s2); font-size: var(--fs-body); }
+.ax .legend-kinds .ic { width: 18px; height: 18px; flex: none; }
+.ax .legend-group { display: flex; gap: var(--s3); align-items: center; margin: 0; font-size: var(--fs-small); }
+.ax .legend-c { width: 22px; height: 22px; border-radius: 50%; background: var(--surface); border: 2px solid var(--text); display: grid; place-items: center; font-size: 11px; font-weight: var(--fw-bold); flex: none; }
+.ax .legend-src { margin: 0; font-size: var(--fs-small); color: var(--muted); line-height: 1.35; }
+@media (prefers-reduced-motion: reduce) { .ax .legend-more, .ax .legend-toggle::after { transition: none; } }
+
+/* desktop: the Saved places button sits beside Near me, so the start list does not repeat it */
+@media (min-width: 900px) { .ax .savedrow { display: none; } }
+.ax .panel .grab { position: relative; } .ax .panel .grab::after { content: ""; position: absolute; inset: -12px -40px; }
+.ax .rateblock .lbl { font-weight: var(--fw-reg); color: var(--muted); font-size: var(--fs-body); }
+.ax .rateblock .wrong-line { border-top: 1px solid var(--line); min-height: 44px; }
+.ax .linkbtn { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; gap: 2px; min-height: 44px; min-width: 44px; padding: 0 var(--s1); color: var(--link, var(--primary)); font-weight: var(--fw-med); font-size: var(--fs-body); }
+.ax .linkbtn .ic { width: 16px; height: 16px; }
+.ax .linkbtn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 6px; }
+/* soft rating label: tinted pill, no border, regular weight (the symbol still carries the meaning, not colour alone) */
+.ax .badge, .ax .badge.partial { border-color: transparent; border-width: var(--bw); font-weight: 500; padding: 2px 12px 2px 8px; }
+.ax .badge.reported { border-color: var(--line); }
+
+/* filter sheet: quiet labels and regular-weight chips; the state shows by tick, tint and border, and Show N places is the one strong control */
+.ax .filterform fieldset.group > legend { font-weight: var(--fw-reg, 400); font-size: var(--fs-small); color: var(--muted); }
+.ax .filterform .chip { font-weight: var(--fw-reg, 400); }
+.ax .filterform .btn-ghost { font-weight: var(--fw-reg, 400); color: var(--muted); }
+.ax .phead .badge { justify-self: start; width: fit-content; }

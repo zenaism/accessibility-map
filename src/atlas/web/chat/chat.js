@@ -55,7 +55,7 @@
     options = options || {};
     const base = options.base === undefined ? 'assistant/' : options.base;
     const $ = (sel) => root.querySelector(sel);
-    const log = $('#ch-log'), input = $('#q'), form = $('#ch-form'), sendBtn = $('#ch-send'), micBtn = $('#ch-mic'), photoBtn = $('#ch-photo');
+    const log = $('#ch-log'), input = $('#ch-q') || $('#q'), form = $('#ch-form'), sendBtn = $('#ch-send'), micBtn = $('#ch-mic'), photoBtn = $('#ch-photo');
     const settingsEl = $('#settings'), settingsBtn = $('#ch-settings-btn'), live = $('#ch-live'), hintEl = $('#ch-hint'), voiceHost = $('#ch-voice'), banner = $('#ch-banner'), fileInput = $('#ch-file'), modeEl = $('#ch-mode');
     const REGS = g.__REGIONS || [], regShort = (id) => (REGS.find((r) => r.id === id) || {}).short || id;
     const validRegion = (id) => (REGS.some((r) => r.id === id) ? id : null);
@@ -149,6 +149,7 @@
       const note = h('p', { class: 'hint small' }, 'Nothing you type is sent anywhere in Guided mode. ',
         gaps.length ? [gaps.length + ' question' + (gaps.length > 1 ? 's' : '') + ' I could not answer ' + (gaps.length > 1 ? 'are' : 'is') + ' saved on this device only. ', h('button', { type: 'button', class: 'link', onclick: () => { store.del('openway.gaps'); buildSettings(); } }, 'Clear that list')] : '');
       settingsEl.append(engine, size, theme, toggleRow('Plain language (shorter sentences)', S.prefs.plain, (v) => { S.prefs.plain = v; savePrefs(); hint(v ? 'Plain language is on.' : ''); }),
+        toggleRow('Natural voice for reading aloud and routes (about 92 MB, once)', !!(voiceCtl() && voiceCtl().state.prefs.natural), (v) => { const V = voiceCtl(); if (V) { V.state.prefs.naturalAsked = true; V.setNatural(v); hint(v ? 'Loading the natural voice. The device voice reads until it is ready.' : 'Natural voice is off. The device voice is used.'); } }),
         toggleRow('Use my location to sort by distance', !!S.location, (v) => { if (v) useLocation(); else { S.location = null; hint('Location is off.'); } }), tools, note);
     }
     function toggleSettings(force) {
@@ -373,12 +374,21 @@
       if (A.unknown && A.unknown.about && A.unknown.about.length) parts.push('I do not know: ' + A.unknown.about.join(', ') + '.');
       return parts.join(' ');
     }
+    // Read aloud uses the same voice as the route directions: the shared AtlasVoice controller (the map page's own, or one made
+    // here on the Ask page). The natural voice (Kokoro, one download, then offline) is used when it is on; the first Read aloud
+    // turns it on and says so, the device voice speaks while it loads, and Settings can turn it off.
+    let ownVoice = null;
+    const voiceCtl = () => (g.AtlasNav && g.AtlasNav.VOICE) || (g.AtlasVoice ? (ownVoice = ownVoice || g.AtlasVoice.create({ base: options.ttsBase, onChange: () => { if (settingsEl && !settingsEl.hidden) buildSettings(); } })) : null);
+    const readDone = (btn) => { if (S.speaking === btn) { S.speaking = null; btn.setAttribute('aria-pressed', 'false'); btn.querySelector('span').textContent = 'Read aloud'; } };
     function readAloud(A, btn) {
-      const V = O.voice;
-      if (!V.supportsOut()) { hint('Reading aloud is not available in this browser. Your screen reader can read the answer.'); say('Reading aloud is not available in this browser.'); return; }
-      if (S.speaking === btn) { V.stop(); S.speaking = null; btn.setAttribute('aria-pressed', 'false'); btn.querySelector('span').textContent = 'Read aloud'; return; }
+      const V = voiceCtl();
+      if (!V || !V.supported()) { hint('Reading aloud is not available in this browser. Your screen reader can read the answer.'); say('Reading aloud is not available in this browser.'); return; }
+      if (S.speaking === btn) { V.stop(); readDone(btn); return; }
+      if (S.speaking) readDone(S.speaking);
+      V.unlock();   // inside the tap: phones only allow sound after one
+      if (!V.state.prefs.naturalAsked) { V.state.prefs.naturalAsked = true; if (!V.state.prefs.natural) { V.setNatural(true); hint('Loading the natural voice (about ' + V.state.size + ', once). The device voice reads until it is ready. You can turn this off in Settings.'); } }
       S.speaking = btn; btn.setAttribute('aria-pressed', 'true'); btn.querySelector('span').textContent = 'Stop reading';
-      V.speak(spoken(A), { rate: parseFloat(S.prefs.rate), onend: () => { if (S.speaking === btn) { S.speaking = null; btn.setAttribute('aria-pressed', 'false'); btn.querySelector('span').textContent = 'Read aloud'; } } });
+      if (!V.say(spoken(A), { onend: () => readDone(btn) })) readDone(btn);
     }
 
     // ---- voice in: idle, recording, 10 seconds left, restarting, processing, transcript, limit, denied ----
@@ -467,9 +477,9 @@
       if (e.key !== 'Escape' || doc.querySelector('.sheet.modal')) return;
       if (S.busy) { cancel(); return; }
       if (!settingsEl.hidden) { toggleSettings(false); settingsBtn.focus(); e.stopPropagation(); return; }
-      if (O.voice.supportsOut() && S.speaking) { O.voice.stop(); }
+      if (S.speaking) { const V = voiceCtl(); if (V) V.stop(); readDone(S.speaking); }
     });
-    g.addEventListener('pagehide', () => { O.voice.stop(); speech.reset(); });
+    g.addEventListener('pagehide', () => { const V = voiceCtl(); if (V) V.stop(); speech.reset(); });
     doc.addEventListener('visibilitychange', () => { if (doc.hidden && ['recording', 'warning', 'restarting'].includes(S.voice)) speech.stop(); });
 
     // ---- boot ----
@@ -481,7 +491,7 @@
         const inl = g.__OPENWAY_DATA;
         const [r, cinc, ox] = inl ? [inl.rules, inl.cincinnati, inl.oxford] : await Promise.all([get(base + 'rules.json'), get(base + 'cincinnati.json'), get(base + 'oxford.json')]);
         S.guided = new O.engine.GuidedEngine([cinc, ox], r);
-        if (g.AtlasReport) g.AtlasReport.setPlaces(S.guided.kb.places.filter((p) => p.layer !== 'event').map((p) => ({ id: p.link_id, name: p.name, region: p.region, rating: RK[p.rating] || 'unknown', layer: LAYER_NAME[p.layer] || 'Place', pt: p.lat == null ? null : [p.lat, p.lon] })));
+        if (g.AtlasReport && !options.keepPlaces) g.AtlasReport.setPlaces(S.guided.kb.places.filter((p) => p.layer !== 'event').map((p) => ({ id: p.link_id, name: p.name, region: p.region, rating: RK[p.rating] || 'unknown', layer: LAYER_NAME[p.layer] || 'Place', pt: p.lat == null ? null : [p.lat, p.lon] })));
         hint(''); sendBtn.removeAttribute('aria-disabled'); root.dispatchEvent(new g.CustomEvent('ow:ready'));
         checkHealth();
       } catch (e) {

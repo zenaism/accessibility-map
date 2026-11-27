@@ -6,8 +6,8 @@ and the data inside. Leaflet and its cluster plugin are vendored (atlas.leaflet,
     from atlas.map_app import render
     html = render(data, title="Accessibility Map", nav="")
 
-Reporting and chat are not in this page (B2 and B3). The Report and Ask tabs fire atlas:open-report and atlas:open-ask;
-when nothing listens they follow their href (the assistant page; Report has no page of its own).
+The chat assistant opens inside this page (a panel in the same window, no redirect): Ask fires atlas:open-ask and map.js opens
+the embedded chat (atlas.assistant.page.embed). ask.html is only the fallback when scripts do not run. Reporting is the B2 form.
 """
 
 from __future__ import annotations
@@ -17,6 +17,7 @@ from pathlib import Path
 
 from . import leaflet, regions, report_form, routing_ui
 from . import ui_foundation as ui
+from .assistant import page as chat_page
 
 WEB = Path(__file__).with_name("web") / "map"
 REPORT_FALLBACK = "#report"  # the Report tab fires atlas:open-report; no GitHub link any more
@@ -49,8 +50,15 @@ def _search() -> str:
         '<div class="listbox" role="listbox" id="sug" aria-label="Suggestions" hidden></div>'
         '<div class="rowbtns" style="flex-wrap:nowrap">'
         + ui.button("Near me", "secondary", "near", id="near", style="flex:1")
+        # phone: Near me and Ask (Saved places is in the tab bar). Desktop: Near me and Saved places side by side; Ask is in the top bar
+        + '<span class="only-phone" style="display:contents">'
         + ui.button("Ask", "primary", "ask", href=ASK_FALLBACK, emit="atlas:open-ask", style="flex:1")
-        + "</div></div>"
+        + "</span>"
+        '<span class="only-desktop" style="display:contents">'
+        '<a class="btn btn-secondary" id="saved-open" href="#saved" data-go="saved" style="flex:1">'
+        + ui.icon("save")
+        + '<span>Saved places<span id="saved-count"></span></span></a></span>'
+        "</div></div>"
     )
 
 
@@ -107,6 +115,7 @@ def page_html(data: dict, title: str = "Accessibility Map", nav: str = "") -> st
         "routing": routing_ui.config(),
         "title": title,
     }
+    chat = chat_page.embed()
     top = ui.topbar("map", _hrefs(), settings=False)
     # the city switcher sits next to the product name on desktop
     top = top.replace(
@@ -126,23 +135,27 @@ def page_html(data: dict, title: str = "Accessibility Map", nav: str = "") -> st
         '<main class="main"><h1 class="vh only-desktop">Accessibility Map</h1>'
         '<div class="leftcol">'
         + _search()
-        + '<section class="panel" id="panel" aria-label="Places"><div class="grab"></div><div class="panel-body" id="panel-body" tabindex="-1"></div></section></div>'
+        + '<section class="panel" id="panel" aria-label="Places"><div class="grab"></div><div class="panel-body" id="panel-body" tabindex="-1"></div></section>'
+        + "</div>"
         '<div class="mapwrap" role="region" aria-label="Map. A visual companion: every place on the map is also in the list.">'
         '<div id="map"></div>'
         '<button type="button" class="btn btn-secondary only-desktop lc-toggle" id="lc-toggle" aria-expanded="true" aria-controls="panel" aria-label="Hide places" data-label="Hide places">'
-        + ui.icon("back") + '</button>'
-        '<button type="button" class="btn btn-secondary legend-btn" id="legend-open">' + ui.icon("info") + '<span>Legend</span></button>'
+        + ui.icon("back")
+        + "</button>"
+        '<button type="button" class="btn btn-secondary legend-btn" id="legend-open">'
+        + ui.icon("info")
+        + "<span>Legend</span></button>"
         '<p class="hintpill" id="hint">Map is empty. Search or pick a type.</p>'
         '<div class="regionpill" id="region-pill" role="status" aria-live="polite" hidden></div>'
         '<div class="zoom"><button type="button" class="btn btn-icon btn-secondary" id="zin" aria-label="Zoom in">+</button>'
         '<button type="button" class="btn btn-icon btn-secondary" id="zout" aria-label="Zoom out">\u2212</button>'
         + ui.button("Show my location", "secondary", "near", icon_only=True, id="locate")
-        + '</div>'
-        '<span class="credit">USGS The National Map</span></div></main>'
+        + "</div>"
+        '<span class="credit">USGS The National Map</span></div>' + chat["html"] + "</main>"
         f'<div class="only-phone">{ui.tabbar("map", _hrefs())}</div>'
         '<p class="vh" id="live" role="status" aria-live="polite"></p><span id="asof" hidden></span>'
     )
-    full_title = title if "Accessibility Map" in title else title + " \u00b7 Accessibility Map"
+    full_title = "Accessibility Map"   # one tab name on every page; the city shows in the page itself (D-106)
     return (
         '<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8">'
         "<title>" + full_title + "</title>"
@@ -151,11 +164,12 @@ def page_html(data: dict, title: str = "Accessibility Map", nav: str = "") -> st
         + ui.head_snippet()
         + "\n"
         + leaflet.head()
-        + f"<style>\n{ui.css()}\n{(WEB / 'map.css').read_text()}\n{report_form.css()}\n</style></head>"
+        + f"<style>\n{ui.css()}\n{(WEB / 'map.css').read_text()}\n{chat['css']}\n{report_form.css()}\n</style></head>"
         f'<body class="ax mapapp">{ui.body_snippet()}\n{body}\n'
         f"<script>{ui.js()}</script>\n"
         f"<script>window.__MAPCFG={_json(cfg)};window.__MAPDATA={_json(data)};window.__REGIONS={_json(_regions())};</script>\n"
         f"<script>window.__ROUTECORE={_json(_core())};</script>\n"
+        f"<script>{chat['js']}</script>\n"
         f"<script>{_map_js()}\n"
         "</script>\n"
         # B2 hook: the Rate or report form (settings, the region the map shows, the form itself)

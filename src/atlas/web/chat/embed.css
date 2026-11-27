@@ -1,0 +1,14 @@
+/* The chat inside the map window. Only placement changes; every other chat rule comes from chat.css unchanged.
+   Phone: a full-screen layer over the map (the chat.css rule for .ch-app, which follows the on-screen keyboard).
+   Desktop and tablet: a 400 px column on the right of the map; the places column stays on the left. */
+.ax .ch-app.ch-embed { z-index: 1500; }
+.ax .ch-embed .chat-head h2 { font-size: var(--fs-lead); font-weight: var(--fw-bold); line-height: 1.2; margin: 0; }
+@media (min-width: 900px) {
+  .ax .ch-app.ch-embed { position: relative; inset: auto; top: auto; height: auto; width: 400px; flex: none; z-index: 800; background: var(--bg); border-left: 1px solid var(--line); }
+  .ax .ch-embed .ch-col { width: 100%; align-self: stretch; border: 0; }
+}
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 899px) {
+  .ax .ch-app.ch-embed { grid-template-columns: minmax(0, 1fr); }
+  .ax .ch-embed .ch-col { grid-column: 1; }
+}
+@media (max-width: 239px) { .ax .ch-embed .chat-head h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } }

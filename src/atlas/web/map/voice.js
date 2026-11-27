@@ -57,6 +57,7 @@
     const onChange = opt.onChange || function () {};
     let prefs = { on: false, natural: false, speed: 'normal', voice: 'af_heart' };
     try { Object.assign(prefs, JSON.parse(store.getItem('atlas.voice') || '{}')); } catch (e) { /* first visit */ }
+    let done = null;   // say(): who to tell when the speech ends
     const V = { prefs, natural: 'off', progress: 0, last: '', speaking: false, seq: 0, worker: null, ctx: null, src: null, wait: new Map(), nextId: 1, size: '92 MB' };
     const save = () => { try { store.setItem('atlas.voice', JSON.stringify(V.prefs)); } catch (e) { /* private mode */ } };
     const changed = () => { try { onChange(V); } catch (e) { /* the page decides what to redraw */ } };
@@ -67,35 +68,36 @@
       V.seq++;
       if (synth()) { try { synth().cancel(); } catch (e) { /* ignore */ } }
       if (V.src) { try { V.src.onended = null; V.src.stop(); } catch (e) { /* already stopped */ } V.src = null; }
-      V.speaking = false;
+      V.speaking = false; done = null;
     }
-    function deviceSpeak(text, seq) {
+    const ended = (seq) => { if (seq === V.seq) { V.speaking = false; const f = done; done = null; if (f) f(); } };
+    function deviceSpeak(text, seq, rate) {
       const s = synth(); if (!s || !win.SpeechSynthesisUtterance) return false;
       const u = new win.SpeechSynthesisUtterance(text);
       const v = pickDeviceVoice(s.getVoices ? s.getVoices() : []);
       if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'en-US';
-      u.rate = RATE[V.prefs.speed] || 1;
+      u.rate = rate || RATE[V.prefs.speed] || 1;
       u.onstart = () => { if (seq === V.seq) V.speaking = true; };
-      u.onend = u.onerror = () => { if (seq === V.seq) { V.speaking = false; } };
+      u.onend = u.onerror = () => ended(seq);
       s.speak(u); return true;
     }
     function playPCM(f32, sr, seq) {
       if (seq !== V.seq || !V.ctx) return;
       const buf = V.ctx.createBuffer(1, f32.length, sr); buf.copyToChannel(f32, 0);
       const src = V.ctx.createBufferSource(); src.buffer = buf; src.connect(V.ctx.destination);
-      src.onended = () => { if (V.src === src) { V.src = null; V.speaking = false; } };
+      src.onended = () => { if (V.src === src) { V.src = null; ended(seq); } };
       V.src = src; V.speaking = true; src.start();
     }
-    function naturalSpeak(text, seq) {
+    function naturalSpeak(text, seq, rate) {
       const id = V.nextId++;
-      V.wait.set(id, { seq, text });
-      V.worker.postMessage({ type: 'say', id, text, voice: V.prefs.voice, speed: RATE[V.prefs.speed] || 1 });
+      V.wait.set(id, { seq, text, rate });
+      V.worker.postMessage({ type: 'say', id, text, voice: V.prefs.voice, speed: rate || RATE[V.prefs.speed] || 1 });
     }
     function failNatural(msg) {
       V.natural = 'failed'; V.error = msg || ''; V.prefs.natural = false; save();
       try { if (V.worker) V.worker.terminate(); } catch (e) { /* ignore */ }
       V.worker = null;
-      V.wait.forEach((w) => { if (w.seq === V.seq) deviceSpeak(w.text, w.seq); });   // whatever was waiting is spoken by the device voice
+      V.wait.forEach((w) => { if (w.seq === V.seq) deviceSpeak(w.text, w.seq, w.rate); });   // whatever was waiting is spoken by the device voice
       V.wait.clear(); changed();
     }
     function loadNatural() {
@@ -110,7 +112,7 @@
           const pct = Math.round(m.p.progress || 0); if (pct !== lastPct && (pct % 5 === 0 || pct === 100)) { lastPct = pct; V.progress = pct; changed(); }
         } else if (m.type === 'ready') { V.natural = 'ready'; changed(); }
         else if (m.type === 'audio') { const w = V.wait.get(m.id); V.wait.delete(m.id); if (w) playPCM(m.audio, m.sr, w.seq); }
-        else if (m.type === 'error') { if (m.id) { const w = V.wait.get(m.id); V.wait.delete(m.id); if (w) deviceSpeak(w.text, w.seq); } else failNatural(m.message); }
+        else if (m.type === 'error') { if (m.id) { const w = V.wait.get(m.id); V.wait.delete(m.id); if (w) deviceSpeak(w.text, w.seq, w.rate); } else failNatural(m.message); }
       };
       V.worker.onerror = () => failNatural('worker error');
       V.worker.postMessage({ type: 'init', base });
@@ -128,8 +130,18 @@
       if (V.natural === 'ready' && V.worker) { naturalSpeak(text, seq); return true; }
       return deviceSpeak(text, seq);
     }
+    // Read something aloud because the person asked (the chat's Read aloud). Ignores the route Voice on/off switch; uses the same
+    // engine (natural voice when it is ready, else the device voice) and speed. opts.onend runs when the speech finishes by itself.
+    function say(text, opts) {
+      if (!text) return false;
+      opts = opts || {};
+      V.last = text; stopAudio(); const seq = V.seq; done = opts.onend || null;
+      if (V.natural === 'ready' && V.worker) { naturalSpeak(text, seq, opts.rate); return true; }
+      const ok = deviceSpeak(text, seq, opts.rate); if (!ok) done = null; return ok;
+    }
     const api = {
       state: V,
+      say,
       isOn: () => !!V.prefs.on,
       supported,
       unlock,

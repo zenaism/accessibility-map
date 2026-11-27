@@ -189,7 +189,7 @@ def button(
         inner += f"<span>{_e(label)}</span>"
     if href is not None:
         return f"<a{_attrs({**a, 'href': href})}>{inner}</a>"
-    a["type"] = "button"
+    a["type"] = attrs.get("type", "button")
     a["disabled"] = disabled
     return f"<button{_attrs(a)}>{inner}</button>"
 

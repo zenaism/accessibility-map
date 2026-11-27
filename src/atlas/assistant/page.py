@@ -25,10 +25,12 @@ def css() -> str:
 
 CHAT = Path(__file__).resolve().parents[1] / "web" / "chat"
 # modules of the new chat screen: the engine and answer pieces from web/assistant, then speech in and the screen itself
+# the route voice (Kokoro natural voice or the device voice): Read aloud in the chat uses the same engine
+MAP_VOICE = WEB.parent / "map" / "voice.js"
 APP_SCRIPTS = [
     WEB / f"{n}.js"
     for n in ("text", "dates", "tools", "planner", "composer", "verify", "engine", "voice", "photo")
-] + [CHAT / "speech.js", CHAT / "chat.js"]
+] + [MAP_VOICE, CHAT / "speech.js", CHAT / "chat.js"]
 VOLUME = '<symbol id="lucide-volume" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/></symbol>'
 MAP_HREF = "index.html"
 REPORT_FALLBACK = "#report"  # the Report tab fires atlas:open-report; no GitHub link any more
@@ -50,6 +52,80 @@ def _regions_json() -> str:
     return json.dumps([{k: r[k] for k in keep} for r in regions.catalog()]).replace("</", "<\\/")
 
 
+def _chat_parts(ui, embedded: bool = False) -> tuple[str, str]:
+    """The chat header and the compose area (the chosen design). embedded=True is the copy inside the map window:
+    its Close is a plain button (the map closes the panel) and its question box has its own id, because the map has a #q."""
+    qid = "ch-q" if embedded else "q"
+    settings = (
+        '<button type="button" class="btn btn-secondary btn-icon withlabel" id="ch-settings-btn" aria-expanded="false" aria-controls="settings">'
+        + ui.icon("settings")
+        + '<span class="vh lbl">Settings</span></button>'
+    )
+    head = (
+        '<header class="chat-head"><div class="titles"><h1>Assistant</h1>'
+        '<p class="sub"><span class="vh" id="ch-mode">Guided mode</span><span id="ch-city-line">Answering for Cincinnati and Oxford</span></p></div>'
+        + ui.theme_toggle(id="ch-theme-toggle")
+        + settings
+        + ui.button(
+            "Close", "ghost", "close", icon_only=True, href=None if embedded else MAP_HREF, id="ch-close"
+        )
+        + "</header>"
+    )
+    compose = (
+        '<form class="compose cv-a" id="ch-form" aria-label="Ask a question" novalidate>'
+        '<div id="ch-voice"></div><div id="ch-attach" hidden></div>'
+        '<div class="composer"><textarea id="'
+        + qid
+        + '" rows="1" aria-label="Your question" placeholder="Ask about a place" enterkeyhint="send" autocomplete="off"></textarea>'
+        + ui.button(
+            "Speak",
+            "ghost",
+            "mic",
+            icon_only=True,
+            id="ch-mic",
+            **{"class": "btn btn-ghost btn-icon mic", "aria-pressed": "false"},
+        ).replace('<span class="vh">', '<span class="vh">')
+        + ui.button("Add photo", "ghost", "camera", icon_only=True, id="ch-photo")
+        + ui.button(
+            "Send", "primary", "send", icon_only=True, id="ch-send", **{"class": "btn btn-icon btn-send"}
+        ).replace('type="button"', 'type="submit"', 1)
+        + '</div><p class="hint small" id="ch-hint" role="status" hidden></p><input type="file" accept="image/*" id="ch-file" class="vh" tabindex="-1" aria-hidden="true"></form>'
+    )
+    return head, compose
+
+
+def embed() -> dict[str, str]:
+    """The chat inside the map window (no page of its own): {"html", "css", "js"}.
+    Same header, conversation and compose area as the Ask page. It has no top bar and no tab bar, so there is no Ask button
+    in it: the map opens it and its Close button gives the window back. The map calls Openway.chat.mount on the first open."""
+    from .. import ui_foundation as ui
+
+    head, compose = _chat_parts(ui, embedded=True)
+    head = (
+        head.replace('<header class="chat-head">', '<div class="chat-head">')
+        .replace("</header>", "</div>")
+        .replace("<h1>Assistant</h1>", "<h2>Assistant</h2>")
+    )
+    html = (
+        '<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>'
+        + VOLUME
+        + "</defs></svg>"
+        '<section class="ch-app ch-embed" id="chat-dock" aria-label="Assistant" hidden>'
+        '<div class="ch-col">'
+        + head
+        + '<section class="settings" id="settings" aria-label="Settings" hidden></section>'
+        '<div class="mw"><div id="ch-banner"></div><div class="log" id="ch-log" role="log" aria-live="polite" aria-relevant="additions" aria-label="Conversation" tabindex="0"></div></div>'
+        + compose
+        + '</div><div class="vh" id="ch-live" role="status" aria-live="polite" aria-atomic="true"></div></section>'
+    )
+    scripts = "\n".join(p.read_text() for p in APP_SCRIPTS if p != MAP_VOICE)  # the map page already has the route voice
+    return {
+        "html": html,
+        "css": (CHAT / "chat.css").read_text() + "\n" + (CHAT / "embed.css").read_text(),
+        "js": scripts,
+    }
+
+
 def app_html(inline: str = "") -> str:
     """The new chat screen: header, settings, conversation, compose area A, voice bar, tab bar (Ask active)."""
     from .. import report_form
@@ -67,37 +143,7 @@ def app_html(inline: str = "") -> str:
             '<a class="btn btn-ghost" href="#" id="settings-desk" data-tab="settings" role="button">',
         )
     )
-    settings = (
-        '<button type="button" class="btn btn-secondary btn-icon withlabel" id="ch-settings-btn" aria-expanded="false" aria-controls="settings">'
-        + ui.icon("settings")
-        + '<span class="vh lbl">Settings</span></button>'
-    )
-    head = (
-        '<header class="chat-head"><div class="titles"><h1>Assistant</h1>'
-        '<p class="sub"><span class="vh" id="ch-mode">Guided mode</span><span id="ch-city-line">Answering for Cincinnati and Oxford</span></p></div>'
-        + ui.theme_toggle(id="ch-theme-toggle")
-        + settings
-        + ui.button("Close", "ghost", "close", icon_only=True, href=MAP_HREF, id="ch-close")
-        + "</header>"
-    )
-    compose = (
-        '<form class="compose cv-a" id="ch-form" aria-label="Ask a question" novalidate>'
-        '<div id="ch-voice"></div><div id="ch-attach" hidden></div>'
-        '<div class="composer"><textarea id="q" rows="1" aria-label="Your question" placeholder="Ask about a place" enterkeyhint="send" autocomplete="off"></textarea>'
-        + ui.button(
-            "Speak",
-            "ghost",
-            "mic",
-            icon_only=True,
-            id="ch-mic",
-            **{"class": "btn btn-ghost btn-icon mic", "aria-pressed": "false"},
-        ).replace('<span class="vh">', '<span class="vh">')
-        + ui.button("Add photo", "ghost", "camera", icon_only=True, id="ch-photo")
-        + ui.button(
-            "Send", "primary", "send", icon_only=True, id="ch-send", **{"class": "btn btn-icon btn-send"}
-        ).replace('type="button"', 'type="submit"', 1)
-        + '</div><p class="hint small" id="ch-hint" role="status" hidden></p><input type="file" accept="image/*" id="ch-file" class="vh" tabindex="-1" aria-hidden="true"></form>'
-    )
+    head, compose = _chat_parts(ui)
     body = (
         '<a class="skip" href="#q">Skip to the question box</a>'
         '<div class="ch-app">'
@@ -113,7 +159,7 @@ def app_html(inline: str = "") -> str:
     )
     scripts = "\n".join(p.read_text() for p in APP_SCRIPTS)
     return (
-        '<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8"><title>Assistant \u00b7 Accessibility Map</title>'
+        '<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8"><title>Accessibility Map</title>'
         '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">'
         '<meta name="description" content="Ask about accessible places, restrooms, parking, food, events and trails in Cincinnati and Oxford. Answers come with sources and dates.">\n'
         + ui.head_snippet()
@@ -130,7 +176,8 @@ def app_html(inline: str = "") -> str:
 
 PAGE = """<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
-<title>Openway Assistant</title>
+<title>Accessibility Map</title>
+<link rel="icon" type="image/svg+xml" href="__ICON__">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Ask about accessible places, restrooms, parking, food, events and trails in Cincinnati and Oxford. Answers come with sources and dates.">
 <meta name="theme-color" content="#ffffff">
@@ -159,8 +206,10 @@ __JS__
 
 def build(out: Path | None = None, legacy: bool = False) -> Path:
     """data/map/ask.html. The default is the new chat screen (B3, on the B0 foundation); legacy=True builds the old page."""
+    from ..ui_foundation import FAVICON
+
     out = out or ROOT / "data/map/ask.html"
-    out.write_text(PAGE.replace("__CSS__", css()).replace("__JS__", js_bundle()) if legacy else app_html())
+    out.write_text(PAGE.replace("__ICON__", FAVICON).replace("__CSS__", css()).replace("__JS__", js_bundle()) if legacy else app_html())
     return out
 
 
@@ -169,12 +218,14 @@ def build_standalone(out: Path | None = None, legacy: bool = False) -> Path:
     Guided mode only (the local model needs the server)."""
     import json
 
+    from ..ui_foundation import FAVICON
+
     out = out or ROOT / "data/map/ask-standalone.html"
     d = ROOT / "data/map/assistant"
     data = {k: json.loads((d / f"{k}.json").read_text()) for k in ("rules", "cincinnati", "oxford")}
     blob = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     if legacy:
-        html = PAGE.replace("__CSS__", css()).replace(
+        html = PAGE.replace("__ICON__", FAVICON).replace("__CSS__", css()).replace(
             "__JS__", "window.__OPENWAY_DATA = " + blob + ";\n" + js_bundle()
         )
     else:

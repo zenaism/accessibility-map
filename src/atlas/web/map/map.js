@@ -245,13 +245,32 @@
     setTimeout(() => map.invalidateSize(), 50);
   }
   lcBtn.addEventListener('click', () => setLc(!mainEl.classList.contains('lc-closed')));
+  // Phone: any panel view can be minimized to its heading (tap or drag the handle) and opened again the same way.
+  function markKeep() {
+    [...body.children].forEach((c) => c.classList.remove('keep'));
+    const k = [...body.children].find((c) => c.querySelector('.phead, h2') || c.matches('h2, .phead'));
+    if (k) k.classList.add('keep');
+  }
+  const canMini = () => !!$('.keep', body);
+  function setMini(m) { panel.classList.toggle('mini', m && canMini()); }
+  panel.addEventListener('click', (e) => {
+    if (e.target.closest('.grab')) { if (canMini() || panel.classList.contains('mini')) setMini(!panel.classList.contains('mini')); return; }
+    if (panel.classList.contains('mini') && e.target.closest('.keep')) setMini(false);
+  });
+  (function () {
+    const g = $('.grab', panel); if (!g) return; let y0 = null;
+    g.addEventListener('touchstart', (e) => { y0 = e.touches[0].clientY; }, { passive: true });
+    g.addEventListener('touchend', (e) => { if (y0 === null) return; const dy = e.changedTouches[0].clientY - y0; y0 = null; if (dy > 30) setMini(true); else if (dy < -30) setMini(false); });
+  })();
   function show(html, o) {
     o = o || {};
     if (mainEl.classList.contains('lc-closed')) setLc(false);
     body.innerHTML = html;
+    markKeep();
     const showBack = !(S.view === 'start' || S.view === 'results' && !S.prev.length);
     if (showBack) body.insertAdjacentHTML('afterbegin', '<div class="backrow only-desktop"><button type="button" class="btn btn-ghost" data-back>' + icon('back') + '<span>Back</span></button></div>');
     updateFilterBadge();
+    setMini(false);
     panel.classList.toggle('tall', !!o.tall);
     panel.setAttribute('aria-label', o.label || 'Places');
     $('#appbar-title').textContent = o.title || 'Accessibility Map';
@@ -308,7 +327,7 @@
   }
   const fChip = (key, ic, label, on) => '<button type="button" class="chip" data-f="' + key + '" aria-pressed="' + on + '">' + icon(ic || 'check', ic ? '' : 'tick') + '<span>' + label + '</span></button>';
   function filterHtml() {
-    return '<div style="display:grid;gap:var(--s3)">'
+    return '<div class="filterform" style="display:grid;gap:var(--s3)">'
       + '<fieldset class="group"><legend>How accessible</legend><div class="chip-row wrap">' + ['yes', 'partial', 'no', 'unknown'].map((k) => fChip('r:' + k, k, RATE_LABEL[k], S.f.r.includes(k))).join('') + '</div></fieldset>'
       + '<fieldset class="group"><legend>Kind of place</legend><div class="chip-row wrap">' + TYPES.filter((t) => t.id !== 'open').map((t) => fChip('t:' + t.id, t.icon, t.label, S.type === t.id)).join('') + '</div></fieldset>'
       + '<fieldset class="group"><legend>Must have</legend><div class="chip-row wrap">' + NEEDS.map(([k, l]) => fChip('n:' + k, 'check', l, S.f.need.includes(k))).join('') + '</div></fieldset>'
@@ -410,16 +429,15 @@
   const saveBtn = (it) => '<button type="button" class="btn btn-secondary" data-save="' + it.i + '" aria-pressed="' + isFav(it) + '">' + icon('save').replace('class="ic"', 'class="ic" ' + (isFav(it) ? 'style="fill:currentColor"' : '')) + '<span>' + (isFav(it) ? 'Saved' : 'Save') + '</span></button>';
   // Rate or report from the card: a star or a problem chip opens the one-screen form with the place and your choice already set.
   const PROBS = [['blocked', 'Blocked', 'alert'], ['lift', 'Broken lift', 'door'], ['wrong', 'Wrong info', 'info'], ['other', 'Other', 'plus']];
-  const rateBlock = (it) => window.AtlasReport ? '<div class="rateblock" style="display:grid;gap:var(--s2)">'
-    + '<p class="lbl" id="rt-' + it.i + '">How was it? <span class="muted" style="font-weight:400">Tap to rate</span></p>'
-    + '<div class="stars" role="group" aria-labelledby="rt-' + it.i + '">' + [1, 2, 3, 4, 5].map((n) => '<button type="button" class="star" data-rate="' + n + '" data-for="' + it.i + '" aria-label="' + n + (n === 1 ? ' star' : ' stars') + '">' + icon('star') + '<span class="n">' + n + '</span></button>').join('') + '</div>'
-    + '<p class="lbl">Something wrong?</p>'
-    + '<div class="chip-row wrap" role="group" aria-label="Report a problem">' + PROBS.map(([k, l, ic]) => '<button type="button" class="chip" data-prob="' + k + '" data-for="' + it.i + '">' + icon(ic) + '<span>' + l + '</span></button>').join('') + '</div></div>' : '';
+  const rateBlock = (it) => window.AtlasReport ? '<div class="rateblock" style="display:grid;gap:0">'
+    + '<div class="rate-line"><p class="lbl" id="rt-' + it.i + '">How was it?</p>'
+    + '<div class="stars" role="group" aria-labelledby="rt-' + it.i + '">' + [1, 2, 3, 4, 5].map((n) => '<button type="button" class="star" data-rate="' + n + '" data-for="' + it.i + '" aria-label="' + n + (n === 1 ? ' star' : ' stars') + '">' + icon('star') + '</button>').join('') + '</div></div>'
+    + '<div class="rate-line wrong-line"><p class="lbl">Something wrong?</p><button type="button" class="linkbtn" data-report="' + it.i + '">Report' + icon('right') + '</button></div></div>' : '';
   function viewCard(it) {
     $('#hint').hidden = true;
     const k = rating(it);
     show(linkBannerHtml() + placeNotice(it) + '<div class="place">'
-      + '<div style="display:flex;gap:12px;align-items:center"><span class="ratetile ' + k + '">' + icon(k) + '</span><div style="display:grid;gap:6px;min-width:0"><h2 class="name" tabindex="-1" id="h-card">' + esc(it.p.name) + '</h2>' + badge(k) + '</div></div>'
+      + '<div class="phead" style="display:flex;gap:12px;align-items:center"><span class="ratetile ' + k + '">' + icon(k) + '</span><div style="display:grid;gap:6px;min-width:0"><h2 class="name" tabindex="-1" id="h-card">' + esc(it.p.name) + '</h2>' + badge(k) + '</div></div>'
       + '<div class="stat3">' + stat(it, 'Entrance', 'door', /entrance|door/i) + stat(it, 'Restroom', 'toilet', /restroom|toilet/i) + stat(it, 'Parking', 'parking', /parking/i) + '</div>'
       + '<p class="conf">' + icon('clock') + '<span>' + esc(sourceLine(it)) + '</span></p>'
       + (routeOn(it) ? '<div class="rowbtns" style="display:grid;grid-template-columns:1fr 1fr"><button type="button" class="btn btn-primary" data-route="' + it.i + '">' + icon('route') + '<span>Route here</span></button>' + gmapsBtn(it) + '</div>' : gmapsBtn(it, 'primary', true))
@@ -476,18 +494,35 @@
 /*__NAV__*/
 /*__REGION__*/
   // ------------------------------------------------------------------ legend
-  function viewLegend() {
-    const sample = (k, c) => '<div class="pinc ' + k + '" style="position:relative;flex:none"><span class="pk">' + icon(c || 'building') + '</span><span class="pr">' + icon(k) + '</span></div>';
-    show('<div class="head-row"><h2 id="h-leg" tabindex="-1">Legend</h2></div>'
-      + ['yes', 'partial', 'no', 'unknown'].map((k) => '<div class="legendrow"><div style="display:grid;place-items:center">' + sample(k) + '</div><div>' + badge(k) + '<div class="muted small">' + HELP[k] + '</div></div></div>').join('')
-      + '<p class="lead" style="font-size:var(--fs-body)">Kind of place, inside the circle</p>'
-      + '<div class="legendrow"><span class="ic-row" style="display:flex;gap:10px;flex-wrap:wrap">' + [['building', 'Building'], ['toilet', 'Restroom'], ['utensils', 'Food'], ['bed', 'Lodging'], ['map', 'Park'], ['route', 'Trail']].map(([ic, l]) => '<span style="display:inline-flex;gap:4px;align-items:center">' + icon(ic) + '<span class="small">' + l + '</span></span>').join('') + '</span></div>'
-      + '<div class="legendrow"><div class="cluster" style="position:relative">5</div><div>Group of nearby places. Zoom in to separate them.</div></div>'
-      + '<div class="legendrow"><div class="you" style="width:44px;height:30px;position:relative"><div class="dot" style="left:22px;top:15px"></div></div><div>Your location, only if you share it.</div></div>'
-      + '<div class="legendrow"><svg width="44" height="14" viewBox="0 0 44 14" aria-hidden="true"><g stroke-linecap="round"><circle cx="8" cy="7" r="5" fill="#8EC5FF" stroke="#1D4ED8" stroke-width="2"/><circle cx="22" cy="7" r="5" fill="#8EC5FF" stroke="#1D4ED8" stroke-width="2"/><circle cx="36" cy="7" r="5" fill="#8EC5FF" stroke="#1D4ED8" stroke-width="2"/></g></svg><div>Walking route, still ahead.</div></div>'
-      + '<div class="legendrow"><svg width="44" height="14" viewBox="0 0 44 14" aria-hidden="true"><circle cx="8" cy="7" r="4" fill="#59646C" stroke="#fff" stroke-width="1.5"/><circle cx="22" cy="7" r="4" fill="#59646C" stroke="#fff" stroke-width="1.5"/><circle cx="36" cy="7" r="4" fill="#59646C" stroke="#fff" stroke-width="1.5"/></svg><div>Grey dots: the part you walked.</div></div>'
-      + '<p class="muted small">Basemap: U.S. Geological Survey, The National Map. Data: OpenStreetMap, Overture Maps, venue and agency websites. Data last updated ' + esc(asOf) + '.</p>', { label: 'Legend', title: 'Legend', tall: true });
+  // A small pop-up over the map (the old compact legend): four ratings, kinds of place, groups. Opens from the Legend button.
+  let legendEl = null;
+  function closeLegend() {
+    if (!legendEl) return;
+    legendEl.remove(); legendEl = null;
+    const b = $('#legend-open'); if (b) { b.setAttribute('aria-expanded', 'false'); b.focus({ preventScroll: true }); }
   }
+  function openLegend() {
+    if (legendEl) { closeLegend(); return; }
+    const SYM = { yes: '\u2713', partial: '~', no: '\u2715', unknown: '?' };
+    const SHORT = { yes: 'Step-free entry, accessible restroom', partial: 'Some features stated', no: 'A source says so', unknown: 'No source yet' };
+    legendEl = document.createElement('div');
+    legendEl.className = 'legend-pop'; legendEl.setAttribute('role', 'dialog'); legendEl.setAttribute('aria-labelledby', 'legend-h'); legendEl.tabIndex = -1;
+    legendEl.innerHTML = '<div class="legend-head"><h2 id="legend-h">Legend</h2><button type="button" class="btn btn-icon btn-ghost" id="legend-x" aria-label="Close legend">' + icon('close') + '</button></div>'
+      + '<ul class="legend-list">' + ['yes', 'partial', 'no', 'unknown'].map((k) => '<li><span class="ld ' + k + '" aria-hidden="true">' + SYM[k] + '</span><b>' + WORD[k] + '</b><span class="muted small">' + SHORT[k] + '</span></li>').join('') + '</ul>'
+      + '<button type="button" class="legend-toggle" id="legend-more-btn" aria-expanded="false" aria-controls="legend-more">More</button>'
+      + '<div class="legend-more" id="legend-more"><div class="legend-more-in">'
+      + '<ul class="legend-kinds" aria-label="Kinds of place">' + [['building', 'Building'], ['toilet', 'Restroom'], ['utensils', 'Food'], ['bed', 'Lodging'], ['map', 'Park'], ['route', 'Trail']].map(([ic, l]) => '<li>' + icon(ic) + '<span>' + l + '</span></li>').join('') + '</ul>'
+      + '<p class="legend-group"><span class="legend-c" aria-hidden="true">5</span><span>Group of places. Zoom in to separate.</span></p>'
+      + '<p class="legend-src">Map: USGS. Data: OpenStreetMap, Overture Maps, venue and agency websites. Updated ' + esc(asOf) + '.</p></div></div>';
+    $('.mapwrap').appendChild(legendEl);
+    const b = $('#legend-open'); if (b) b.setAttribute('aria-expanded', 'true');
+    $('#legend-x', legendEl).onclick = closeLegend;
+    const mb = $('#legend-more-btn', legendEl);
+    mb.onclick = () => { const o = legendEl.classList.toggle('more-open'); mb.setAttribute('aria-expanded', String(o)); mb.textContent = o ? 'Less' : 'More'; };
+    legendEl.focus({ preventScroll: true });
+  }
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && legendEl) { e.preventDefault(); closeLegend(); } });
+  document.addEventListener('click', (e) => { if (legendEl && !e.target.closest('.legend-pop, #legend-open, [data-go=legend]')) closeLegend(); });
 
   // ------------------------------------------------------------------ saved places
   const cityTag = (id) => { const r = favRegion(id); return r ? '<span class="citytag">' + esc(cityName(r)) + '</span>' : ''; };
@@ -511,20 +546,17 @@
     const look = shownIds.filter(lookReason), rest = shownIds.filter((id) => !look.includes(id));
     const link = readJson(LINK_KEY, null);
     let h = '<h2 class="vh" id="h-saved" tabindex="-1">Saved places</h2>';
-    if (!storageOk) h += '<div class="banner" role="status">' + icon('alert') + '<span>This browser would not keep your saved places. Copy your restore link.</span></div>';
-    else if (isSafari && FAVS.length) h += '<div class="banner" role="status">' + icon('alert') + '<span>Safari may clear saved places after 7 days away. Copy your link now.</span></div>';
+    if (!storageOk) h += '<div class="banner" role="status">' + icon('alert') + '<span>This browser would not keep your saved places.</span></div>';
+    else if (isSafari && FAVS.length) h += '<div class="banner" role="status">' + icon('alert') + '<span>Safari may clear saved places after 7 days away.</span></div>';
     if (!FAVS.length) {
-      h += ui_state('No saved places yet', 'Tap Save on a place to keep it here, on this device only.', 'save')
-        + '<div class="opt stack"><label class="lbl" for="rl">Have a restore link?</label><input class="input" id="rl" placeholder="Paste it here" autocomplete="off"><span class="hint">It stays on this device.</span><button type="button" class="btn btn-secondary" data-restore-paste>' + icon('check') + '<span>Restore</span></button></div>';
+      h += ui_state('No saved places yet', 'Tap Save on a place to keep it here, on this device only.', 'save');
     } else {
       h += '<p class="muted" role="status">' + (S.savedFilter && S.region ? shownIds.length + ' saved in ' + esc(cityName(S.region)) : FAVS.length + ' saved place' + (FAVS.length > 1 ? 's' : '') + (cities.length > 1 ? ' in ' + cities.length + ' cities' : '')) + '</p>';
       if (S.region && (cities.length > 1 || S.savedFilter)) h += '<div class="chip-row" role="group" aria-label="City filter"><button type="button" class="chip" data-saved-filter aria-pressed="' + S.savedFilter + '">' + icon('check', 'tick') + '<span>Show only ' + esc(cityName(S.region)) + '</span></button></div>';
       if (look.length) h += '<h3 class="groupt">' + icon('alert') + 'Needs a look · ' + look.length + '</h3><ul class="plain">' + look.map(favRow).join('') + '</ul>';
       h += '<h3 class="groupt">All places · ' + rest.length + '</h3><ul class="plain' + (FAVS.length > 12 ? ' compact' : '') + '">' + rest.map(favRow).join('') + '</ul>'
         + '<div class="rowbtns" style="display:grid;grid-template-columns:1fr 1fr"><button type="button" class="btn btn-secondary" data-edit aria-pressed="' + S.edit + '">' + icon(S.edit ? 'check' : 'list') + '<span>' + (S.edit ? 'Done' : 'Edit list') + '</span></button><button type="button" class="btn btn-secondary" data-sketch>' + icon('map') + '<span>Sketch map</span></button></div>'
-        + '<button type="button" class="btn btn-secondary block" data-copy-restore>' + icon('share') + '<span>Copy restore link</span></button>'
-        + (hiddenN ? '<p class="note">' + icon('info') + '<span>' + hiddenN + ' saved in another city ' + (hiddenN > 1 ? 'are' : 'is') + ' hidden.</span></p>' : '') + (cities.length > 1 || hiddenN ? '<p class="note">' + icon('info') + '<span>Open a place in another city and the map switches to that city.</span></p>' : '')
-        + (link ? '<p class="note">' + icon('clock') + '<span>Link last copied ' + ago(link.t) + '.' + (link.c ? ' ' + link.c + ' change' + (link.c > 1 ? 's' : '') + ' since.' : '') + '</span></p>' : '');
+        + (hiddenN ? '<p class="note">' + icon('info') + '<span>' + hiddenN + ' saved in another city ' + (hiddenN > 1 ? 'are' : 'is') + ' hidden.</span></p>' : '') + (cities.length > 1 || hiddenN ? '<p class="note">' + icon('info') + '<span>Open a place in another city and the map switches to that city.</span></p>' : '');
     }
     show(h, { label: 'Saved places', title: 'Saved places', tall: true });
     $('#back').hidden = false;
@@ -611,13 +643,13 @@
 
   // ------------------------------------------------------------------ rendering and events
   function render() {
+    { const sc = $('#saved-count'); if (sc) sc.textContent = FAVS.length ? ' (' + FAVS.length + ')' : ''; }
     const it = S.it;
     if (S.view === 'start') { select(null); viewStart(); }
     else if (S.view === 'results') viewResults();
     else if (S.view === 'card' && it) viewCard(it);
     else if (S.view === 'details' && it) viewDetails(it);
     else if (S.view === 'route' && it) navRender();
-    else if (S.view === 'legend') viewLegend();
     else if (S.view === 'locating') viewLocating();
     else if (S.view === 'choose') viewChoose(S.chooseWhy);
     else if (S.view === 'usecity' && S.useCity) viewUseCity(S.useCity);
@@ -636,7 +668,7 @@
     const d = t.dataset;
     if (t.id === 'back' || 'back' in d) { back(); return; }
     if (t.id === 'near') { nearMe(); return; }
-    if ('go' in d) { e.preventDefault(); if (d.go === 'saved') S.edit = false; go(d.go); return; }
+    if ('go' in d) { e.preventDefault(); if (d.go === 'legend') { openLegend(); return; } if (d.go === 'saved') S.edit = false; go(d.go); return; }
     if ('type' in d) { S.type = S.type === d.type && S.view === 'results' ? null : d.type; S.shown = 10; S.az = false; S.near = false; S.q = ''; q.value = ''; clearSel(); go('results', { push: S.view !== 'results' }); fit(results()); return; }
     if ('az' in d) { S.az = true; S.type = null; S.q = ''; S.shown = 10; go('results'); return; }
     if ('open' in d) { const it = ITEMS[+d.open]; if (it.p.region !== S.region) { switchTo(it.p.region, { silent: true }).then(() => openPlace(it)); } else openPlace(it); return; }
@@ -662,7 +694,7 @@
   });
   document.addEventListener('atlas:open-saved', () => { S.edit = false; if (S.view !== 'saved') go('saved'); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.querySelector('.sheet.modal') && S.view !== 'start' && document.activeElement !== q && body.contains(document.activeElement)) { back(); } });
-  $('#legend-open') && ($('#legend-open').onclick = () => go('legend'));
+  $('#legend-open') && ($('#legend-open').onclick = openLegend);
   $('#asof').textContent = asOf;
 
   // ------------------------------------------------------------------ start
@@ -675,6 +707,54 @@
     if (m) { const ids = parseRestore(h); if (ids && ids.length) { S.prev = [{ view: 'start' }]; S.view = 'restore'; viewRestore(ids); } }
   }
   window.addEventListener('hashchange', () => openFromHash());
+  // ------------------------------------------------------------------ chat in this window
+  // Ask opens the assistant in the same window (no page change). Desktop: a column on the right of the map, the places panel stays on the left.
+  // Phone: a full-screen layer. The chat code is already in the page; its data files load on the first open.
+  const dock = $('#chat-dock');
+  let chatApi = null, chatOpener = null;
+  const wide = window.matchMedia('(min-width: 900px)');
+  // what the open chat covers: nothing on desktop (it is a column on the right), everything on a phone (inert = no focus, not read out)
+  const setBehind = (on) => document.querySelectorAll('.phone-bar, .only-desktop, .topstack, #panel, .mapwrap, .only-phone').forEach((el) => { el.inert = on && !wide.matches; });
+  const resizeMap = () => setTimeout(() => map.invalidateSize(), 0);
+  const chatOpen = () => !!dock && !dock.hidden;
+  function openChat() {
+    if (!dock || chatOpen()) { if (chatApi) chatApi.focus(); return; }
+    chatOpener = document.activeElement;
+    closeLegend();
+    if (!chatApi && window.Openway && window.Openway.chat) chatApi = window.Openway.chat.mount(dock, { base: 'assistant/', keepPlaces: true });
+    dock.hidden = false; setBehind(true); resizeMap(); ui.setTab('ask');
+    if (chatApi) chatApi.focus();
+  }
+  function closeChat(o) {
+    if (!chatOpen()) return;
+    dock.hidden = true; setBehind(false); resizeMap(); ui.setTab(S.view === 'saved' ? 'saved' : 'map');
+    if (!(o && o.noFocus)) { const back = chatOpener && document.contains(chatOpener) && chatOpener.offsetParent !== null ? chatOpener : document.querySelector('[data-atlas-emit="atlas:open-ask"]'); if (back) back.focus({ preventScroll: true }); }
+  }
+  wide.addEventListener('change', () => { if (chatOpen()) setBehind(true); });
+  if (dock) {
+    atlas.on('atlas:open-ask', (d) => { if (chatOpen() && !(d && d.placeId)) closeChat(); else openChat(); });   // Ask again closes it
+    $('#ch-close', dock).addEventListener('click', () => closeChat());
+    dock.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !e.defaultPrevented && !document.querySelector('.sheet.modal')) { e.preventDefault(); closeChat(); } });
+    // the chat asks for these with cancelable window events; preventDefault tells it the map handled them (so it does not leave the page)
+    const showItem = (it, then) => { const go_ = () => { openPlace(it); then(); }; if (it.p.region !== S.region) switchTo(it.p.region, { silent: true }).then(go_); else go_(); };
+    window.addEventListener('atlas:show-places', (e) => {
+      const items = (((e.detail && e.detail.ids) || []).map((id) => byId.get(id))).filter(Boolean);
+      if (!items.length) return;
+      e.preventDefault();
+      if (items.length === 1) { showItem(items[0], () => { if (!wide.matches) closeChat({ noFocus: true }); }); return; }
+      if (items.every((it) => it.p.region !== S.region)) { switchTo(items[0].p.region, { silent: true }); }
+      syncMap(items); fit(items);
+      if (!wide.matches) closeChat({ noFocus: true });
+    });
+    window.addEventListener('atlas:route-to', (e) => {
+      const it = byId.get(e.detail && e.detail.placeId);
+      if (!it) return;
+      e.preventDefault();
+      if (!wide.matches) closeChat({ noFocus: true });   // on a phone the chat covers the route steps; on desktop they show on the left
+      showItem(it, () => { if (routeOn(it)) navOpen(it); });
+    });
+  }
+
   window.AtlasMap = { S, ITEMS, map, openPlace, go, results, openNow, nearMe, REG, CATALOG, switchTo, cityName };
   updateCityButtons();
   bootRegion().then(() => openFromHash(true));

@@ -537,3 +537,25 @@ def test_copy_link_is_one_tap_on_the_place_card(browser, cdn, site):
     link = pg.evaluate("window.__copied")
     assert "#place=" in link and "region=" in link
     assert pg.locator(".toast", has_text="Link copied.").count() == 1
+
+
+def test_ask_opens_the_chat_in_the_same_window_without_an_ask_button(browser, cdn, site):
+    """Ask no longer leaves the page: the chat opens in a panel of the map window, has no Ask tab or button of its own,
+    and Close, Escape and the focus return behave."""
+    for width in (375, 1280):
+        pg = open_map(browser, cdn, site, width=width, height=812 if width == 375 else 760)
+        url = pg.url
+        pg.locator('[data-atlas-emit="atlas:open-ask"]:visible').first.click()
+        pg.wait_for_selector("#chat-dock:not([hidden])")
+        assert pg.url == url and pg.locator("#chat-dock").is_visible()
+        assert pg.locator("#chat-dock [data-tab=ask], #chat-dock [data-atlas-emit='atlas:open-ask']").count() == 0
+        assert pg.locator("#ch-q").is_visible()
+        pg.keyboard.press("Escape")
+        assert not pg.locator("#chat-dock").is_visible()
+        assert pg.evaluate("document.activeElement.getAttribute('data-atlas-emit')") == "atlas:open-ask"
+        if width > 899:  # Ask again closes the chat (on a phone the chat covers the Ask button, Close does it)
+            pg.locator('[data-atlas-emit="atlas:open-ask"]:visible').first.click()
+            pg.wait_for_selector("#chat-dock:not([hidden])")
+            pg.locator('[data-atlas-emit="atlas:open-ask"]:visible').first.click()
+            assert not pg.locator("#chat-dock").is_visible()
+        pg.close()

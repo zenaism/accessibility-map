@@ -141,7 +141,7 @@
       }
       d.addEventListener("keydown", key, true);
       scrim.addEventListener("click", close);
-      el.querySelector("[data-sheet-close]").addEventListener("click", close);
+      Array.prototype.forEach.call(el.querySelectorAll("[data-sheet-close]"), function (b) { b.addEventListener("click", close); });
       var first = el.querySelector("[data-autofocus]") || el.querySelector("h2");
       first.focus();
       return { el: el, close: close };

@@ -16,6 +16,7 @@ from html import escape
 from pathlib import Path
 
 from .map_viewer import ICONS, RATING_HELP, RATINGS
+from .ui_foundation import FAVICON
 
 SITE = "https://zenaism.github.io/accessibility-map/data/map"
 REPO = "https://github.com/zenaism/accessibility-map"
@@ -73,7 +74,7 @@ def _page(title: str, body: str, canonical: str, up: str) -> str:
     return f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{escape(title)}</title><link rel="canonical" href="{canonical}">
+<title>{escape(title)}</title><link rel="icon" type="image/svg+xml" href="{FAVICON}"><link rel="canonical" href="{canonical}">
 <style>{CSS}</style></head><body>
 <a class="skip" href="#main">Skip to content</a>
 <header><p>{up}</p></header>
