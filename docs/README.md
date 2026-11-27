@@ -34,6 +34,7 @@ One topic per file. Where two files touch the same subject, the "owner" below is
 | [`problem_reports.md`](problem_reports.md) | "Report a problem" with photo: how it works, privacy, turning it on, how the accessibility team reads reports | visitor problem reports |
 | [`decisions.md`](decisions.md) | Decision log: what we chose, why, alternatives, costs | the reasoning behind choices |
 | [`progress_log.md`](progress_log.md) | Dated progress, findings, collection status, to-do (snapshot of the Claude Doc) | what has been done |
+| [`sync_report.md`](sync_report.md) | Report on whether localhost and GitHub Pages match, how we got there, and how to check (`scripts/check_pages_sync.sh`) | is the live site the same as local |
 | [`outreach_emails.md`](outreach_emails.md) | Draft emails to data owners (not sent) | outreach |
 | `*.docx`, `figures/` | Research brief, RQ system notes, images | |
 
