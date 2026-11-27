@@ -17,6 +17,8 @@ reddit = ["praw", "python-dotenv"]
 web = ["duckdb", "beautifulsoup4", "lxml", "pypdf", "icalendar", "playwright", "pillow", "scrapy>=2.13", "trafilatura", "htmldate", "extruct", "pymupdf", "rapidocr-onnxruntime"]
 analysis = ["lifelines", "statsmodels", "matplotlib", "rasterio", "libpysal", "esda"]
 routing = ["networkx", "scipy"]
+# the assistant server with a hosted Claude model (docs/hosted_backend.md); not needed for guided mode or Ollama
+hosted = ["anthropic>=2"]
 dev = ["pytest", "ruff"]
 
 [project.scripts]

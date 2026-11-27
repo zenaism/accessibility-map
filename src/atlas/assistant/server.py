@@ -10,7 +10,7 @@
 Standard library only. Binds to 127.0.0.1. Privacy: the server NEVER logs message text, photos or
 coordinates; the access log keeps only the method, path and status code.
 
-Shared server (see docs/hosted_backend.md): with OPENWAY_PROVIDER=openrouter the model is a hosted one.
+Shared server (see docs/hosted_backend.md): with OPENWAY_PROVIDER=anthropic (or openrouter) the model is a hosted one.
 Then OPENWAY_ALLOW_ORIGINS (comma-separated) names the pages on other sites that may call the API, and
 OPENWAY_RATE_PER_HOUR (per visitor) and OPENWAY_RATE_PER_DAY (everyone) cap the model calls; over a cap,
 the answer comes from guided mode instead, so nobody is left without one.
@@ -268,7 +268,7 @@ def main(argv=None) -> None:
             "  Online model:",
             "ready (" + ", ".join(info["models"]) + ")"
             if info["model"]
-            else "no key found (guided mode still works; set OPENROUTER_API_KEY or OPENWAY_KEY_FILE)",
+            else "no key found (guided mode still works; set the provider's key variable or OPENWAY_KEY_FILE)",
         )
     else:
         print(

@@ -628,7 +628,7 @@ flowchart LR
   P["Chat page<br/>static site"] -->|"Guided mode<br/>nothing leaves the device"| G["Rules and templates<br/>in the browser"]
   P -->|"Online model<br/>question, city, needs, location"| F["Front door script<br/>shared machine, HTTPS<br/>no key"]
   F --> S["Assistant server<br/>plan, tools, compose, verify<br/>holds the key, counts questions"]
-  S -->|"question text and<br/>place records only"| O["OpenRouter"]
+  S -->|"question text and<br/>place records only"| O["Claude API<br/>or OpenRouter"]
   O --> M["Small hosted model"]
   S -->|"over a limit or model fails"| R["Rules answer<br/>same server"]
   classDef built fill:#d4edda,stroke:#2e7d32,color:#111

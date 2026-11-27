@@ -1,9 +1,10 @@
 # ruff: noqa: E501
 """Optional model helpers. Nothing here is needed for guided mode.
 
-Two providers, chosen by OPENWAY_PROVIDER: "ollama" (the default: a small model on this machine) or
-"openrouter" (a hosted model, used by a shared server; the key comes from OPENROUTER_API_KEY or the file
-named in OPENWAY_KEY_FILE). Both get the same prompts and the same checks.
+Three providers, chosen by OPENWAY_PROVIDER: "ollama" (the default: a small model on this machine), or a
+hosted model for a shared server: "anthropic" (the Claude API through the `anthropic` package; key from
+ANTHROPIC_API_KEY) or "openrouter" (key from OPENROUTER_API_KEY). For both hosted ones the key may instead
+sit in the private file named in OPENWAY_KEY_FILE. All get the same prompts and the same checks.
 
 The model never answers from memory and never writes facts:
 * model_planner  turns a question into a few slots (intent, need, place, date words) under a JSON schema; the
@@ -40,7 +41,13 @@ VISION_MODEL = os.environ.get("OPENWAY_VISION_MODEL", "llava-phi3")
 KEEP_ALIVE = "20s"
 PROVIDER = os.environ.get("OPENWAY_PROVIDER", "ollama").strip().lower()
 OPENROUTER = os.environ.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
-CLOUD_MODEL = os.environ.get("OPENWAY_CLOUD_MODEL", "anthropic/claude-haiku-5.5")
+HOSTED = {  # provider -> (environment variable with the key, default model)
+    "anthropic": ("ANTHROPIC_API_KEY", "claude-haiku-5-5"),
+    "openrouter": ("OPENROUTER_API_KEY", "anthropic/claude-haiku-5.5"),
+}
+CLOUD_MODEL = (
+    os.environ.get("OPENWAY_CLOUD_MODEL", "").strip() or HOSTED.get(PROVIDER, HOSTED["anthropic"])[1]
+)
 CLOUD_MAX_TOKENS = 1024  # slots or one sentence, plus the model's own short reasoning
 STATS = {
     "tokens_in": 0,
@@ -58,12 +65,12 @@ _health = {"t": 0.0, "v": None}
 
 def hosted() -> bool:
     """True when the model is a hosted one (questions leave this machine)."""
-    return PROVIDER == "openrouter"
+    return PROVIDER in HOSTED
 
 
 def cloud_key() -> str:
     """The hosted-model key: the environment first, then a private file. Never logged, never returned to a page."""
-    key = os.environ.get("OPENROUTER_API_KEY", "").strip()
+    key = os.environ.get(HOSTED.get(PROVIDER, HOSTED["anthropic"])[0], "").strip()
     path = os.environ.get("OPENWAY_KEY_FILE", "").strip()
     if not key and path:
         with contextlib.suppress(OSError):
@@ -163,12 +170,42 @@ def _strict(schema: dict) -> dict:
     return out
 
 
-def cloud_chat(messages: list[dict], schema: dict | None = None, timeout: float = 45) -> str:
-    """One call to the hosted model (OpenRouter's chat API). Raises a requests error on any failure, so the
-    callers fall back to rules and templates exactly as they do when Ollama is down."""
-    key = cloud_key()
-    if not key:
-        raise requests.RequestException("no hosted-model key")
+def _claude(key: str, timeout: float):
+    """A Claude API client (the official package, imported only when this provider is used)."""
+    import anthropic
+
+    return anthropic.Anthropic(api_key=key, timeout=timeout, max_retries=1)
+
+
+def _claude_chat(key: str, messages: list[dict], schema: dict | None, timeout: float) -> tuple[str, int, int]:
+    """One Messages API call: (text, input tokens, output tokens). System text goes in `system`; the turns
+    must start with the person, so an assistant turn left at the front by the history cut is dropped."""
+    import anthropic
+
+    system = "\n\n".join(m["content"] for m in messages if m["role"] == "system")
+    turns = [{"role": m["role"], "content": m["content"]} for m in messages if m["role"] != "system"]
+    while turns and turns[0]["role"] != "user":
+        turns.pop(0)
+    config: dict = {"effort": "low"}  # slots or one sentence: little reasoning needed
+    if schema:
+        config["format"] = {"type": "json_schema", "schema": _strict(schema)}
+    try:
+        r = _claude(key, timeout).messages.create(
+            model=CLOUD_MODEL,
+            max_tokens=CLOUD_MAX_TOKENS,
+            system=system,
+            messages=turns,
+            output_config=config,
+        )
+    except anthropic.APIError as e:  # connection, timeout, bad request, rate limit, overloaded
+        raise requests.RequestException(f"hosted model call failed: {type(e).__name__}") from e
+    text = next((b.text for b in r.content if b.type == "text"), "")
+    return text, int(r.usage.input_tokens or 0), int(r.usage.output_tokens or 0)
+
+
+def _openrouter_chat(
+    key: str, messages: list[dict], schema: dict | None, timeout: float
+) -> tuple[str, int, int]:
     body = {
         "model": CLOUD_MODEL,
         "messages": messages,
@@ -180,21 +217,36 @@ def cloud_chat(messages: list[dict], schema: dict | None = None, timeout: float 
             "type": "json_schema",
             "json_schema": {"name": "reply", "strict": True, "schema": _strict(schema)},
         }
+    r = requests.post(
+        f"{OPENROUTER}/chat/completions",
+        json=body,
+        headers={"Authorization": f"Bearer {key}", "X-Title": "Openway Assistant"},
+        timeout=timeout,
+    )
+    r.raise_for_status()
+    j = r.json()
+    use = j.get("usage") or {}
+    return (
+        j["choices"][0]["message"]["content"] or "",
+        int(use.get("prompt_tokens") or 0),
+        int(use.get("completion_tokens") or 0),
+    )
+
+
+def cloud_chat(messages: list[dict], schema: dict | None = None, timeout: float = 45) -> str:
+    """One call to the hosted model. Raises a requests error on any failure, so the callers fall back to
+    rules and templates exactly as they do when Ollama is down."""
+    key = cloud_key()
+    if not key:
+        raise requests.RequestException("no hosted-model key")
+    call = _claude_chat if PROVIDER == "anthropic" else _openrouter_chat
     t = time.time()
     try:
-        r = requests.post(
-            f"{OPENROUTER}/chat/completions",
-            json=body,
-            headers={"Authorization": f"Bearer {key}", "X-Title": "Openway Assistant"},
-            timeout=timeout,
-        )
-        r.raise_for_status()
-        j = r.json()
-        use = j.get("usage") or {}
-        STATS["tokens_in"] += int(use.get("prompt_tokens") or 0)
-        STATS["tokens_out"] += int(use.get("completion_tokens") or 0)
-        return j["choices"][0]["message"]["content"] or ""
-    except (requests.RequestException, KeyError, ValueError, IndexError, TypeError) as e:
+        text, tin, tout = call(key, messages, schema, timeout)
+        STATS["tokens_in"] += tin
+        STATS["tokens_out"] += tout
+        return text
+    except (requests.RequestException, KeyError, ValueError, IndexError, TypeError, ImportError) as e:
         STATS["errors"] += 1
         if isinstance(e, requests.RequestException):
             raise

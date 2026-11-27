@@ -2,7 +2,7 @@
 
 Status: **trial running on a shared university Linux server since 2026-11-26 (real model calls checked through the public address); not used by the public page yet.** Decision: [D-104](decisions.md). Diagram: [`architecture.md`](architecture.md) section 21.
 
-The public chat page answers in guided mode (rules and templates, in the browser). This adds an optional **online model** for free-text questions: the page calls our assistant server on a shared Linux machine, and that server calls a hosted model through OpenRouter. It is a first, simple setup that can move to any other host.
+The public chat page answers in guided mode (rules and templates, in the browser). This adds an optional **online model** for free-text questions: the page calls our assistant server on a shared Linux machine, and that server calls a hosted model: Claude Haiku through the Claude API (the default), or any model through OpenRouter. It is a first, simple setup that can move to any other host.
 
 ## What runs where
 
@@ -11,7 +11,7 @@ The public chat page answers in guided mode (rules and templates, in the browser
 | Chat page | the static site (or `localhost`) | sends the question to the server named in `OPENWAY_SERVER_BASE` when the person picks "Online model" in Settings |
 | `deploy/shared_server/openway.cgi` | the shared machine's web space (`~/public_html/cgi-bin/`) | front door with HTTPS: passes `/api/health` and `/api/ask` to the assistant server on the same machine. Holds no key. |
 | `atlas.assistant.server` | the same machine, started by `deploy/shared_server/run.sh` as the project owner | the unchanged pipeline (plan, run tools, compose, verify); two short model calls per question |
-| OpenRouter | outside | forwards the two calls to the model in `OPENWAY_CLOUD_MODEL` |
+| Claude API (or OpenRouter) | outside | answers the two calls with the model in `OPENWAY_CLOUD_MODEL` |
 
 Why a front door plus a server: on a shared machine the web server runs every user's scripts as one shared account, so a script cannot keep a private key. The key stays with the assistant server, which runs as the project owner.
 
@@ -27,10 +27,19 @@ One model call per message decides: **lookup** (slots, checked, then the normal 
 
 To see what happened for a message, open the browser console: lines starting with `[Openway]` say whether a model was called and which steps it did. They never contain the message or the answer.
 
+## Which model service
+
+`OPENWAY_PROVIDER` in `deploy/shared_server/env` picks it. Prompts, checks and limits are the same for both.
+
+| Value | Key | Model setting | Needs |
+| --- | --- | --- | --- |
+| `anthropic` (default in `env.example`) | `ANTHROPIC_API_KEY`, or the file in `OPENWAY_KEY_FILE` | `claude-haiku-5-5` | the `anthropic` Python package (`pip install -e ".[hosted]"`) |
+| `openrouter` | `OPENROUTER_API_KEY`, or the file in `OPENWAY_KEY_FILE` | `anthropic/claude-haiku-5.5`, or any model on their list | nothing extra |
+
 ## Limits and failure
 
 - Per visitor: `OPENWAY_RATE_PER_HOUR` (30). Everyone: `OPENWAY_RATE_PER_DAY` (600). Over a limit, or when the model fails or is slow, the answer comes from guided mode.
-- Set a monthly dollar limit on the OpenRouter key as well. That is the real cap on spending.
+- Set a monthly spend limit for the key as well (Claude Console: workspace limits; OpenRouter: the key's limit). That is the real cap on spending.
 - Only the sites in `OPENWAY_ALLOW_ORIGINS` may call the API from a browser.
 - Photos are not accepted (no vision model here).
 - Other users of the shared machine can reach the server's local port and use the model within the limits. They cannot read the key.
@@ -40,13 +49,13 @@ To see what happened for a message, open the browser console: lines starting wit
 ```bash
 # 1. code, data and Python packages in the home directory
 uv venv --python /usr/bin/python3 .venv
-uv pip install -e . duckdb pandas rapidfuzz networkx scipy
+uv pip install -e . duckdb pandas rapidfuzz networkx scipy anthropic   # anthropic: only for OPENWAY_PROVIDER=anthropic
 make kb                                   # or copy data/kb/atlas.duckdb
 
 # 2. settings and key
 cp deploy/shared_server/env.example deploy/shared_server/env    # edit the allowed sites
 mkdir -p ~/.config/openway && chmod 700 ~/.config/openway
-# put the OpenRouter key in ~/.config/openway/openrouter.key, then: chmod 600 on it and on env
+# put the Claude API key in ~/.config/openway/anthropic.key, then: chmod 600 on it and on env
 
 # 3. start, and keep it running after a restart
 deploy/shared_server/run.sh

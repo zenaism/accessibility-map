@@ -343,3 +343,70 @@ def test_earlier_turns_reach_the_model_cut_down_and_let_it_pick_the_place(monkey
         "Q: does it have an elevator?",
     ]
     assert a.plan["place"]["name"] == "Armstrong Student Center" and a.plan["source"] == "model"
+
+
+class _FakeClaude:
+    """Stands in for anthropic.Anthropic: records the request and returns one text block."""
+
+    def __init__(self, text="{}", error=None):
+        self.text, self.error, self.sent = text, error, None
+        self.messages = self
+
+    def create(self, **kw):
+        self.sent = kw
+        if self.error:
+            raise self.error
+        from types import SimpleNamespace as NS
+
+        return NS(content=[NS(type="text", text=self.text)], usage=NS(input_tokens=11, output_tokens=7))
+
+
+def test_claude_api_call_sends_system_turns_and_a_strict_schema(monkeypatch):
+    pytest.importorskip("anthropic")  # only installed where the hosted model is used
+    fake = _FakeClaude('{"ok": true}')
+    monkeypatch.setattr(llm, "PROVIDER", "anthropic")
+    monkeypatch.setattr(llm, "CLOUD_MODEL", "claude-haiku-5-5")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    monkeypatch.setattr(llm, "_claude", lambda key, timeout: fake)
+    assert llm.hosted() and llm.health()["model"] and llm.health()["hosted"]
+    before = llm.STATS["tokens_in"]
+    out = llm.chat(
+        [
+            {"role": "system", "content": "RULES"},
+            {"role": "assistant", "content": "A: left over from a cut"},
+            {"role": "user", "content": "Q: one"},
+            {"role": "assistant", "content": "A: two"},
+            {"role": "user", "content": "Q: three"},
+        ],
+        llm.SLOT_SCHEMA,
+    )
+    assert out == '{"ok": true}' and llm.STATS["tokens_in"] == before + 11
+    sent = fake.sent
+    assert sent["model"] == "claude-haiku-5-5" and sent["system"] == "RULES"
+    assert [m["role"] for m in sent["messages"]] == ["user", "assistant", "user"]  # starts with the person
+    assert sent["output_config"]["effort"] == "low"
+    fmt = sent["output_config"]["format"]
+    assert fmt["type"] == "json_schema" and fmt["schema"]["additionalProperties"] is False
+    assert "temperature" not in sent and "thinking" not in sent
+
+
+def test_claude_api_failure_is_a_plain_fallback_and_the_key_file_is_read(monkeypatch, tmp_path):
+    anthropic = pytest.importorskip("anthropic")
+    import httpx2 as httpx
+
+    err = anthropic.APIConnectionError(request=httpx.Request("POST", "https://api.anthropic.com/v1/messages"))
+    monkeypatch.setattr(llm, "PROVIDER", "anthropic")
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    key = tmp_path / "anthropic.key"
+    key.write_text("file-key\n")
+    monkeypatch.setenv("OPENWAY_KEY_FILE", str(key))
+    assert llm.cloud_key() == "file-key"
+    monkeypatch.setattr(llm, "_claude", lambda key, timeout: _FakeClaude(error=err))
+    with pytest.raises(llm.requests.RequestException):
+        llm.chat([{"role": "user", "content": "Q: hi"}], llm.SLOT_SCHEMA)
+    from atlas.assistant.engine import Engine
+
+    a = Engine(planner=llm.model_planner, composer=llm.model_composer).answer(
+        "where is the closest accessible restroom", {"today": "2026-11-26", "region": "oxford"}
+    )
+    assert a.kind in ("answer", "clarify") and a.model_use == {"plan": "rules", "answer": "template"}
