@@ -42,7 +42,7 @@ tests/    test_ui_foundation, test_map_app, test_chat_app, test_report_form, tes
 supabase/ problem_reports.sql, ratings.sql   (run once in the Supabase SQL editor; both are live)
 ```
 
-Design source files (frames, style tokens, the design board, the owner's answers) are on the local branch `design/frames`, in the worktree `../accessibility-map-design/docs/design/`. They are **not** in `main`. Key ones: `CHOSEN_DESIGN.md` (the owner's decisions, 99 of 99 screens), `style/tokens/style-a-harbor.css`, `board/index.html`, and `docs/session_prompts_build.md` (the build prompts).
+Design source files (frames, style tokens, the design board, the owner's answers) are on the local branch `design/frames`, and as a local, gitignored copy in `docs/design/` (the worktree was removed 2026-11-27; to get the branch's files back run `git worktree add ../accessibility-map-design design/frames`). They are **not** in `main`. Key ones: `CHOSEN_DESIGN.md` (the owner's decisions, 99 of 99 screens), `style/tokens/style-a-harbor.css`, `board/index.html`, and `docs/session_prompts_build.md` (the build prompts).
 
 ## 3. How a page is made
 
