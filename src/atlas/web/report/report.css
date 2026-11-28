@@ -85,10 +85,10 @@
 .ax.rp .h2s { font-size: var(--fs-body); font-weight: var(--fw-reg); color: var(--muted); margin: var(--s2) 0 0; }
 .ax.rp .tag { font-size: var(--fs-small); }
 .ax.rp .group { margin-top: var(--s2); padding-top: var(--s2); border-top: 1px solid var(--line); }
-.ax.rp .stars, .ax.rp .stars { display: flex; justify-content: space-between; gap: 0; grid-template-columns: none; }
+.ax.rp .stars { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0; grid-template-columns: none; }
 .ax.rp .star { border: 0; background: none; min-width: 44px; min-height: 44px; width: 44px; padding: 0; color: #A86B00; }
 .ax.rp .star .n { display: none; }
-.ax.rp .star .ic { width: 28px; height: 28px; stroke: #A86B00; stroke-width: 2.2; fill: none; }
+.ax.rp .star .ic { width: 20px; height: 20px; stroke: #A86B00; stroke-width: 2.2; fill: none; }
 .ax.rp .stars:hover .star .ic { fill: #FFC107; }
 .ax.rp .stars .star:hover ~ .star .ic { fill: none; }
 .ax.rp .star:has(input:checked), .ax.rp .star:has(~ .star input:checked) { background: none; border: 0; color: #A86B00; }
@@ -103,3 +103,28 @@
 .ax.rp .chip-grid .chip { min-height: 44px; border-radius: 999px; padding: 0 var(--s4); justify-content: center; font-weight: var(--fw-reg); }
 .ax.rp .chip-grid .chip .tick { display: none; }
 .ax.rp .chip-grid .chip[aria-pressed="true"] { background: var(--primarysoft); border-color: var(--primary); }
+.ax.rp .rate-row { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); }
+.ax.rp .rate-row .h2s { margin: 0; flex: 1; min-width: 0; }
+.ax.rp .rate-row .stars { flex: none; justify-content: flex-end; }
+.ax.rp .starword { margin-top: 0; text-align: right; justify-content: flex-end; }
+.ax.rp .starword:empty { display: none; }
+.ax.rp .rate-row { flex-wrap: wrap; }
+.ax.rp .rate-row .h2s { flex: 1 1 110px; }
+.ax.rp .rate-row .stars { flex: 0 1 auto; max-width: 100%; }
+
+/* place chooser: one line per place, no boxes, search and Near me on one line */
+.ax .pq-row { display: flex; gap: var(--s2); align-items: center; }
+.ax .pq-row .search { flex: 1; min-width: 0; box-shadow: none; }
+.ax .pq-row .btn { flex: none; }
+.ax .pl-list { display: grid; gap: 0; }
+.ax .pl-list .listrow { grid-template-columns: 1fr auto; padding: 0 var(--s3); min-height: 44px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: none; gap: var(--s3); }
+.ax .pl-list .listrow .nm { font-weight: var(--fw-med); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ax .pl-list .listrow .sub { grid-column: auto; white-space: nowrap; }
+.ax .pl-list .listrow.sel { background: var(--primarysoft); border-bottom: 1px solid var(--line); box-shadow: inset 3px 0 0 var(--primary); }
+.ax .pl-list { max-height: min(46vh, 420px); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; border-top: 1px solid var(--line); }
+.ax .pl-list .listrow.sel { scroll-margin: 44px; }
+/* stars closer together: the 44px tap boxes overlap a little, the stars stay 20px */
+.ax.rp .stars { justify-content: flex-end; flex-wrap: nowrap; }
+.ax.rp .star { margin: 0 -6px; }
+.ax.rp .stars { padding: 0 6px 0 0; }
+.ax.rp .part .chip { font-weight: var(--fw-reg); }

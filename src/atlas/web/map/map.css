@@ -150,7 +150,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
 .ax .rateblock .stars:hover .star .ic, .ax .rateblock .stars:focus-within .star .ic { fill: #FFC107; }
 .ax .rateblock .stars .star:hover ~ .star .ic { fill: none; }
 .ax .rateblock .star:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
-.ax .rateblock .star .ic { width: calc(24px*var(--k)); height: calc(24px*var(--k)); }
+.ax .rateblock .star .ic { width: 20px; height: 20px; }
 .ax .panel .grab { cursor: pointer; }
 .ax .panel.mini .panel-body > :not(.keep), .ax .panel.mini .keep > :not(.phead):not(.head-row):not(h2) { display: none !important; }
 .ax .panel.mini .keep { cursor: pointer; }
@@ -200,3 +200,5 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
 .ax .filterform .chip { font-weight: var(--fw-reg, 400); }
 .ax .filterform .btn-ghost { font-weight: var(--fw-reg, 400); color: var(--muted); }
 .ax .phead .badge { justify-self: start; width: fit-content; }
+.ax .rate-line .stars .star { margin: 0 -6px; }
+.ax .rate-line .stars { padding-right: 6px; }

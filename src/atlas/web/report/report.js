@@ -125,9 +125,9 @@
   // ---- rendering
   const starsHtml = () => {
     const off = R.limit.rating;
-    return '<fieldset class="group" id="rp-stars"' + (off ? ' disabled' : '') + ' aria-describedby="rp-stars-err"><legend class="h2s">How accessible was it?</legend><div class="stars">'
+    return '<fieldset class="group" id="rp-stars"' + (off ? ' disabled' : '') + ' aria-describedby="rp-stars-err" aria-labelledby="rp-stars-l"><div class="rate-row"><span class="h2s" id="rp-stars-l">How accessible was it?</span><div class="stars">'
       + [1, 2, 3, 4, 5].map((n) => '<label class="star"><input type="radio" name="rp-star" value="' + n + '" aria-label="' + n + ' of 5, ' + STAR_WORDS[n] + '"' + (R.stars === n ? ' checked' : '') + '>' + icon('star') + '<span class="n" aria-hidden="true">' + n + '</span></label>').join('')
-      + '</div><p class="starword" id="rp-starword" aria-live="polite">' + (R.stars ? R.stars + ' of 5, ' + STAR_WORDS[R.stars] : '') + (R.sent.rating ? ' <span class="saved">' + icon('check') + 'Saved</span>' : '') + '</p>'
+      + '</div></div><p class="starword" id="rp-starword" aria-live="polite">' + (R.stars ? R.stars + ' of 5, ' + STAR_WORDS[R.stars] : '') + (R.sent.rating ? ' <span class="saved">' + icon('check') + 'Saved</span>' : '') + '</p>'
       + errFor('stars') + '</fieldset>';
   };
   const errFor = (k) => { const e = R.errors.find((x) => x[0] === k); return '<p class="err" id="rp-' + k + '-err"' + (e ? '' : ' hidden') + '>' + icon('alert') + '<span>' + (e ? esc(e[1]) : '') + '</span></p>'; };
@@ -331,17 +331,16 @@
       const t = q.trim().toLowerCase();
       if (t) l = l.filter((p) => p.name.toLowerCase().includes(t) || p.layer.toLowerCase().includes(t));
       if (here) { l.forEach((p) => { p.d = p.pt ? dist(here, p.pt) : 1e9; }); l.sort((a, b) => a.d - b.d); } else l.sort((a, b) => a.name.localeCompare(b.name));
-      return l.slice(0, 8);
+      return l.slice(0, 80);
     };
     const draw = () => {
-      const l = list();
+      const l = list(), keep = $('.pl-list', node), top = keep ? keep.scrollTop : 0;
       node.innerHTML = (status ? '<div class="banner ' + (status.kind || '') + '" role="status">' + icon(status.icon) + '<span>' + esc(status.text) + '</span></div>' : '')
-        + '<div class="field"><label for="rp-pq" class="lbl">Search a place</label><div class="search" role="search" aria-label="Search a place">' + icon('search') + '<input type="search" id="rp-pq" value="' + esc(q) + '" placeholder="Name of a place" autocomplete="off"></div></div>'
-        + '<button type="button" class="btn btn-secondary block" data-near>' + icon('near') + '<span>Near me</span></button>'
-        + '<h3 class="h2s" style="font-size:var(--fs-body)">' + (here ? 'Near you' : q ? 'Results' : 'Places') + '</h3>'
-        + '<div class="stack" role="radiogroup" aria-label="Places">' + l.map((p) => '<button type="button" class="listrow' + (pick === p.id ? ' sel' : '') + '" role="radio" aria-checked="' + (pick === p.id) + '" data-pid="' + esc(p.id) + '"><span class="nm">' + esc(p.name) + '</span>' + ui.badge(p.rating, WORD[p.rating]) + '<span class="sub">' + esc(p.layer + (here && p.d < 1e8 ? ', ' + fmt(p.d) : '')) + '</span></button>').join('')
-        + '<button type="button" class="listrow' + (pick === '__none' ? ' sel' : '') + '" role="radio" aria-checked="' + (pick === '__none') + '" data-pid="__none"><span class="nm">Not about one place</span><span></span><span class="sub">Problem only, no stars</span></button></div>'
+        + '<div class="pq-row"><div class="search" role="search" aria-label="Search a place">' + icon('search') + '<input type="search" id="rp-pq" value="' + esc(q) + '" placeholder="Search a place" aria-label="Search a place" autocomplete="off"></div>'
+        + '<button type="button" class="btn btn-secondary" data-near aria-label="Near me">' + icon('near') + '<span>Near me</span></button></div>'
+        + '<div class="pl-list" role="radiogroup" aria-label="' + (here ? 'Near you' : q ? 'Results' : 'Places') + '">' + '<button type="button" class="listrow' + (pick === '__none' ? ' sel' : '') + '" role="radio" aria-checked="' + (pick === '__none') + '" data-pid="__none"><span class="nm">Not about one place</span><span class="sub">Problem only</span></button>' + l.map((p) => '<button type="button" class="listrow' + (pick === p.id ? ' sel' : '') + '" role="radio" aria-checked="' + (pick === p.id) + '" data-pid="' + esc(p.id) + '"><span class="nm">' + esc(p.name) + '</span><span class="sub">' + esc(p.layer + (here && p.d < 1e8 ? ', ' + fmt(p.d) : '')) + '</span></button>').join('') + '</div>'
         + '<button type="button" class="btn btn-primary block" data-use>Use this place</button>';
+      const nl = $('.pl-list', node); if (nl) nl.scrollTop = top;
     };
     draw();
     sheet = ui.sheet.open({ title: 'Change place', node });

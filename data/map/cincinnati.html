@@ -1251,7 +1251,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
 .ax .rateblock .stars:hover .star .ic, .ax .rateblock .stars:focus-within .star .ic { fill: #FFC107; }
 .ax .rateblock .stars .star:hover ~ .star .ic { fill: none; }
 .ax .rateblock .star:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
-.ax .rateblock .star .ic { width: calc(24px*var(--k)); height: calc(24px*var(--k)); }
+.ax .rateblock .star .ic { width: 20px; height: 20px; }
 .ax .panel .grab { cursor: pointer; }
 .ax .panel.mini .panel-body > :not(.keep), .ax .panel.mini .keep > :not(.phead):not(.head-row):not(h2) { display: none !important; }
 .ax .panel.mini .keep { cursor: pointer; }
@@ -1301,6 +1301,8 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
 .ax .filterform .chip { font-weight: var(--fw-reg, 400); }
 .ax .filterform .btn-ghost { font-weight: var(--fw-reg, 400); color: var(--muted); }
 .ax .phead .badge { justify-self: start; width: fit-content; }
+.ax .rate-line .stars .star { margin: 0 -6px; }
+.ax .rate-line .stars { padding-right: 6px; }
 
 /* Openway chat screen (session B3). Foundation tokens only; every rule is under .ax. Layout from the chosen chat frames. */
 html, body { margin: 0; height: 100%; }
@@ -1575,10 +1577,10 @@ body.ax.chatapp { background: var(--bg); color: var(--text); font-family: var(--
 .ax.rp .h2s { font-size: var(--fs-body); font-weight: var(--fw-reg); color: var(--muted); margin: var(--s2) 0 0; }
 .ax.rp .tag { font-size: var(--fs-small); }
 .ax.rp .group { margin-top: var(--s2); padding-top: var(--s2); border-top: 1px solid var(--line); }
-.ax.rp .stars, .ax.rp .stars { display: flex; justify-content: space-between; gap: 0; grid-template-columns: none; }
+.ax.rp .stars { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0; grid-template-columns: none; }
 .ax.rp .star { border: 0; background: none; min-width: 44px; min-height: 44px; width: 44px; padding: 0; color: #A86B00; }
 .ax.rp .star .n { display: none; }
-.ax.rp .star .ic { width: 28px; height: 28px; stroke: #A86B00; stroke-width: 2.2; fill: none; }
+.ax.rp .star .ic { width: 20px; height: 20px; stroke: #A86B00; stroke-width: 2.2; fill: none; }
 .ax.rp .stars:hover .star .ic { fill: #FFC107; }
 .ax.rp .stars .star:hover ~ .star .ic { fill: none; }
 .ax.rp .star:has(input:checked), .ax.rp .star:has(~ .star input:checked) { background: none; border: 0; color: #A86B00; }
@@ -1593,6 +1595,31 @@ body.ax.chatapp { background: var(--bg); color: var(--text); font-family: var(--
 .ax.rp .chip-grid .chip { min-height: 44px; border-radius: 999px; padding: 0 var(--s4); justify-content: center; font-weight: var(--fw-reg); }
 .ax.rp .chip-grid .chip .tick { display: none; }
 .ax.rp .chip-grid .chip[aria-pressed="true"] { background: var(--primarysoft); border-color: var(--primary); }
+.ax.rp .rate-row { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); }
+.ax.rp .rate-row .h2s { margin: 0; flex: 1; min-width: 0; }
+.ax.rp .rate-row .stars { flex: none; justify-content: flex-end; }
+.ax.rp .starword { margin-top: 0; text-align: right; justify-content: flex-end; }
+.ax.rp .starword:empty { display: none; }
+.ax.rp .rate-row { flex-wrap: wrap; }
+.ax.rp .rate-row .h2s { flex: 1 1 110px; }
+.ax.rp .rate-row .stars { flex: 0 1 auto; max-width: 100%; }
+
+/* place chooser: one line per place, no boxes, search and Near me on one line */
+.ax .pq-row { display: flex; gap: var(--s2); align-items: center; }
+.ax .pq-row .search { flex: 1; min-width: 0; box-shadow: none; }
+.ax .pq-row .btn { flex: none; }
+.ax .pl-list { display: grid; gap: 0; }
+.ax .pl-list .listrow { grid-template-columns: 1fr auto; padding: 0 var(--s3); min-height: 44px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: none; gap: var(--s3); }
+.ax .pl-list .listrow .nm { font-weight: var(--fw-med); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ax .pl-list .listrow .sub { grid-column: auto; white-space: nowrap; }
+.ax .pl-list .listrow.sel { background: var(--primarysoft); border-bottom: 1px solid var(--line); box-shadow: inset 3px 0 0 var(--primary); }
+.ax .pl-list { max-height: min(46vh, 420px); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; border-top: 1px solid var(--line); }
+.ax .pl-list .listrow.sel { scroll-margin: 44px; }
+/* stars closer together: the 44px tap boxes overlap a little, the stars stay 20px */
+.ax.rp .stars { justify-content: flex-end; flex-wrap: nowrap; }
+.ax.rp .star { margin: 0 -6px; }
+.ax.rp .stars { padding: 0 6px 0 0; }
+.ax.rp .part .chip { font-weight: var(--fw-reg); }
 
 </style></head><body class="ax mapapp"><svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><symbol id="lucide-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
   <path d="M12 9v4" />
@@ -5630,9 +5657,9 @@ window.atlasRegion=function(){var A=window.AtlasMap,c=window.__MAPCFG;if(!A)retu
   // ---- rendering
   const starsHtml = () => {
     const off = R.limit.rating;
-    return '<fieldset class="group" id="rp-stars"' + (off ? ' disabled' : '') + ' aria-describedby="rp-stars-err"><legend class="h2s">How accessible was it?</legend><div class="stars">'
+    return '<fieldset class="group" id="rp-stars"' + (off ? ' disabled' : '') + ' aria-describedby="rp-stars-err" aria-labelledby="rp-stars-l"><div class="rate-row"><span class="h2s" id="rp-stars-l">How accessible was it?</span><div class="stars">'
       + [1, 2, 3, 4, 5].map((n) => '<label class="star"><input type="radio" name="rp-star" value="' + n + '" aria-label="' + n + ' of 5, ' + STAR_WORDS[n] + '"' + (R.stars === n ? ' checked' : '') + '>' + icon('star') + '<span class="n" aria-hidden="true">' + n + '</span></label>').join('')
-      + '</div><p class="starword" id="rp-starword" aria-live="polite">' + (R.stars ? R.stars + ' of 5, ' + STAR_WORDS[R.stars] : '') + (R.sent.rating ? ' <span class="saved">' + icon('check') + 'Saved</span>' : '') + '</p>'
+      + '</div></div><p class="starword" id="rp-starword" aria-live="polite">' + (R.stars ? R.stars + ' of 5, ' + STAR_WORDS[R.stars] : '') + (R.sent.rating ? ' <span class="saved">' + icon('check') + 'Saved</span>' : '') + '</p>'
       + errFor('stars') + '</fieldset>';
   };
   const errFor = (k) => { const e = R.errors.find((x) => x[0] === k); return '<p class="err" id="rp-' + k + '-err"' + (e ? '' : ' hidden') + '>' + icon('alert') + '<span>' + (e ? esc(e[1]) : '') + '</span></p>'; };
@@ -5836,17 +5863,16 @@ window.atlasRegion=function(){var A=window.AtlasMap,c=window.__MAPCFG;if(!A)retu
       const t = q.trim().toLowerCase();
       if (t) l = l.filter((p) => p.name.toLowerCase().includes(t) || p.layer.toLowerCase().includes(t));
       if (here) { l.forEach((p) => { p.d = p.pt ? dist(here, p.pt) : 1e9; }); l.sort((a, b) => a.d - b.d); } else l.sort((a, b) => a.name.localeCompare(b.name));
-      return l.slice(0, 8);
+      return l.slice(0, 80);
     };
     const draw = () => {
-      const l = list();
+      const l = list(), keep = $('.pl-list', node), top = keep ? keep.scrollTop : 0;
       node.innerHTML = (status ? '<div class="banner ' + (status.kind || '') + '" role="status">' + icon(status.icon) + '<span>' + esc(status.text) + '</span></div>' : '')
-        + '<div class="field"><label for="rp-pq" class="lbl">Search a place</label><div class="search" role="search" aria-label="Search a place">' + icon('search') + '<input type="search" id="rp-pq" value="' + esc(q) + '" placeholder="Name of a place" autocomplete="off"></div></div>'
-        + '<button type="button" class="btn btn-secondary block" data-near>' + icon('near') + '<span>Near me</span></button>'
-        + '<h3 class="h2s" style="font-size:var(--fs-body)">' + (here ? 'Near you' : q ? 'Results' : 'Places') + '</h3>'
-        + '<div class="stack" role="radiogroup" aria-label="Places">' + l.map((p) => '<button type="button" class="listrow' + (pick === p.id ? ' sel' : '') + '" role="radio" aria-checked="' + (pick === p.id) + '" data-pid="' + esc(p.id) + '"><span class="nm">' + esc(p.name) + '</span>' + ui.badge(p.rating, WORD[p.rating]) + '<span class="sub">' + esc(p.layer + (here && p.d < 1e8 ? ', ' + fmt(p.d) : '')) + '</span></button>').join('')
-        + '<button type="button" class="listrow' + (pick === '__none' ? ' sel' : '') + '" role="radio" aria-checked="' + (pick === '__none') + '" data-pid="__none"><span class="nm">Not about one place</span><span></span><span class="sub">Problem only, no stars</span></button></div>'
+        + '<div class="pq-row"><div class="search" role="search" aria-label="Search a place">' + icon('search') + '<input type="search" id="rp-pq" value="' + esc(q) + '" placeholder="Search a place" aria-label="Search a place" autocomplete="off"></div>'
+        + '<button type="button" class="btn btn-secondary" data-near aria-label="Near me">' + icon('near') + '<span>Near me</span></button></div>'
+        + '<div class="pl-list" role="radiogroup" aria-label="' + (here ? 'Near you' : q ? 'Results' : 'Places') + '">' + '<button type="button" class="listrow' + (pick === '__none' ? ' sel' : '') + '" role="radio" aria-checked="' + (pick === '__none') + '" data-pid="__none"><span class="nm">Not about one place</span><span class="sub">Problem only</span></button>' + l.map((p) => '<button type="button" class="listrow' + (pick === p.id ? ' sel' : '') + '" role="radio" aria-checked="' + (pick === p.id) + '" data-pid="' + esc(p.id) + '"><span class="nm">' + esc(p.name) + '</span><span class="sub">' + esc(p.layer + (here && p.d < 1e8 ? ', ' + fmt(p.d) : '')) + '</span></button>').join('') + '</div>'
         + '<button type="button" class="btn btn-primary block" data-use>Use this place</button>';
+      const nl = $('.pl-list', node); if (nl) nl.scrollTop = top;
     };
     draw();
     sheet = ui.sheet.open({ title: 'Change place', node });
