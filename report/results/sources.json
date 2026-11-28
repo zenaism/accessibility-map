@@ -1,0 +1,115 @@
+{
+ "families": {
+  "OpenStreetMap features": {
+   "oxford": 6315,
+   "cincinnati": 41959,
+   "score": [
+    85.3,
+    85.3
+   ]
+  },
+  "OSM destinations and entrances": {
+   "oxford": 382,
+   "cincinnati": 5082,
+   "score": [
+    85.3,
+    85.3,
+    85.3,
+    85.3
+   ]
+  },
+  "Overture places": {
+   "oxford": 2758,
+   "cincinnati": 92859,
+   "score": [
+    80.0,
+    80.0
+   ]
+  },
+  "CAGIS curb ramps, sidewalks, stairs, signals": {
+   "oxford": 0,
+   "cincinnati": 241246,
+   "score": [
+    96.9,
+    96.9,
+    96.9,
+    96.9
+   ]
+  },
+  "Cincinnati 311 reports": {
+   "oxford": 0,
+   "cincinnati": 24639,
+   "score": [
+    91.6
+   ]
+  },
+  "USGS 3DEP slope (path sections)": {
+   "oxford": 3872,
+   "cincinnati": 20062,
+   "score": [
+    95.3,
+    95.3
+   ]
+  },
+  "GTFS bus stops": {
+   "oxford": 61,
+   "cincinnati": 2320,
+   "score": [
+    95.3,
+    95.3
+   ]
+  },
+  "Venue and agency web pages": {
+   "oxford": 278,
+   "cincinnati": 186,
+   "score": [
+    76.5,
+    71.2,
+    81.9,
+    81.9,
+    79.8,
+    82.2,
+    82.2,
+    82.2,
+    82.2,
+    82.2,
+    82.2,
+    81.6,
+    75.9,
+    82.2,
+    81.1,
+    81.1,
+    82.2,
+    82.2,
+    75.9,
+    78.2,
+    75.9,
+    82.2,
+    72.8,
+    72.3,
+    76.6
+   ]
+  },
+  "Event calendar records": {
+   "oxford": 814,
+   "cincinnati": 305,
+   "score": [
+    83.8,
+    83.8,
+    83.8
+   ]
+  }
+ },
+ "tiers_all_64": {
+  "A": 49,
+  "D": 5,
+  "B": 10
+ },
+ "n_cards": 64,
+ "oxford_walk_nodes": 21637,
+ "oxford_walk_edges_parquet": 25436,
+ "oxford_stair_edges": 153,
+ "oxford_edges_grade_gt_8_33_pct": 1.2,
+ "oxford_edges_grade_gt_5_pct": 4.8,
+ "oxford_edges_with_grade": 25183
+}

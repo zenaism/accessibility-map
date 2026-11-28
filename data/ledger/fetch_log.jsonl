@@ -1,0 +1,16 @@
+{"source": "dc_ada_curb_ramps", "region": "dc", "type": "arcgis", "url": "https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Transportation_ADA_WebMercator/MapServer/3", "started": "2026-11-16T04:54:12+00:00", "status": "ok", "seconds": 47.5}
+{"source": "dc_ada_driveways", "region": "dc", "type": "arcgis", "url": "https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Transportation_ADA_WebMercator/MapServer/4", "started": "2026-11-16T04:55:02+00:00", "status": "ok", "seconds": 39.5}
+{"source": "dc_ada_audible_signals", "region": "dc", "type": "arcgis", "url": "https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Transportation_ADA_WebMercator/MapServer/0", "started": "2026-11-16T04:55:43+00:00", "status": "ok", "seconds": 12.6}
+{"source": "dc_ada_barriers", "region": "dc", "type": "arcgis", "url": "https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Transportation_ADA_WebMercator/MapServer/1", "started": "2026-11-16T04:55:58+00:00", "status": "error", "error": "DataSourceError: Failed to read GeoJSON data; JSON parsing error: continue (at offset 212062)", "seconds": 18.2}
+{"source": "dc_ada_bus_stops", "region": "dc", "type": "arcgis", "url": "https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Transportation_ADA_WebMercator/MapServer/2", "started": "2026-11-16T04:56:19+00:00", "status": "error", "error": "DataSourceError: Failed to read GeoJSON data; JSON parsing error: continue (at offset 9866)", "seconds": 4.0}
+{"source": "dc_ada_barriers", "region": "dc", "type": "arcgis", "url": "https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Transportation_ADA_WebMercator/MapServer/1", "started": "2026-11-16T04:56:34+00:00", "status": "ok", "seconds": 2.0}
+{"source": "dc_ada_bus_stops", "region": "dc", "type": "arcgis", "url": "https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Transportation_ADA_WebMercator/MapServer/2", "started": "2026-11-16T04:56:38+00:00", "status": "ok", "seconds": 3.9}
+{"source": "osm", "region": "dc", "type": "overpass", "url": "", "started": "2026-11-16T04:57:27+00:00", "status": "ok", "seconds": 186.4}
+{"source": "osm_destinations", "region": "dc", "type": "osm_destinations", "url": "", "started": "2026-11-16T05:00:36+00:00", "status": "ok", "seconds": 410.9}
+{"source": "osm_entrances", "region": "dc", "type": "osm_entrances", "url": "", "started": "2026-11-16T05:07:30+00:00", "status": "ok", "seconds": 44.8}
+{"source": "overture_places", "region": "dc", "type": "overture", "url": "", "started": "2026-11-16T05:08:17+00:00", "status": "ok", "seconds": 8.6}
+{"source": "osm", "region": "dayton", "type": "overpass", "url": "", "started": "2026-11-16T05:08:34+00:00", "status": "ok", "seconds": 131.1}
+{"source": "osm_destinations", "region": "dayton", "type": "osm_destinations", "url": "", "started": "2026-11-16T05:10:48+00:00", "status": "ok", "seconds": 261.8}
+{"source": "osm_entrances", "region": "dayton", "type": "osm_entrances", "url": "", "started": "2026-11-16T05:15:13+00:00", "status": "ok", "seconds": 33.9}
+{"source": "overture_places", "region": "dayton", "type": "overture", "url": "", "started": "2026-11-16T05:15:48+00:00", "status": "ok", "seconds": 4.8}
+{"source": "web_venues_cincinnati", "region": "cincinnati", "type": "web", "url": "", "started": "2026-11-19T20:08:10+00:00", "status": "ok", "seconds": 25.0}

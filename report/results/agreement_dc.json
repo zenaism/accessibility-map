@@ -1,0 +1,25 @@
+{
+  "curb_ramps": {
+    "tolerance_m": 15.0,
+    "osm_lowered_or_flush": 10477,
+    "osm_corroborated_by_inventory": 9334,
+    "osm_corroboration": 0.891,
+    "inventory_ramps": 34572,
+    "inventory_in_osm": 9563,
+    "osm_coverage_of_inventory": 0.277,
+    "osm_raised_kerbs": 95,
+    "osm_raised_where_inventory_has_a_ramp": 63,
+    "inventory_missing_but_osm_lowered": 624,
+    "inventory_noncompliant_and_in_osm": 3949,
+    "inventory_rated": 34397
+  },
+  "audible_signals": {
+    "tolerance_m": 25.0,
+    "osm_sound_signals": 283,
+    "osm_corroborated_by_inventory": 83,
+    "osm_corroboration": 0.293,
+    "inventory_compliant_aps": 961,
+    "inventory_in_osm": 190,
+    "osm_coverage_of_inventory": 0.198
+  }
+}
