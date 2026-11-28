@@ -2,6 +2,8 @@
 
 **Collects wheelchair and low-vision access information about places, rates how far each fact can be trusted, shows it on a map, and answers questions from it, with a source for every claim.** A Miami University research project.
 
+> **Try it now: [Open the Oxford map](https://zenaism.github.io/accessibility-map/data/map/oxford.html)** (works on phone and desktop, no install).
+
 <p align="center">
 <img src="docs/figures/regions_flow.gif" width="100%" alt="Animation in two steps. 1: paths and stairs of Cincinnati, Oxford, Washington DC and Dayton draw in, with the number of records collected for each. 2: places with a wheelchair tag appear on those maps in green (yes), amber (limited) or red (no); most places have no tag."/>
 </p>
