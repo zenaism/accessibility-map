@@ -54,3 +54,7 @@ docs/figures/ux_audit/
 
 # Generated components test page (B0)
 build/
+
+# Local-only extras (not part of the project record)
+eval/results/agent_*_rerun.md
+docs/work_logs/screens/annotated/
