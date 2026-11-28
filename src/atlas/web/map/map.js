@@ -339,7 +339,8 @@
     const node = document.createElement('div');
     const paint = () => { node.innerHTML = filterHtml(); const n = results().length; node.querySelector('[data-f-show]').textContent = n === 0 ? 'No places match' : 'Show ' + n + ' place' + (n === 1 ? '' : 's'); updateFilterBadge(); };
     paint();
-    const sh = ui.sheet.open({ title: 'Filter', node });
+    const sh = ui.sheet.open({ title: 'Filters', node });
+    sh.el.classList.add('filtersheet');   // D-107: a panel under the search box on desktop, a capped sheet on phones
     node.addEventListener('click', (e) => {
       const b = e.target.closest('[data-f],[data-f-reset],[data-f-show]');
       if (!b) return;

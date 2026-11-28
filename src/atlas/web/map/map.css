@@ -202,3 +202,16 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
 .ax .phead .badge { justify-self: start; width: fit-content; }
 .ax .rate-line .stars .star { margin: 0 -6px; }
 .ax .rate-line .stars { padding-right: 6px; }
+
+/* D-107 filter window: pinned footer, capped height, calm title; on desktop it opens as a panel under the search box (design option A, phone = option C) */
+.ax .sheet.filtersheet { display: flex; flex-direction: column; gap: 0; max-height: calc(100dvh - 96px); overflow: hidden; padding-bottom: 0; }
+.ax .sheet.filtersheet .sheet-head h2:focus { outline: none; }
+.ax .sheet.filtersheet > .stack3 { overflow: auto; min-height: 0; padding-bottom: var(--s3); }
+.ax .sheet.filtersheet .filterform { gap: var(--s5) !important; }
+.ax .sheet.filtersheet .filterform fieldset.group > legend { font-size: var(--fs-small); font-weight: var(--fw-bold); letter-spacing: .03em; text-transform: uppercase; margin-bottom: var(--s2); }
+.ax .sheet.filtersheet .rowbtns { position: sticky; bottom: calc(-1 * var(--s3)); margin: 0 calc(-1 * var(--s4)); padding: var(--s3) var(--s4) var(--s4); background: var(--surface); border-top: 1px solid var(--line); }
+body:has(.sheet.filtersheet) .scrim { background: color-mix(in srgb, #0a0d10 22%, transparent); }
+@media (min-width: 900px) {
+  .ax .sheet.modal.filtersheet { left: var(--s3); right: auto; bottom: auto; top: calc(76px*var(--k)); width: 376px; max-width: calc(100vw - 24px); margin: 0; max-height: calc(100dvh - 100px); border: 1px solid var(--line); border-radius: var(--r-card); }
+  .ax .sheet.filtersheet .grab { display: none; }
+}

@@ -10,6 +10,7 @@ The maps are live: [Cincinnati](https://zenaism.github.io/accessibility-map/data
 
 | Date | What | Where |
 | --- | --- | --- |
+| 2026-11-27 | **Filter window redesigned**: panel under the search box on desktop, capped sheet on phones, pinned Reset and Show N places, "Filters" title without the heavy focus box, lighter map dimming. Chosen from three mock-ups. Pages re-rendered; not yet checked on a real phone or with a screen reader. D-107. | [decisions.md](decisions.md), `filtersheet` in `map.css` |
 | 2026-11-27 | **Tab name and logo, quiet filter sheet**: tab title "Accessibility Map" and one shared icon on all map, assistant, place and crawler pages; filter sheet labels grey and chips regular weight. Pages re-rendered. D-106. | [decisions.md](decisions.md) |
 | 2026-11-27 | **Two foundation gaps closed** (listed in ui_components.md): `ui.sheet.open` now binds every `[data-sheet-close]`, and `ui.button(type="submit")` is honoured. Foundation tests pass (19). **Legend popover was hidden behind the results panel on phones** (z-index 600 under the panel's 700; now 800), found by loading the map in a 390 px frame. Map pages re-rendered. The toast over the phone list is left as normal toast behaviour. | [ui_components.md](ui_components.md) |
 | 2026-11-27 | **Read aloud uses the route voice**: the chat reads answers with the same Kokoro natural voice as the route directions (device voice while it loads); one Settings switch for both. D-105. | [decisions.md](decisions.md) |

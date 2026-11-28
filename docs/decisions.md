@@ -19,6 +19,13 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-107: The filter window opens as a panel under the search box on desktop and a capped sheet on phones (2026-11-27, accepted)
+**Decision:** on screens 900 px and wider the filter window is a 376 px card at the top left, under the search box; on phones it is a bottom sheet that stops 96 px below the top. In both, the chips scroll inside it and Reset and Show N places stay pinned at the bottom. The title is "Filters", with no heavy focus box; group labels are small uppercase; the map is dimmed 22%, not 55%. Only the filter window changes; the report form and city chooser keep the old sheet.
+**Why:** the old sheet sat low and to the right on desktop, away from the filter icon that opened it, with its button almost off the bottom edge. The owner compared three mock-ups (panel under the search box, centered dialog, phone sheet) and chose the panel for desktop and the capped sheet for phones.
+**Alternatives:** a centered dialog (B); changing the shared sheet for every dialog.
+**Costs / revisit if:** the filter window has its own CSS block (`filtersheet` in `map.css`); check it against a real phone and a screen reader, and with browser zoom at 200%.
+**Basis:** owner choice among three designs.
+
 ### D-106: One tab name and one logo on every page; the filter sheet is quiet (2026-11-27, accepted)
 Decision: every map and assistant page has the tab title "Accessibility Map" and the same teal map-pin icon (`ui_foundation.FAVICON`); names inside the pages stay (the assistant is still "Openway Assistant" on screen, D-29). The about-crawler and place pages keep their own titles but get the same icon. In the filter sheet the group labels are small and grey, chips and Reset are regular weight, and only "Show N places" is strong.
 Why: the owner asked for the tab to match the website and for the filter to be concise and easy to scan. Basis: recorded (owner's words, 2026-11-27).
