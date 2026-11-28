@@ -1,3 +1,5 @@
+> **Archived 2026-11-27.** Historical record: this was built, answered or superseded. Current docs: [`../README.md`](../README.md), [`../decisions.md`](../decisions.md), [`../ui_handout.md`](../ui_handout.md).
+
 # Improvement plan (review of 2026-11-18)
 
 **Progress 2026-11-18: Phase 0 items 0.1 to 0.10 are built and tested (marked DONE below).** Still needs you for 0.8 and 0.9: re-run `supabase/problem_reports.sql`.

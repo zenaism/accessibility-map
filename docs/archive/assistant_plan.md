@@ -1,10 +1,12 @@
+> **Archived 2026-11-27.** Historical record: this was built, answered or superseded. Current docs: [`../README.md`](../README.md), [`../decisions.md`](../decisions.md), [`../ui_handout.md`](../ui_handout.md).
+
 # Openway Assistant: product, UI and build plan
 
 Status: **plan only. Nothing here is built, and no work starts until Mariam says so.** Written 2026-11-20.
 
-**Decided 2026-11-20:** the assistant is called **Openway Assistant** (D-29). There is **no funding**, so no hosted model: the public version is a static, no-model "guided mode" and a small local model is used for research (D-30). The technical details (what we use, pipeline, files, evaluation variants) are in [`assistant_build_spec.md`](assistant_build_spec.md). Where this document says "recommended" for the model options in section 4.3, the build spec has the final choice.
+**Decided 2026-11-20:** the assistant is called **Openway Assistant** (D-29). There is **no funding**, so no hosted model: the public version is a static, no-model "guided mode" and a small local model is used for research (D-30). The technical details (what we use, pipeline, files, evaluation variants) are in [`assistant_build_spec.md`](../assistant_build_spec.md). Where this document says "recommended" for the model options in section 4.3, the build spec has the final choice.
 
-This document covers *who it is for, what it looks like, how it is built, how we know it is good, and how it can be built in parallel with routing*. It does not repeat the tool list, answer rules or question bank; those stay in [`assistant_design.md`](assistant_design.md) (the reference). Architecture choices already made are in [`decisions.md`](decisions.md) and [`system_overview.md`](system_overview.md). The routing feature is planned in [`routing_in_browser_plan.md`](routing_in_browser_plan.md).
+This document covers *who it is for, what it looks like, how it is built, how we know it is good, and how it can be built in parallel with routing*. It does not repeat the tool list, answer rules or question bank; those stay in [`assistant_design.md`](../assistant_design.md) (the reference). Architecture choices already made are in [`decisions.md`](../decisions.md) and [`system_overview.md`](../system_overview.md). The routing feature is planned in [`routing_in_browser_plan.md`](routing_in_browser_plan.md).
 
 ## 1. What we are building, in one paragraph
 

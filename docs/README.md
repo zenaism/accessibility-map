@@ -5,8 +5,6 @@ One topic per file. Where two files touch the same subject, the "owner" below is
 | File | What it is | Owner of |
 |---|---|---|
 | [`research_questions.md`](research_questions.md) | The four (revised) research questions, papers, venues, plan | RQs, paper plan, timeline |
-| [`improvement_plan.md`](improvement_plan.md) | Bugs and improvements found in the 2026-11-18 review, in the order to fix them | what to do next |
-| [`ux_brief.md`](ux_brief.md) | UX brief: users, tasks, UI audit, research, style guide, screens, prototype plan (draft, awaiting owner answers) | designing or changing any screen |
 | [`ui_handout.md`](ui_handout.md) | Handout for changing the UI and UX later: screens and files, how pages are built and rebuilt, rules, recipes, tests, what is open | before changing any screen or its look |
 | [`ui_components.md`](ui_components.md) | UI foundation: Harbor CSS, icons, theme API, event contracts, component and class names, which build owns which file | building or changing any screen |
 | [`study_design.md`](study_design.md) | Method and threats to validity | how we test the RQs |
@@ -17,10 +15,7 @@ One topic per file. Where two files touch the same subject, the "owner" below is
 | [`data_dictionary.md`](data_dictionary.md) | Generated: every column of the observation table (schema v2), the dataset card, candidate table and raw manifest | exact data formats |
 | [`crawler_plan.md`](crawler_plan.md) | Research and implementation plan for the web crawler (requirements, tool comparison, architecture, tests, phases) | how we fetch websites |
 | [`crawler_guide.md`](crawler_guide.md) | How to run the crawler, with a diagram, spec fields, example report, and where the data is saved | running the crawler |
-| [`implementation_plan.md`](implementation_plan.md) | The work order for routing and Openway Assistant: steps, order, checks, approval gates, what the first overnight run would produce (not started) | how the work will be done |
-| [`assistant_plan.md`](assistant_plan.md) | Product, UI ideas, architecture choices, build phases, evaluation, and how to build it in parallel with routing (not started) | planned assistant |
-| [`assistant_build_spec.md`](assistant_build_spec.md) | Technical spec for Openway Assistant: pipeline, what we use ($0 stack), files, evaluation variants (not started) | how the assistant will be built |
-| [`routing_in_browser_plan.md`](routing_in_browser_plan.md) | Step-by-step plan for place-to-place walking routes in the map page (not started) | planned routing feature |
+| [`assistant_build_spec.md`](assistant_build_spec.md) | Technical spec for Openway Assistant: pipeline, what we use ($0 stack), files, evaluation variants (built) | how the assistant will be built |
 | [`data_needs.md`](data_needs.md) | All data we need: now, for computing, for prediction; what to keep from day one | data requirements and future use |
 | [`data_landscape.md`](data_landscape.md) | What users need and every way to get it, by acquisition method | acquisition strategy |
 | [`source_catalog.md`](source_catalog.md) | Researched candidate sources: what each adds, access, terms, priority | source reasoning |
@@ -30,12 +25,11 @@ One topic per file. Where two files touch the same subject, the "owner" below is
 | [`system_overview.md`](system_overview.md) | **Start here.** How the system works, automatic rating, pros and cons, comparison with other architectures, status | the overview |
 | [`architecture.md`](architecture.md) | Mermaid diagrams: system, discovery, crawl and completeness checks, extraction, data model, storage, assistant | how the system fits together |
 | [`source_types.md`](source_types.md) | Non-government source types, licences, region findings (DC, MD, Dayton) | which kinds of sources we need |
-| [`questions_for_you.md`](questions_for_you.md) | **Your answer sheet:** every open question in one place, with my recommendations | what I need from you |
 | [`problem_reports.md`](problem_reports.md) | "Report a problem" with photo: how it works, privacy, turning it on, how the accessibility team reads reports | visitor problem reports |
 | [`decisions.md`](decisions.md) | Decision log: what we chose, why, alternatives, costs | the reasoning behind choices |
 | [`progress_log.md`](progress_log.md) | Dated progress, findings, collection status, to-do (snapshot of the Claude Doc) | what has been done |
-| [`sync_report.md`](sync_report.md) | Report on whether localhost and GitHub Pages match, how we got there, and how to check (`scripts/check_pages_sync.sh`) | is the live site the same as local |
 | [`outreach_emails.md`](outreach_emails.md) | Draft emails to data owners (not sent) | outreach |
+| [`archive/`](archive/) | Finished or replaced plans: implementation, assistant and routing plans, improvement plan, UX brief, session prompts, answered questions, one-off sync and deploy reports | history only, do not follow as current |
 | `*.docx`, `figures/` | Research brief, RQ system notes, images | |
 
 Source *status* (collected, next, ideas) is in [`../SOURCES.md`](../SOURCES.md).

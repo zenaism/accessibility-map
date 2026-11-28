@@ -1,3 +1,5 @@
+> **Archived 2026-11-27.** Historical record: this was built, answered or superseded. Current docs: [`../README.md`](../README.md), [`../decisions.md`](../decisions.md), [`../ui_handout.md`](../ui_handout.md).
+
 # Questions for you (answered 2026-11-15; applied in decision D-21)
 
 All open questions from the plans, in one place and without duplicates. Write your answer on the **Answer:** line (a few words is enough; "your call" means I use my recommendation). Tell me when it is filled and I will apply it to the plans and the decision log. Where I have a recommendation it is marked **Recommend**.

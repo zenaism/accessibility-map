@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accessibility Map: weekly status update</title>
+<style>
+:root{--bg:#fafaf7;--card:#fff;--ink:#1c1c1a;--mut:#5c5c57;--line:#dcdcd4;--bar:#2a6fb0;--warn:#b45309;--ok:#1b7a4b;--bad:#b3261e}
+@media (prefers-color-scheme:dark){:root{--bg:#161614;--card:#1f1f1c;--ink:#f1f1ec;--mut:#a8a8a0;--line:#3a3a35;--bar:#6aa9e6;--warn:#e0a050;--ok:#5cc08a;--bad:#f08a80}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.55 system-ui,-apple-system,Segoe UI,sans-serif}
+header,section{max-width:980px;margin:0 auto;padding:28px 16px}
+h1{font-size:2rem;margin:0 0 6px}h2{font-size:1.5rem;margin:0 0 4px}h3{font-size:1.05rem;margin:18px 0 6px}
+.sub{color:var(--mut);margin:0 0 16px}
+section{border-top:1px solid var(--line)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:12px 0}
+.say{border-left:4px solid var(--bar)}
+.warn{border-left:4px solid var(--warn)}
+.row{display:flex;flex-wrap:wrap;gap:12px}.row>*{flex:1 1 280px}
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px;margin:10px 0}
+.flow div.s{flex:1 1 120px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.9rem}
+.flow b{display:block}.flow i{align-self:center;color:var(--mut);font-style:normal}
+.bars{margin:8px 0}.b{display:grid;grid-template-columns:150px 1fr 90px;gap:8px;align-items:center;margin:5px 0;font-size:.92rem}
+.b .t{height:18px;background:var(--line);border-radius:0 4px 4px 0;position:relative}
+.b .f{height:100%;background:var(--bar);border-radius:0 4px 4px 0}
+.b.zero .v{color:var(--bad);font-weight:600}
+.v{font-variant-numeric:tabular-nums;color:var(--mut)}
+.note{font-size:.85rem;color:var(--mut)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.tag{display:inline-block;padding:1px 8px;border-radius:99px;border:1px solid var(--line);font-size:.8rem}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+@media(max-width:600px){.b{grid-template-columns:100px 1fr 70px}}
+</style>
+</head>
+<body>
+<header>
+<h1>Accessibility Map: weekly status update</h1>
+<p class="sub">A fact engine for wheelchair accessibility, and an assistant that answers only from those facts. Week of 2026-11-23. Numbers come from the repo.</p>
+<div class="flow" aria-label="System overview">
+<div class="s"><b>1 Sources</b>open maps, city data, websites, PDFs</div><i>→</i>
+<div class="s"><b>2 Collect</b>downloads and a polite crawler</div><i>→</i>
+<div class="s"><b>3 Read</b>text, OCR, small local AI</div><i>→</i>
+<div class="s"><b>4 Facts</b>quote + source + date</div><i>→</i>
+<div class="s"><b>5 Trust score</b>automatic, no hand checking</div><i>→</i>
+<div class="s"><b>6 Map and chat</b>"unknown" is allowed</div>
+</div>
+<div class="card warn"><b>Where things stand:</b> (1) Maryland: sources identified and rated, data collection not started. (2) The chat is built and tested on the <code>feature/assistant</code> branch, not yet merged to main. (3) The Supabase report form is built; setting it up on the live project is still to be confirmed.</div>
+</header>
+
+<section id="data">
+<h2>What data do we have? (and Maryland)</h2>
+<p class="sub">Records collected per region, from the dataset cards.</p>
+<div class="bars" id="regions"></div>
+<p class="note">Maryland: 55 Baltimore candidate sources and 2 statewide ones were discovered and rated (tier B or C), but nothing is downloaded. MDOT's pedestrian service now needs an access token; the OpenSidewalks/TDEI licence is stated inconsistently.</p>
+<div class="row">
+<div class="card say"><b>DC is the model for what Maryland will look like</b><br>34,572 curb ramps, 27,901 driveways, 12,826 barriers, 7,743 audible signals, 3,244 bus stops; 46% of curb ramps rated non-compliant (2016 inventory).</div>
+<div class="card say"><b>Next for Maryland</b><br>A new region is a config entry plus a command, as DC showed. Baltimore is next; its open layers can be fetched right away, and data requests to the state are to be sent.</div>
+</div>
+</section>
+
+<section id="chat">
+<h2>How the chat works</h2>
+<p class="sub">Code finds the facts. The model is optional and never writes facts.</p>
+<div class="flow">
+<div class="s"><b>1 Plan</b>what is asked?</div><i>→</i>
+<div class="s"><b>2 Tools</b>look up places, events, routes</div><i>→</i>
+<div class="s"><b>3 Compose</b>short answer from results only</div><i>→</i>
+<div class="s"><b>4 Verify</b>every claim traces to a record</div><i>→</i>
+<div class="s"><b>Answer</b>or "I don't know" + phone</div>
+</div>
+<div class="row">
+<div class="card"><b>Guided mode (public default)</b><br>Rules and templates, runs in the browser, sends nothing anywhere. Median 0.05 s.</div>
+<div class="card"><b>Local model mode (research)</b><br><code>qwen2.5:3b</code> helps plan and write; <code>llava-phi3</code> reads photos. Both free, on the laptop through Ollama. No Claude or GPT.</div>
+</div>
+<h3>Seconds per answer (median): the model is 100 to 400 times slower</h3>
+<div class="bars" id="speed"></div>
+<h3>Honesty: says "unknown" when it should</h3>
+<div class="bars" id="honest"></div>
+<p class="note">Rules-only ran on 174 questions; the model variants on a sample of 44 (8 for retrieval), so those percentages are rough. The answer key was written by the developer and has not been checked by others yet. Finding: the small model did not beat plain rules, so rules ship.</p>
+<div class="card say"><b>Photo questions</b><br>People cannot always describe a sign, flyer or entrance, and blind or low-vision users need another way to ask. The photo is shrunk and redrawn in the browser (GPS removed), described by a local vision model, and never stored. The model is not allowed to say a place is accessible. Current limit: it needs a local model, and answer quality has been tested with a stub, not yet with the real model.</div>
+</section>
+
+<section id="db">
+<h2>The database and what it can hold</h2>
+<div class="flow">
+<div class="s"><b>Supabase (hosted)</b>ratings and problem reports with photos. The only shared database.</div>
+<div class="s"><b>DuckDB file, 1.5 MB</b>the assistant's knowledge base, on the laptop.</div>
+<div class="s"><b>Files on disk</b>raw 2.0 GB, processed 161 MB, crawl 119 MB.</div>
+<div class="s"><b>Static JSON</b>about 0.5 MB per city for the map and chat.</div>
+</div>
+<h3>Capacity: photos in a free 500 MB database</h3>
+<div class="bars" id="photos"></div>
+<p class="note">Free-plan size (500 MB database) is from Supabase's published limits; confirm on the project's Usage page. Limits in our SQL: photo at most 250 KB, 10 reports per device per day, 200 reports per hour in total (worst case fills the database in about 10 hours).</p>
+<table>
+<tr><th>Before student testing</th><th>Status</th></tr>
+<tr><td>Run <code>supabase/problem_reports.sql</code> and send one test report</td><td class="bad">to do</td></tr>
+<tr><td><code>ratings</code> accepts only Cincinnati and Oxford</td><td class="bad">to do: DC and Baltimore ratings are currently rejected</td></tr>
+<tr><td>Chat for students</td><td>guided mode works from one 1 MB file; the local model and photo questions need Ollama and about 2.5 GB memory on the student computer</td></tr>
+<tr><td>Consent / IRB for photos and contact details</td><td class="bad">open</td></tr>
+<tr><td>Free projects pause after about a week idle</td><td>to confirm in Supabase</td></tr>
+<tr><td>Chat questions stored</td><td class="ok">never</td></tr>
+</table>
+</section>
+
+<section id="crawler">
+<h2>The crawler</h2>
+<p class="sub">Give it a site; it visits the most relevant pages first, saves exactly what it got, reads them, then extracts facts with quotes.</p>
+<div class="flow">
+<div class="s"><b>Allowed?</b>robots.txt + terms of use. If not: stop, keep nothing</div><i>→</i>
+<div class="s"><b>Frontier</b>every URL gets a final status</div><i>→</i>
+<div class="s"><b>Fetch</b>2 s apart, browser only if needed</div><i>→</i>
+<div class="s"><b>Clean</b>personal emails and phones removed</div><i>→</i>
+<div class="s"><b>Extract</b>quote must exist in the saved page</div>
+</div>
+<h3>Pages actually fetched per site</h3>
+<div class="bars" id="crawl"></div>
+<div class="row">
+<div class="card say"><b>Privacy rules in place</b><br>Public pages only, no logins or CAPTCHAs. Personal emails become [email removed]; cell, home and personal numbers removed; raw pages never published; we publish facts with short quotes and links. Opt-out page, and a site that asks is removed and remembered. Reddit only through approved API.</div>
+<div class="card warn"><b>Open items</b><br>Terms check only finds terms at usual addresses, in English. Oxford business sites and DC and Dayton government sites were crawled before the terms check existed. No named contact for site owners yet. Counsel and IRB review open.</div>
+</div>
+</section>
+
+<section id="rq">
+<h2>Research questions</h2>
+<table>
+<tr><th>#</th><th>In plain words</th><th>Have</th><th>Missing</th></tr>
+<tr><td>RQ1</td><td>Is accessibility fair across neighbourhoods? Do accessibility complaints get slower answers in poorer or more disabled areas, after accounting for hills?</td><td>24,639 Cincinnati 311 records, slope, census</td><td>the analysis</td></tr>
+<tr><td>RQ2</td><td>Which map source can a wheelchair user trust, checked against what a wheelchair actually senses?</td><td>official ramp inventories, lab recordings</td><td>join lab data to the map</td></tr>
+<tr><td>RQ3</td><td>How sure is the map, and where should we measure next, when sources copy each other and gaps are not random?</td><td>trust scores for 64 source-region pairs</td><td>reference data to calibrate</td></tr>
+<tr><td>RQ4</td><td>Does the AI know when it does not know? Does weighting a false "accessible" as worse change which AI looks safe?</td><td>174 questions, verifier, 4 variants</td><td>harm weights, big-model baseline</td></tr>
+</table>
+<p class="note">Further directions: rules vs small model; cost of adding a new region; crawler vs official surveys; do users use "unknown" answers; do photo questions help blind users; do old inventories age badly.</p>
+</section>
+
+<script>
+function bars(id,rows,max,fmt,opt){
+  var el=document.getElementById(id);max=max||Math.max.apply(null,rows.map(function(r){return r[1]}));
+  el.innerHTML=rows.map(function(r){
+    var w=Math.max(r[1]/max*100,0);
+    return '<div class="b'+(r[1]===0?' zero':'')+'"><span>'+r[0]+'</span><span class="t"><span class="f" style="display:block;width:'+w+'%"></span></span><span class="v">'+(fmt?fmt(r[1]):r[1].toLocaleString())+'</span></div>';
+  }).join('');
+}
+bars('regions',[['Cincinnati',428672],['DC',402963],['Dayton',60015],['Oxford',18352],['Baltimore / Maryland',0]]);
+bars('speed',[['Rules only',0.05],['Model plans',5.9],['Model writes',10.5],['Both',23.1]],null,function(v){return v+' s'});
+bars('honest',[['Rules only',85],['Model plans',80],['Model writes',90],['Both',90]],100,function(v){return v+'%'});
+bars('photos',[['at 250 KB (max)',2000],['at 150 KB (typical)',3333],['30 students at daily cap',300]],null,function(v){return v.toLocaleString()+' photos'});
+bars('crawl',[['DC ODR',184],['DC DDOT',204],['WMATA',223],['Dayton city',209],['Oxford city',2],['Oxford food places',313],['Oxford venues',306]]);
+</script>
+</body>
+</html>

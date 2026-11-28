@@ -19,6 +19,13 @@ Status is one of: accepted, proposed (not yet approved), superseded.
 
 ---
 
+### D-108: Finished plans move to docs/archive/ (2026-11-27, accepted)
+**Decision:** ten planning and one-off documents (implementation, assistant and routing plans, improvement plan, UX brief, both session-prompt files, answered questions, sync and deploy reports) plus the weekly status page moved to `docs/archive/` with a banner and an index; links elsewhere were rewritten. `assistant_build_spec.md` stays because the code cites it, with its status changed to built.
+**Why:** the docs still said "plan only, nothing built" for features that are live, which sends a reader to the wrong place; the folder had 40 files with overlapping owners.
+**Alternatives:** delete them (loses the reasoning trail D-xx cite); leave them in place.
+**Costs / revisit if:** old commit messages still cite the old paths; `git log --follow` finds the history.
+**Basis:** owner request to clean up the repo.
+
 ### D-107: The filter window opens as a panel under the search box on desktop and a capped sheet on phones (2026-11-27, accepted)
 **Decision:** on screens 900 px and wider the filter window is a 376 px card at the top left, under the search box; on phones it is a bottom sheet that stops 96 px below the top. In both, the chips scroll inside it and Reset and Show N places stay pinned at the bottom. The title is "Filters", with no heavy focus box; group labels are small uppercase; the map is dimmed 22%, not 55%. Only the filter window changes; the report form and city chooser keep the old sheet.
 **Why:** the old sheet sat low and to the right on desktop, away from the filter icon that opened it, with its button almost off the bottom edge. The owner compared three mock-ups (panel under the search box, centered dialog, phone sheet) and chose the panel for desktop and the capped sheet for phones.
@@ -454,7 +461,7 @@ Decision: recognition runs with `continuous = true`; when the browser ends a ses
 Why: the code ended recording at the first pause (`continuous = false`), so long questions were cut. A restart loop is the usual way to get longer input from the browser engine, and keeping interim text means a session that ends without a final result loses nothing. The "paused by the browser" state exists because iOS may refuse an automatic restart.
 Alternatives: only raising a timer (does not fix pauses); allowing typing while listening and treating it as Stop (open question for the owner); hold-to-talk (hard with tremor, rejected in D-39).
 Costs / revisit if: proven only in a simulation and in Chromium; real Chrome and Safari engines may end sessions differently, so test on the owner's iPhone before building. The 60 s cap is ours; the browser may stop earlier.
-Basis: refines D-39. Recorded (owner answer Q9 in [ux_brief.md](ux_brief.md); `voice.js` read on `deploy/routing-pages`) plus inferred (the restart design is mine, not yet tested on a device). Prototype: [prototypes/chat/voice.html](prototypes/chat/voice.html).
+Basis: refines D-39. Recorded (owner answer Q9 in [archive/ux_brief.md](archive/ux_brief.md); `voice.js` read on `deploy/routing-pages`) plus inferred (the restart design is mine, not yet tested on a device). Prototype: [prototypes/chat/voice.html](prototypes/chat/voice.html).
 
 ### D-47: Chat layout follows the visible screen, compose area at most about 18% (2026-11-23, accepted 2026-11-24)
 Decision: the chat shell is exactly the visible viewport (`100dvh` with a `100vh` fallback, plus a `visualViewport` script because iOS Safari does not shrink the layout viewport for the keyboard); only the message list scrolls and the new answer scrolls to its first line (never `scrollIntoView`, which also moved the page in testing); compose padding is `16px + env(safe-area-inset-bottom)` with `viewport-fit=cover`; Speak, Photo and Send are 44 px icon buttons inside the input row, the input is a 16 px auto-growing textarea; Near me and Ask go from 32 to 44 px. Recommended layout: option C (inline icons in portrait, two columns on short wide screens). Option B (one row and a tray) is the alternative.
@@ -468,14 +475,14 @@ Decision: recommended shape A: one sentence of 25 words or fewer, one compact pl
 Why: your Q7 default (refines D-38). Measured on three eval questions: 344 to 410 characters and 6 buttons against 612 to 943 characters and up to 14 buttons in the rebuilt current shape (the live restroom answer was 1,465 characters). It reuses the place card of the list and map. The lead rule follows the brief's rule that unknown or weak never outranks confirmed.
 Alternatives: B, a fact list with no card (breaks one system, D-31 to D-39 principle 10); C, sentence only with the place in a sheet (shortest at 250 to 288 characters, one more tap, kept as the fallback).
 Costs / revisit if: the 25-word limit and three chips are proposals, not measured optima; showing the confidence line on every chat answer departs from the Q12 default for list cards (question to the owner); no user testing yet. The live site did not load on 2026-11-23, so "today" was rebuilt from the verified live shape and understates the saving.
-Basis: recorded (Q7; [ux_brief.md](ux_brief.md) 3c, 4.4, 4.6; `eval/questions.yaml`) plus inferred (lead rule, limits). Prototypes: [prototypes/chat/answers-a.html](prototypes/chat/answers-a.html).
+Basis: recorded (Q7; [archive/ux_brief.md](archive/ux_brief.md) 3c, 4.4, 4.6; `eval/questions.yaml`) plus inferred (lead rule, limits). Prototypes: [prototypes/chat/answers-a.html](prototypes/chat/answers-a.html).
 
 ### D-45: Settings button is a cogwheel drawn for the project (2026-11-23, accepted 2026-11-24)
 Decision: replace the sun-like icon (a circle with eight rays) with an 8-tooth cogwheel drawn as inline SVG on a 24 px grid with a 2 px stroke; 44×44 px; "Settings" visible beside it on desktop and as the accessible name on phones; `aria-expanded` and `aria-controls` on the button; the settings panel keeps its current contents and scrolls inside itself (max 60% of the screen).
 Why: owner request Q2 for the standard gear (refines D-34). Drawing it ourselves means no icon library and no licence file to carry (Lucide is ISC, Feather is MIT, both would also have been allowed).
 Alternatives: an exact Lucide or Feather gear (needs the licence file checked and added); an emoji (never, per the style guide).
 Costs / revisit if: the owner prefers a particular gear shape. No screenshot of the icon the owner sees was attached; the live screenshots in `figures/ux_audit/` were used.
-Basis: recorded (Q2 in [ux_brief.md](ux_brief.md); `chat.js` icon on `deploy/routing-pages`). Prototype: [prototypes/chat/settings-icon.html](prototypes/chat/settings-icon.html).
+Basis: recorded (Q2 in [archive/ux_brief.md](archive/ux_brief.md); `chat.js` icon on `deploy/routing-pages`). Prototype: [prototypes/chat/settings-icon.html](prototypes/chat/settings-icon.html).
 
 ### D-42: One UI base branch cut from origin/main; local main is not merged (2026-11-24, accepted)
 Decision: build sessions branch from `integration/ui-base`, which is `origin/main` plus three commits (screenshot shrink, side-panel fixes, a lint wrap). Local `main` is left as it is and is not merged or pushed. Old local tips are kept as `backup/*` tags; the uncommitted integration edits live on `wip/panel-fixes`.
@@ -503,7 +510,7 @@ Decision: tap to start and tap to stop; `continuous = true` with restart when th
 Why: the code used `continuous = false`, so the browser ended recording at the first pause and a long sentence was cut off. Tap-to-toggle suits one-handed use and tremor. No auto-send lets people fix recognition errors.
 Alternatives: hold-to-talk (hard with tremor); raising a timer only (does not fix the pause cut-off).
 Costs / revisit if: iOS Safari is unreliable and the 60 s figure is ours, not the browser's; test on real devices.
-Basis: recorded (owner report 2026-11-23; `voice.js:13`; MDN `continuous`; forum reports are excerpts) in [ux_brief.md](ux_brief.md) 3c and 4.4.
+Basis: recorded (owner report 2026-11-23; `voice.js:13`; MDN `continuous`; forum reports are excerpts) in [archive/ux_brief.md](archive/ux_brief.md) 3c and 4.4.
 
 ### D-38: Chat answers short first, detail on request (2026-11-23, accepted)
 Decision: first answer is one sentence plus one compact place card; other places, all facts and sources sit under "More"; at most two visible actions. Every claim stays traceable; computed facts keep "not checked on site".
@@ -559,7 +566,7 @@ Decision: three states (Confirmed, Reported, Not known); labels shown only when 
 Why: the trust engine rates everything but the exported data and UI show none of it; "Area History" ranked first on one OSM tag.
 Alternatives: always show confidence (overload); percentages (false precision).
 Costs / revisit if: the export change is not agreed with the other team.
-Basis: recorded ([ux_brief.md](ux_brief.md) audit A1, A2).
+Basis: recorded ([archive/ux_brief.md](archive/ux_brief.md) audit A1, A2).
 
 ### D-30: The assistant is a tool-first pipeline that runs without a paid model (2026-11-20, proposed)
 Decision: there is no funding for a hosted model, so (1) the assistant is built as a fixed pipeline of plan, run tools, compose, verify, with a rules version and a small-local-model version of the plan and compose steps; (2) the public version is a static "guided mode" with no model and no server (quick-ask tiles and a question matcher over exported data); (3) a local small model through Ollama is used for research, evaluation and demonstrations; (4) a hosted model is not used unless funding appears. Details: [`assistant_build_spec.md`](assistant_build_spec.md).
@@ -629,7 +636,7 @@ Basis: recorded (user choice 2026-11-20; web search results).
 **Why:** these are the user's own answers to the open questions; items 8 and 9 override my first recommendation (first release without them) because the user wants lived-experience data and imagery.
 **Alternatives:** none: the user decided. Defaults used where the user left a question blank: skip and ask permission for sites whose terms forbid bots (C2); ask counsel before redistributing page-derived data (E3).
 **Costs / revisit if:** laptop-only limits OCR and vision work (small batches, small models); Reddit needs approval and credentials and brings terms and privacy duties; Mapillary imagery is CC BY-SA, so derived data may carry share-alike duties; whole-city coverage raises crawl and storage needs. Revisit when a lab GPU or storage appears, and after the Reddit and Mapillary access steps.
-**Basis:** recorded (`questions_for_you.md`, answers dated 2026-11-15).
+**Basis:** recorded (`archive/questions_for_you.md`, answers dated 2026-11-15).
 
 ### D-20: Build the crawler on Scrapy plus our own modules; decide after a spike (2026-11-15, proposed)
 **Decision:** the web crawler uses Scrapy as the crawl engine (queue, politeness, retries, resume, sitemaps) with Playwright for JavaScript pages, and our own modules for what is specific to us: place-driven seeds, relevance scoring and budgets, completeness gates, provenance and extraction hand-off. A 2 to 3 day spike (phase C0) confirms it; if Scrapy cannot keep our priority queue, resume after a kill, and apply the same politeness limits to browser pages, we build a small custom async crawler instead. We crawl wide (save everything in scope) and extract deep (read only what looks relevant).

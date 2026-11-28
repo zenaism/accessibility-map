@@ -1,3 +1,5 @@
+> **Archived 2026-11-27.** Historical record: this was built, answered or superseded. Current docs: [`../README.md`](../README.md), [`../decisions.md`](../decisions.md), [`../ui_handout.md`](../ui_handout.md).
+
 # Implementation guide: route from any place to any place, in the browser
 
 Status: **plan only, not started.** Written 2026-11-20. Nothing in this guide has been built or measured yet; sizes and timings are estimates until Phase 1 and Phase 5.

@@ -151,7 +151,7 @@ Where a reviewer could help. "Partly" = a first version or only some inputs; "Id
 | Audio route guidance | blind users need crossings and spoken steps | Directions has read-aloud, a "blind" profile that prefers signalised crossings, and voice input | Partly |
 | User profiles (chair size, slope limit) | "passable" depends on the person | routing profiles `wheelchair` and `blind`; ADA limit fixed at 8.33% | Idea for personal limits ([`data_needs.md`](docs/data_needs.md)) |
 | More regions | the goal is the whole US | region resolver, automatic source discovery; DC and Dayton collected; Baltimore discovered | Partly |
-| Fix known interface barriers | small targets, errors not tied to fields | audit in [`docs/ux_brief.md`](docs/ux_brief.md), order of fixes in [`improvement_plan.md`](docs/improvement_plan.md) | Partly |
+| Fix known interface barriers | small targets, errors not tied to fields | audit in [`docs/archive/ux_brief.md`](docs/archive/ux_brief.md), order of fixes in [`archive/improvement_plan.md`](docs/archive/improvement_plan.md) | Partly |
 | Predict outages, fill missing attributes | most places have no tag | history archives (weather, alerts) run hourly | Idea |
 
 ## Where things are

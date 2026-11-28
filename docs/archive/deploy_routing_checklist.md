@@ -1,3 +1,5 @@
+> **Archived 2026-11-27.** Historical record: this was built, answered or superseded. Current docs: [`../README.md`](../README.md), [`../decisions.md`](../decisions.md), [`../ui_handout.md`](../ui_handout.md).
+
 # Publishing the map with Directions and the chat (checklist)
 
 Branch: `deploy/routing-pages` (from `integration/routing-assistant`, which merges `feature/browser-routing` and `feature/assistant`). Local only: nothing is pushed, nothing merged into `main`.

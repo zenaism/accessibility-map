@@ -1,3 +1,5 @@
+> **Archived 2026-11-27.** Historical record: this was built, answered or superseded. Current docs: [`../README.md`](../README.md), [`../decisions.md`](../decisions.md), [`../ui_handout.md`](../ui_handout.md).
+
 # UX design brief (session 1 of the redesign)
 
 **Status: v2, answers applied 2026-11-23.** The owner answered Q1, Q2 and Q4 and said to use the recommended default for all other questions (section 11). Rebuilt around the owner's list of 8 changes (section 3c) and the research (section 4). Section 11 records every question with its answer. No code, page or data was changed to produce it. Prototype sessions: read this whole file first, then only the screen they are assigned (section 10).

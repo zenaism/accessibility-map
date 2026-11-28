@@ -243,7 +243,7 @@ Aim: files they can read without our code, with a documented contract.
 
 ## 9. Open questions (answered 2026-11-15)
 
-Answered by you on 2026-11-15 (see `questions_for_you.md`); the effects are in decision D-21.
+Answered by you on 2026-11-15 (see `archive/questions_for_you.md`); the effects are in decision D-21.
 
 **Still open:** who is the crawler's contact person (B4); whether the lab's wheelchair recordings can be joined to the map by place and time (E1, ask your professor); whether to ask Miami's library or counsel about redistributing page-derived data (E3); the Maryland counties and deadline beyond "whole city" coverage (A1); WARC files (B2, not needed now); the rule for sites whose terms forbid bots (C2, using my default until you decide: skip and ask permission).
 

@@ -1,3 +1,5 @@
+> **Archived 2026-11-27.** Historical record: this was built, answered or superseded. Current docs: [`../README.md`](../README.md), [`../decisions.md`](../decisions.md), [`../ui_handout.md`](../ui_handout.md).
+
 # Implementation plan: routing and Openway Assistant (Cincinnati and Oxford)
 
 Status: **plan only. No work starts until Mariam says so.** Written 2026-11-20.
@@ -8,9 +10,9 @@ This is the **work order**: the exact steps, their order, what each produces, ho
 |---|---|
 | Routing design and UX | [`routing_in_browser_plan.md`](routing_in_browser_plan.md) |
 | Assistant product, UI, evaluation | [`assistant_plan.md`](assistant_plan.md) |
-| Assistant technical design | [`assistant_build_spec.md`](assistant_build_spec.md) |
-| How the pieces fit | [`architecture.md`](architecture.md) section 12 |
-| Decisions | [`decisions.md`](decisions.md) (D-29, D-30) |
+| Assistant technical design | [`assistant_build_spec.md`](../assistant_build_spec.md) |
+| How the pieces fit | [`architecture.md`](../architecture.md) section 12 |
+| Decisions | [`decisions.md`](../decisions.md) (D-29, D-30) |
 
 **Scope:** Cincinnati and Oxford only. Routing starts with Oxford. Nothing in the code is Ohio-specific. More regions come after both tracks work and are tested.
 

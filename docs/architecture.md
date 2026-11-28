@@ -336,7 +336,7 @@ flowchart LR
 
 ## 12. Delivery: from build to what people use (Openway Assistant and routing)
 
-How the pieces fit from collecting data to the screen. **Green = exists today, blue = planned** (see [`routing_in_browser_plan.md`](routing_in_browser_plan.md), [`assistant_plan.md`](assistant_plan.md) and [`assistant_build_spec.md`](assistant_build_spec.md)). First scope: **Cincinnati and Oxford**; nothing is Ohio-specific in the code, regions come from `config/regions.yaml`, so more regions can be added later.
+How the pieces fit from collecting data to the screen. **Green = exists today, blue = planned** (see [`archive/routing_in_browser_plan.md`](archive/routing_in_browser_plan.md), [`archive/assistant_plan.md`](archive/assistant_plan.md) and [`assistant_build_spec.md`](assistant_build_spec.md)). First scope: **Cincinnati and Oxford**; nothing is Ohio-specific in the code, regions come from `config/regions.yaml`, so more regions can be added later.
 
 ```mermaid
 flowchart TD
@@ -396,7 +396,7 @@ Reading it:
 
 ## 13. UX flows (owner's 8 changes, 2026-11-23)
 
-Full reasoning in [`ux_brief.md`](ux_brief.md). **Green = exists today, blue = planned.**
+Full reasoning in [`archive/ux_brief.md`](archive/ux_brief.md). **Green = exists today, blue = planned.**
 
 ```mermaid
 flowchart TD

@@ -1,3 +1,5 @@
+> **Archived 2026-11-27.** Historical record: this was built, answered or superseded. Current docs: [`../README.md`](../README.md), [`../decisions.md`](../decisions.md), [`../ui_handout.md`](../ui_handout.md).
+
 # Sync report: localhost vs GitHub Pages
 
 Refreshed 2026-11-26 (night), after the restore commits `9d0d21a` (crawl specs) and `b25fe70` (data cards) were pushed on top of the city-page and GitHub-link commit `4ff095b`. Not committed. Earlier versions of this report described a diverged state and a pending question list; both are closed.

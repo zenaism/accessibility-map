@@ -1,8 +1,8 @@
 # Openway Assistant: build specification (what we will use and how)
 
-Status: **plan only, nothing built.** Written 2026-11-20. This is the technical companion to [`assistant_plan.md`](assistant_plan.md) (product, UI, phases, evaluation). Tool list and answer rules stay in [`assistant_design.md`](assistant_design.md). The decisions are recorded in [`decisions.md`](decisions.md) as D-29 (name) and D-30 (no paid model).
+Status: **built** (routing and the assistant are live on `main`). Written 2026-11-20 as a plan; kept as the technical reference, and the code points at section 4. Product plan: [`archive/assistant_plan.md`](archive/assistant_plan.md). Tool list and answer rules: [`assistant_design.md`](assistant_design.md). Decisions: [`decisions.md`](decisions.md).
 
-Things marked **(spike)** are assumptions that must be tested in a short experiment before we rely on them. Nothing here has been measured on this machine yet.
+Items marked **(spike)** were assumptions to test before relying on them; what was settled is recorded in `decisions.md`.
 
 ## 1. Constraints that shape every choice
 
@@ -220,4 +220,4 @@ Limits to state with the results: a 3B model, one machine, a small question set,
 - **Spikes** in section 7 (they decide whether B to D are worth building).
 - **Upgrades or downloads** (a larger model, a newer Ollama for better vision models): need Mariam's OK, per D-26.
 - **Name check:** a quick web search found two small projects called Openway; a trademark search is still needed.
-- **People for testing** the interface (see `assistant_plan.md` section 9).
+- **People for testing** the interface (see `archive/assistant_plan.md` section 9).

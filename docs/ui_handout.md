@@ -71,7 +71,7 @@ Network: the pages contact only their own host, the USGS basemap and (only when 
 - **Do not hand-write colours into JS**, except the map pins, which use fixed colours with an outline in both themes.
 - Hard-won ones: do not put `<header>` twice on a page (one banner landmark); keep `ui.button(type="submit")` for form buttons; a hint that appears on focus must float (`position:absolute`) so it cannot shift the layout and swallow the tap; guard code that runs before markers exist (`markersReady`).
 
-More: the checklist in [ux_brief.md](ux_brief.md) section 6, the style guide in section 7.
+More: the checklist in [archive/ux_brief.md](archive/ux_brief.md) section 6, the style guide in section 7.
 
 ## 5. The foundation in one page
 
@@ -140,10 +140,10 @@ Commit as Mariam Zenaishvili `<zenaism@miamioh.edu>`, with no AI co-author line,
 | Topic | Document |
 |---|---|
 | Component and class list, event contracts, who owns which file, gaps found while building | [ui_components.md](ui_components.md) |
-| Users, ranked tasks, audit, research, requirements checklist, style guide | [ux_brief.md](ux_brief.md) |
+| Users, ranked tasks, audit, research, requirements checklist, style guide | [archive/ux_brief.md](archive/ux_brief.md) |
 | Flows, branch layout, foundation, map app, report, chat, city as a variable (sections 13 to 19) | [architecture.md](architecture.md) |
 | Why each choice was made (D-49 to D-101 are the UI) | [decisions.md](decisions.md) |
 | What was done when | [progress_log.md](progress_log.md) |
 | Reports: form, SQL, export for the team | [problem_reports.md](problem_reports.md) |
-| Routing in the browser | [routing_in_browser_plan.md](routing_in_browser_plan.md), [routing_usage.md](routing_usage.md) |
+| Routing in the browser | [archive/routing_in_browser_plan.md](archive/routing_in_browser_plan.md), [routing_usage.md](routing_usage.md) |
 | Whole system and data | [system_overview.md](system_overview.md) |
